@@ -15,7 +15,7 @@ app/
            │     │     ├── AuthState.kt
            │     │     ├── AuthViewModel.kt
            │     │     ├── AuthRepository.kt
-           │     │     └── google/   (אופציונלי – גוגל סיין אין)
+           │     │     └── google/
            │     │
            │     ├── data/
            │     │     ├── models/
