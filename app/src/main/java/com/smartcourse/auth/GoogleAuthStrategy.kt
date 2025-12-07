@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.smartcourse.auth
 
 import android.content.Context

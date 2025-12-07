@@ -124,7 +124,6 @@ class AuthViewModel @Inject constructor(
 
     fun login(strategy: AuthStrategy, context: Context) {
         viewModelScope.launch {
-            //authState = AuthState.LOADING
             setLoading()
 
             val result = strategy.login(context = context)
@@ -153,7 +152,6 @@ class AuthViewModel @Inject constructor(
 
             } else {
                 loginFailed = true
-                //authState = AuthState.LOGGED_OUT
                 setLoggedOut()
             }
         }

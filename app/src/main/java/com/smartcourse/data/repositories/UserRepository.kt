@@ -21,19 +21,14 @@ import javax.inject.Singleton
 
 @Singleton
 class UserRepository @Inject constructor(
-    private val supabase: SupabaseClient
+    private val client: SupabaseClient
 ) {
-
-    fun testRepo(): String {
-        return "UserRepository is OK"
-    }
-
 
     /**
      * create user in user_table
      */
     suspend fun createUser(id: String, email: String, name: String, image: String, role: String) {
-        supabase.postgrest[TableNames.USERTABLE].insert(
+        client.postgrest[TableNames.USERTABLE].insert(
             mapOf(
                 UserTable.ID to id,
                 UserTable.NAME to name,
@@ -48,7 +43,7 @@ class UserRepository @Inject constructor(
      * load user from user_table
      */
     suspend fun loadUser(id: String): User? {
-        return supabase.postgrest[TableNames.USERTABLE]
+        return client.postgrest[TableNames.USERTABLE]
             .select { filter { eq(UserTable.ID, id) } }
             .decodeList<User>()
             .firstOrNull()
@@ -57,7 +52,7 @@ class UserRepository @Inject constructor(
     suspend fun updateUserImage(id: String, image: String?) {
         if (image.isNullOrBlank()) return
 
-        supabase
+        client
             .from(TableNames.USERTABLE)
             .update(
                 mapOf(UserTable.IMAGE to image)
@@ -71,7 +66,7 @@ class UserRepository @Inject constructor(
 
 
     suspend fun updateUserRole(id: String, role: UserRole) {
-        supabase
+        client
             .from(TableNames.USERTABLE)
             .update(
                 mapOf(UserTable.ROLE to role.serialName())
@@ -90,7 +85,7 @@ class UserRepository @Inject constructor(
      * Get all users except the user with the given ID
      */
     suspend fun getAllUsersExcept(myId: String): List<User> {
-        return supabase.postgrest[TableNames.USERTABLE]
+        return client.postgrest[TableNames.USERTABLE]
             .select {
                 filter {
                     neq(UserTable.ID, myId)
@@ -101,7 +96,7 @@ class UserRepository @Inject constructor(
 
 
     suspend fun getUserCourses(userId: String): List<UserCourseTable> {
-        return supabase.postgrest[TableNames.USER_COURSES]
+        return client.postgrest[TableNames.USER_COURSES]
             .select {
                 filter {
                     eq(UserTable.ID, userId)
@@ -111,7 +106,7 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun getCourseById(courseId: String): Course? {
-        return supabase.postgrest[TableNames.COURSE_LIST]
+        return client.postgrest[TableNames.COURSE_LIST]
             .select {
                 filter { eq("id", courseId) }
                 limit(1)
@@ -162,7 +157,7 @@ class UserRepository @Inject constructor(
 
 
     suspend fun syncGoogleAvatar() {
-        val u = supabase.auth.currentUserOrNull() ?: return
+        val u = client.auth.currentUserOrNull() ?: return
         val metadata = u.userMetadata ?: return
 
         val avatar =
