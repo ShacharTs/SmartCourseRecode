@@ -1,5 +1,6 @@
 package com.smartcourse.di
 
+import com.smartcourse.data.repositories.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,5 +13,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideTestString(): String = "Hilt is working!"
+    fun provideUserRepository(): UserRepository {
+        return UserRepository()
+    }
+
+
+    @Provides
+    fun provideTestString(): String {
+        return "Hello from Hilt!"
+    }
 }
+
