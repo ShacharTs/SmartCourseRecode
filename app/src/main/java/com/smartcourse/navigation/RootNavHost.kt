@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.ui.screens.login.LoginScreen
 
 
 @Composable
@@ -55,7 +56,7 @@ fun RootNavHost(
         // AUTH SCREENS
         // ----------------------------------------------------
         composable(Screen.Login.route) {
-            //LoginScreen(navController, authVM)
+            LoginScreen(navController, authVM)
         }
 
         composable(Screen.Register.route) {
