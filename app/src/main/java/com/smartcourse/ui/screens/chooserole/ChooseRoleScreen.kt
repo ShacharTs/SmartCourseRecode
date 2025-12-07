@@ -30,6 +30,7 @@ import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
+import com.smartcourse.viewmodels.ChooseRoleViewModel
 
 
 @Composable

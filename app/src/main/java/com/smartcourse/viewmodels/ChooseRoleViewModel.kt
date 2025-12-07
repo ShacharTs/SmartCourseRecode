@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.chooserole
+package com.smartcourse.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,7 +6,6 @@ import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.UserRepository
 import kotlinx.coroutines.launch
-
 
 class ChooseRoleViewModel : ViewModel() {
 

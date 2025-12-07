@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.ui.screens.chat.ChatListScreen
+import com.smartcourse.ui.screens.chat.ChatScreen
 import com.smartcourse.ui.screens.login.LoginScreen
 import com.smartcourse.ui.screens.register.RegisterScreen
 
@@ -80,7 +82,7 @@ fun RootNavHost(
         }
 
         composable(Screen.ChatList.route) {
-            //ChatListScreen(navController, authVM)
+            //ChatListScreen(navController = navController, chatVM = null, authVM = authVM)
         }
 
         composable(Screen.ChatRoom.route) { backStackEntry ->
