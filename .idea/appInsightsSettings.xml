@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.smartcourse" />
+                  <option name="mobileSdkAppId" value="1:332919763204:android:c355d8be45cedd2588e051" />
+                  <option name="projectId" value="smartcoursechats" />
+                  <option name="projectNumber" value="332919763204" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

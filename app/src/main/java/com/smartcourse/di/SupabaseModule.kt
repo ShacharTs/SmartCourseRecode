@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
@@ -18,7 +19,7 @@ object SupabaseModule {
     @Provides
     @Singleton
     fun provideSupabaseClient(
-        context: Context
+        @ApplicationContext context: Context
     ): SupabaseClient {
         return createSupabaseClient(
             supabaseUrl = "https://ronaetarblsnyuakbxsv.supabase.co",
