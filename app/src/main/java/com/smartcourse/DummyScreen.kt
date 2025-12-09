@@ -39,6 +39,11 @@ fun DummyReachedScreen() {
                 color = Color.White)
 
 
+            Text("AuthState: ${authViewModel.authState}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White)
+
+
             CustomSpacer(height = 30)
 
             CustomButton(
