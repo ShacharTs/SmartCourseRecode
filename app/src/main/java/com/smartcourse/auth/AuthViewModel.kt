@@ -38,18 +38,27 @@ class AuthViewModel @Inject constructor(
 
     var signUpState = mutableStateOf<AuthResult?>(null)
 
+    // ------------------------------------------------------------
+    // INIT — FIXED FOR SUPABASE V3
+    // ------------------------------------------------------------
     init {
         viewModelScope.launch {
-            val existingSession = authRepo.client.auth.currentSessionOrNull()
+            authState = AuthState.LOADING
 
-            if (existingSession == null) {
+            val session = authRepo.client.auth.currentSessionOrNull()
+            if (session == null) {
                 authState = AuthState.LOGGED_OUT
                 return@launch
             }
 
-            val hasRefresh = existingSession.refreshToken != null
-            if (hasRefresh) {
-                runCatching { authRepo.client.auth.refreshCurrentSession() }
+            // Supabase v3: must always try refresh, refreshToken is not stored in session object
+            val refreshed = runCatching {
+                authRepo.client.auth.refreshCurrentSession()
+            }.isSuccess
+
+            if (!refreshed) {
+                authState = AuthState.LOGGED_OUT
+                return@launch
             }
 
             val sessionUser = authRepo.client.auth.currentUserOrNull()
@@ -61,15 +70,13 @@ class AuthViewModel @Inject constructor(
             val profile = authRepo.loadOrCreateUser(sessionUser.id)
             user = profile
 
-            authState = if (profile.role == UserRole.TEMP)
-                AuthState.REGISTERED
-            else
-                AuthState.LOGGED_IN
+            authState =
+                if (profile.role == UserRole.TEMP) AuthState.REGISTERED
+                else AuthState.LOGGED_IN
+
+            Log.d("AuthViewModel", "INIT → Restored user ${profile.email}, role=${profile.role}")
         }
     }
-
-
-
 
     // ------------------------------------------------------------
     // EMAIL LOGIN
@@ -88,56 +95,38 @@ class AuthViewModel @Inject constructor(
                 val profile = authRepo.loadOrCreateUser(uid)
                 user = profile
 
+                authState =
+                    if (profile.role == UserRole.TEMP) AuthState.REGISTERED
+                    else AuthState.LOGGED_IN
 
-
-                authState = if (profile.role == UserRole.TEMP)
-                    AuthState.REGISTERED
-                else
-                    AuthState.LOGGED_IN
-
-
-                Log.d("AuthViewModel", "loginEmail: ${profile.name}")
-                Log.d("AuthViewModel", "loginEmail: ${profile.role}")
-                Log.d("AuthViewModel", "loginEmail: ${profile.email}")
-                Log.d("AuthViewModel", "loginEmail: ${authState.name}")
+                Log.d("AuthViewModel", "loginEmail: ${profile.email}, state=${authState.name}")
 
                 return@withContext true
-
-
-
             } catch (e: Exception) {
+                Log.e("AuthViewModel", "loginEmail ERROR", e)
                 authState = AuthState.LOGGED_OUT
                 return@withContext false
             }
         }
     }
 
-
     // ------------------------------------------------------------
-    // REGISTER + LOGIN
+    // REGISTER
     // ------------------------------------------------------------
     suspend fun registerEmail(email: String, password: String): Boolean {
         return try {
             val uid = authRepo.registerEmail(email, password)
 
-            signUpState.value = AuthResult(
-                success = uid != null,
-                userId = uid
-            )
-
+            signUpState.value = AuthResult(uid != null, userId = uid)
             uid != null
         } catch (e: Exception) {
-            signUpState.value = AuthResult(
-                success = false,
-                error = e.localizedMessage
-            )
+            signUpState.value = AuthResult(false, error = e.localizedMessage)
             false
         }
     }
 
-
     // ------------------------------------------------------------
-    // GOOGLE — REQUEST ID TOKEN (moved from GoogleAuthStrategy)
+    // GOOGLE — REQUEST ID TOKEN
     // ------------------------------------------------------------
     private suspend fun requestGoogleIdToken(context: Context): Pair<String, String>? {
         return try {
@@ -164,6 +153,7 @@ class AuthViewModel @Inject constructor(
 
             Pair(cred.idToken, rawNonce)
         } catch (e: Exception) {
+            Log.e("AuthViewModel", "Google ID request failed", e)
             null
         }
     }
@@ -189,11 +179,15 @@ class AuthViewModel @Inject constructor(
             val profile = authRepo.loadOrCreateUser(uid)
             user = profile
 
-            authState = if (profile.role == UserRole.TEMP)
-                AuthState.REGISTERED else AuthState.LOGGED_IN
+            authState =
+                if (profile.role == UserRole.TEMP) AuthState.REGISTERED
+                else AuthState.LOGGED_IN
         }
     }
 
+    // ------------------------------------------------------------
+    // UPDATE ROLE
+    // ------------------------------------------------------------
     fun updateUserRole(role: UserRole, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
             val u = user ?: return@launch
@@ -204,45 +198,33 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-
+    // ------------------------------------------------------------
+    // REGISTRATION VALIDATION
+    // ------------------------------------------------------------
     fun validateRegistration(
         email: String,
         password: String,
         confirmPassword: String
     ): AuthResult {
 
-        if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
-            return AuthResult(
-                success = false,
-                error = "All fields are required"
-            )
-        }
+        if (email.isBlank() || password.isBlank() || confirmPassword.isBlank())
+            return AuthResult(false, "All fields are required")
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            return AuthResult(
-                success = false,
-                error = "Invalid email address"
-            )
-        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())
+            return AuthResult(false, "Invalid email address")
 
-        if (password.length < 6) {
-            return AuthResult(
-                success = false,
-                error = "Password must be at least 6 characters"
-            )
-        }
+        if (password.length < 6)
+            return AuthResult(false, "Password must be at least 6 characters")
 
-        if (password != confirmPassword) {
-            return AuthResult(
-                success = false,
-                error = "Passwords do not match"
-            )
-        }
+        if (password != confirmPassword)
+            return AuthResult(false, "Passwords do not match")
 
-        return AuthResult(success = true)
+        return AuthResult(true)
     }
 
-
+    // ------------------------------------------------------------
+    // LOGOUT
+    // ------------------------------------------------------------
     fun logout() {
         viewModelScope.launch {
             authRepo.logout()

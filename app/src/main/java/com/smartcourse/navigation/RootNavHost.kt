@@ -2,6 +2,7 @@ package com.smartcourse.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -19,91 +20,56 @@ fun RootNavHost(
     navController: NavHostController,
     authVM: AuthViewModel
 ) {
+    val state = authVM.authState
+
+    // THIS IS THE FIX
+    LaunchedEffect(state) {
+        when (state) {
+            AuthState.LOGGED_OUT -> {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(0) // clear everything
+                }
+            }
+            AuthState.REGISTERED -> {
+                navController.navigate(Screen.ChooseRole.route) {
+                    popUpTo(0)
+                }
+            }
+            AuthState.LOGGED_IN -> {
+                navController.navigate(Screen.UserRouter.route) {
+                    popUpTo(0)
+                }
+            }
+            else -> Unit
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.Loading.route
     ) {
 
         composable(Screen.Loading.route) {
-
-            val state by authVM::authState
-
-            LaunchedEffect(state) {
-                when (state) {
-                    AuthState.LOGGED_OUT -> {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(Screen.Loading.route) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-
-                    AuthState.REGISTERED -> {
-                        navController.navigate(Screen.ChooseRole.route) {
-                            popUpTo(Screen.Loading.route) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-
-                    AuthState.LOGGED_IN -> {
-                            navController.navigate(Screen.UserRouter.route) {
-                                popUpTo(Screen.Loading.route) { inclusive = true }
-                                launchSingleTop = true
-
-                        }
-                    }
-
-                    else -> Unit
-                }
-            }
-        }
-
-
-
-            // ************** AUTH SCREENS **************
-        composable(Screen.Login.route) {
-            LoginScreen(
-                navController = navController,
-                authViewModel = authVM
-            )
-        }
-
-        composable(Screen.Register.route) {
-            RegisterScreen(
-                navController = navController,
-                authViewModel = authVM
-            )
-        }
-
-        // ************** CHOOSE ROLE **************
-        composable(Screen.ChooseRole.route) {
-            val vm: ChooseRoleViewModel = hiltViewModel()
-            ChooseRoleScreen(
-                navController = navController,
-                authViewModel = authVM,
-                chooseRoleViewModel = vm
-            )
-        }
-
-        // ************** MAIN USER ROUTER **************
-        composable(Screen.UserRouter.route) {
-            //UserRouterScreen(navController, authVM)
+            // This screen is now just UI, NO navigation logic.
+            //DummyLoadingScreen()
             DummyReachedScreen()
         }
 
-//        composable(Screen.SearchRouter.route) {
-//
-//        }
+        composable(Screen.Login.route) {
+            LoginScreen(navController, authVM)
+        }
 
-//        composable(Screen.ChatList.route) {
-//
-//        }
+        composable(Screen.Register.route) {
+            RegisterScreen(navController, authVM)
+        }
 
-//        composable(Screen.ChatRoom.route) { entry ->
-//            val chatId = entry.arguments?.getString("chatId")!!
-//        }
+        composable(Screen.ChooseRole.route) {
+            ChooseRoleScreen(navController, authVM, hiltViewModel())
+        }
 
-//        composable(Screen.Profile.route) {
-//
-//        }
+        composable(Screen.UserRouter.route) {
+            DummyReachedScreen()
+        }
     }
 }
+
