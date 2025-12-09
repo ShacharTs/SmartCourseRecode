@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.smartcourse.data.repositories
 
 import com.google.firebase.firestore.FirebaseFirestore
@@ -13,7 +15,6 @@ import javax.inject.Singleton
 
 @Singleton
 class ChatRepository @Inject constructor (
-
 ){
 
     private val db: FirebaseFirestore = FirebaseClientProvider.firestore

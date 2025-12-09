@@ -8,5 +8,5 @@ import com.smartcourse.auth.AuthViewModel
 @Composable
 fun RootNavigation(authViewModel: AuthViewModel) {
     val navController = rememberNavController()
-    RootNavHost(navController, authViewModel)
+    RootNavHost(navController = navController, authVM = authViewModel)
 }

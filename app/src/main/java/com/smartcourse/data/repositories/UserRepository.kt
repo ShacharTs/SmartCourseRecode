@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.smartcourse.data.repositories
 
 import com.smartcourse.data.models.chat.ChatItem
@@ -76,6 +78,9 @@ class UserRepository @Inject constructor(
                 }
             }
     }
+
+
+
 
 
 
@@ -169,6 +174,14 @@ class UserRepository @Inject constructor(
             updateUserImage(id = u.id, image = avatar)
         }
     }
+
+
+
+
+
+
+
+
 
 
     /**

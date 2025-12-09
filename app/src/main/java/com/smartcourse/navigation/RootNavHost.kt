@@ -74,7 +74,7 @@ fun RootNavHost(
         // MAIN APP SCREENS
         // ----------------------------------------------------
         composable(Screen.UserRouter.route) {
-            //UserScreenFactory(navController, authVM)
+            UserRouterScreen(navController, authVM)
         }
 
         composable(Screen.SearchRouter.route) {

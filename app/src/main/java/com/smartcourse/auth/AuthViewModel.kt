@@ -8,19 +8,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
-import io.github.jan.supabase.gotrue.providers.builtin.Email
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val repo: UserRepository,
-    val supabase: SupabaseClient
+    private val authRepo: AuthRepository,
+    private val userRepo: UserRepository
 ) : ViewModel() {
 
     var authState by mutableStateOf(AuthState.LOGGED_OUT)
@@ -29,307 +26,126 @@ class AuthViewModel @Inject constructor(
     var user by mutableStateOf<User?>(null)
         private set
 
+    var signUpState = mutableStateOf<AuthResult?>(null)
 
-    var loginFailed by mutableStateOf(false)
-        private set
-
-    private val _signUpState = MutableStateFlow<AuthResult?>(null)
-    val signUpState = _signUpState
-
-
-
+    // ------------------------------------------------------------
+    // INITIAL SESSION CHECK
+    // ------------------------------------------------------------
     init {
-        checkExistingSession()
-    }
-
-    fun setLoggedIn() {
-        authState = AuthState.LOGGED_IN
-    }
-
-    fun setLoggedOut(){
-        user = null
-        authState = AuthState.LOGGED_OUT
-    }
-
-    fun setRegister(){
-        authState = AuthState.REGISTERED
-    }
-
-    fun setLoading(){
-        authState = AuthState.LOADING
-    }
-
-
-    private fun checkExistingSession() {
         viewModelScope.launch {
-            try {
-                val session = supabase.auth.currentSessionOrNull()
+            val existingUser = authRepo.checkExistingSession()
 
-                // No session → logged out
-                if (session == null) {
-                    //authState = AuthState.LOGGED_OUT
-                    setLoggedOut()
-                    return@launch
-                }
-
-                val loggedUser = session.user
-                if (loggedUser == null) {
-                    //authState = AuthState.LOGGED_OUT
-                    setLoggedOut()
-                    return@launch
-                }
-
-                // Load SQL profile
-                val profile = repo.loadUser(loggedUser.id)
-                user = profile
-
-                // Determine correct state
-                authState = when (profile?.role) {
-                    null,
-                    UserRole.TEMP -> AuthState.REGISTERED
-
-                    else -> AuthState.LOGGED_IN
-                }
-
-            } catch (e: Exception) {
-                //authState = AuthState.LOGGED_OUT
-                setLoggedOut()
+            user = existingUser
+            authState = when (existingUser?.role) {
+                null, UserRole.TEMP -> AuthState.REGISTERED
+                else -> AuthState.LOGGED_IN
             }
         }
     }
 
+    // ------------------------------------------------------------
+    // LOGIN (WITH RESULT)
+    // ------------------------------------------------------------
+    suspend fun loginWithResult(strategy: AuthStrategy, context: Context): Boolean {
+        authState = AuthState.LOADING
 
-    suspend fun loadOrCreateUser(userId: String): User {
-        // Try loading from SQL
-        var profile = repo.loadUser(userId)
+        val result = strategy.login(context)
 
-        if (profile == null) {
-            val u = supabase.auth.currentUserOrNull()
-
-            repo.createUser(
-                id = userId,
-                email = u?.email ?: "",
-                name = u?.userMetadata?.get("full_name")?.toString() ?: "",
-                image = u?.userMetadata?.get("avatar_url")?.toString() ?: "",
-                role = UserRole.TEMP.name
-            )
-
-
-            profile = repo.loadUser(userId)
-                ?: throw IllegalStateException("User creation failed")
+        if (!result.success || result.userId == null) {
+            authState = AuthState.LOGGED_OUT
+            return false
         }
 
-        return profile
+        val profile = authRepo.loadOrCreateUser(result.userId)
+        user = profile
+
+        authState = if (profile.role == UserRole.TEMP) {
+            AuthState.REGISTERED
+        } else {
+            AuthState.LOGGED_IN
+        }
+
+        return true
     }
 
+    // ------------------------------------------------------------
+    // DIRECT LOGIN (WITHOUT RESULT)
+    // ------------------------------------------------------------
     fun login(strategy: AuthStrategy, context: Context) {
         viewModelScope.launch {
-            setLoading()
-
-            val result = strategy.login(context = context)
-
-            if (result.success && result.userId != null) {
-                loginFailed = false
-
-                // 1. Sync metadata
-                repo.syncGoogleAvatar()
-
-                // 2. Load SQL profile
-                val loaded = loadOrCreateUser(result.userId)
-
-                // 3. Assign user FIRST (important!)
-                user = loaded
-
-                // 4. Now user is safe, check role
-                val role = loaded.getUserRole()
-
-                authState = if (role == null ||  role == UserRole.TEMP) {
-                    AuthState.REGISTERED
-                } else {
-                    AuthState.LOGGED_IN
-                }
-
-
-            } else {
-                loginFailed = true
-                setLoggedOut()
-            }
+            loginWithResult(strategy, context)
         }
     }
 
+    // ------------------------------------------------------------
+    // REGISTRATION + AUTO LOGIN
+    // ------------------------------------------------------------
+    fun registerAndLogin(email: String, password: String) {
+        viewModelScope.launch {
+            val result = authRepo.register(email, password)
+            signUpState.value = result
 
-    suspend fun loginWithResult(strategy: AuthStrategy, context: Context): Boolean {
-        return try {
-            val result = strategy.login(context = context)
-
-            if (result.success && result.userId != null) {
-                loginFailed = false
-
-                // 1. Sync metadata
-                repo.syncGoogleAvatar()
-
-                // 2. Load SQL profile
-                val loaded = loadOrCreateUser(result.userId)
-
-                // 3. Assign user before state
-                user = loaded
-
-                // 4. Check role
-                val role = loaded.getUserRole()
-
-                authState = if (role == UserRole.TEMP) {
-                    AuthState.REGISTERED
-                } else {
-                    AuthState.LOGGED_IN
-                }
-
-                // return false if TEMP (user needs to choose role)
-                role != UserRole.TEMP
-
-            } else {
-                loginFailed = true
-                //authState = AuthState.LOGGED_OUT
-                setLoggedOut()
-                false
+            if (!result.success || result.userId == null) {
+                return@launch
             }
 
-        } catch (e: Exception) {
-            loginFailed = true
-            //authState = AuthState.LOGGED_OUT
-            setLoggedOut()
-            false
+            val loginResult = authRepo.login(email, password)
+            if (!loginResult.success || loginResult.userId == null) return@launch
+
+            val profile = authRepo.loadOrCreateUser(loginResult.userId)
+            user = profile
+            authState = AuthState.REGISTERED
         }
     }
 
-
-
-    /**
-     * Validate email + password inputs BEFORE signup.
-     */
-    fun validateRegistration(
-        email: String,
-        password: String,
-        confirmPassword: String
-    ): AuthResult {
-
-        // 1. Check passwords match
-        if (password != confirmPassword) {
-            return AuthResult(
-                success = false,
-                error = "Passwords do not match"
-            )
+    // ------------------------------------------------------------
+    // VALIDATION FOR REGISTER SCREEN
+    // ------------------------------------------------------------
+    fun validateRegistration(email: String, password: String, confirmPassword: String): AuthResult {
+        if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+            return AuthResult(false, "All fields required")
         }
 
-        // 2. Validate email
-        if (!isEmailStrict(email)) {
-            return AuthResult(
-                success = false,
-                error = "Invalid email address"
-            )
-        }
-
-        // 3. Validate password length
         if (password.length < 6) {
-            return AuthResult(
-                success = false,
-                error = "Password must be at least 6 characters"
-            )
+            return AuthResult(false, "Password must be 6+ chars")
         }
 
-        return AuthResult(success = true)
+        if (password != confirmPassword) {
+            return AuthResult(false, "Passwords do not match")
+        }
+
+        return AuthResult(true)
     }
 
-
-    fun registerAndLogin(email: String, pass: String) {
+    // ------------------------------------------------------------
+    // USER ROLE UPDATE (FROM ChooseRoleScreen)
+    // ------------------------------------------------------------
+    fun updateUserRole(role: UserRole, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
-            try {
-                // 1. Sign up
-                supabase.auth.signUpWith(Email) {
-                    this.email = email
-                    this.password = pass
-                }
+            val u = user ?: return@launch
 
-                // 2. Sign in
-                supabase.auth.signInWith(Email) {
-                    this.email = email
-                    this.password = pass
-                }
+            // 1. update in DB
+            userRepo.updateUserRole(u.getUID(), role)
 
-                // 3. Load user
-                val sessionUser = supabase.auth.currentSessionOrNull()?.user
-                if (sessionUser != null) {
-                    user = loadOrCreateUser(sessionUser.id)
-                }
+            // 2. update local ViewModel
+            user = u.copy(role = role)
 
-                // 4. Move to REGISTERED
-                authState = AuthState.REGISTERED
+            // 3. mark the user as fully logged in
+            authState = AuthState.LOGGED_IN
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            onDone?.invoke()
         }
     }
 
 
-
-    private fun isEmailStrict(email: String): Boolean {
-        val regex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.(com|net|org|io|co\\.il)$")
-        return regex.matches(email)
-    }
-
-    private fun extractSafeError(e: Exception): String {
-        return try {
-            e.localizedMessage
-                ?.lineSequence()
-                ?.firstOrNull()
-                ?.trim()
-                ?: "Unknown error"
-        } catch (_: Exception) {
-            "Unknown error"
-        }
-    }
-
-
-    fun logout(strategy: AuthStrategy? = null) {
+    // ------------------------------------------------------------
+    // LOGOUT
+    // ------------------------------------------------------------
+    fun logout() {
         viewModelScope.launch {
-
-            // 1. Immediately navigate away (no flicker)
-            //authState = AuthState.LOGGED_OUT
-            setLoggedOut()
-
-            // 2. Clear local state (prevents stale username)
+            authRepo.logout()
             user = null
-            //userId = null
-
-            // 3. Perform external logout (Google)
-            strategy?.logout()
-
-            // 4. Perform server logout
-            try {
-                supabase.auth.signOut()
-            } catch (_: Exception) {
-            }
-
-            // 5. Clear refresh tokens
-            try {
-                supabase.auth.clearSession()
-            } catch (_: Exception) {
-            }
+            authState = AuthState.LOGGED_OUT
         }
     }
-
-
-    fun refreshUser(onDone: () -> Unit = {}) {
-        viewModelScope.launch {
-            val sessionUser = supabase.auth.currentSessionOrNull()?.user
-            if (sessionUser != null) {
-                user = repo.loadUser(sessionUser.id)
-            }
-            onDone()
-        }
-    }
-
-
-
 }
-

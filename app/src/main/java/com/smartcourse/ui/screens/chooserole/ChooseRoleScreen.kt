@@ -87,9 +87,10 @@ private fun buttonsLowerPart(
         onClick = {
             chooseRoleViewModel.updateUserRole(UserRole.valueOf(role))
 
-            authViewModel.refreshUser {
-                authViewModel.setLoggedIn()
-            }
+
+//            authViewModel.refreshUser {
+//                authViewModel.setLoggedIn()
+//            }
         }
 
 

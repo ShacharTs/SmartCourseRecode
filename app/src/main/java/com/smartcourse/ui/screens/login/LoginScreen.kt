@@ -57,7 +57,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: AuthViewModel
+    authVM: AuthViewModel
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -80,8 +80,8 @@ fun LoginScreen(
 
         onLogin = {
             scope.launch {
-                val success = viewModel.loginWithResult(
-                    EmailAuthStrategy(email, password, viewModel.supabase),
+                val success = authVM.loginWithResult(
+                    EmailAuthStrategy(email, password, authVM.supabase),
                     context = context
                 )
 
@@ -99,8 +99,8 @@ fun LoginScreen(
         },
 
         onGoogleLogin = {
-            viewModel.login(
-                GoogleAuthStrategy(viewModel.supabase),
+            authVM.login(
+                GoogleAuthStrategy(authVM.supabase),
                 context = context
             )
         },
