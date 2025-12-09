@@ -92,18 +92,6 @@ fun LoginScreen(
         onPasswordChange = { password = it },
         onTogglePassword = { showPassword = !showPassword },
 
-//        onLogin = {
-//            scope.launch {
-//                loginError = null
-//
-//                val success = authViewModel.loginEmail(email, password)
-//
-//                if (!success) {
-//                    loginError = "Invalid email or password"
-//                }
-//            }
-//        },
-
         onLogin = {
             scope.launch {
                 val success = authViewModel.loginWithResult(
