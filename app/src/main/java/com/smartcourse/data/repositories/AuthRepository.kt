@@ -1,11 +1,12 @@
 package com.smartcourse.data.repositories
 
-import com.smartcourse.auth.AuthResult
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.gotrue.providers.Google
 import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.gotrue.providers.builtin.IDToken
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
@@ -13,19 +14,12 @@ class AuthRepository @Inject constructor(
     private val userRepo: UserRepository
 ) {
 
-    // ------------------------------------------------------------
-    // CHECK EXISTING SESSION
-    // ------------------------------------------------------------
     suspend fun checkExistingSession(): User? {
         val session = supabase.auth.currentSessionOrNull() ?: return null
         val supaUser = session.user ?: return null
-
         return userRepo.loadUser(supaUser.id)
     }
 
-    // ------------------------------------------------------------
-    // LOAD OR CREATE USER (OLD VM NEEDS THIS)
-    // ------------------------------------------------------------
     suspend fun loadOrCreateUser(userId: String): User {
         var profile = userRepo.loadUser(userId)
 
@@ -48,88 +42,55 @@ class AuthRepository @Inject constructor(
     }
 
     // ------------------------------------------------------------
-    // GENERIC REGISTER FOR OLD VM
+    // EMAIL LOGIN
     // ------------------------------------------------------------
-    suspend fun register(email: String, password: String): AuthResult {
-        return try {
-            supabase.auth.signUpWith(Email) {
-                this.email = email
-                this.password = password
-            }
-            AuthResult(success = true)
-        } catch (e: Exception) {
-            AuthResult(false, e.message ?: "Registration failed")
-        }
-    }
-
-    // ------------------------------------------------------------
-    // GENERIC LOGIN FOR OLD VM
-    // ------------------------------------------------------------
-    suspend fun login(email: String, password: String): AuthResult {
-        return try {
-            supabase.auth.signInWith(Email) {
-                this.email = email
-                this.password = password
-            }
-
-            // Fetch the authenticated user *after* login
-            val u = supabase.auth.currentUserOrNull()
-            val uid = u?.id
-
-            AuthResult(uid != null, userId = uid)
-
-        } catch (e: Exception) {
-            AuthResult(false, e.message ?: "Login failed")
-        }
-    }
-
-
-    // ------------------------------------------------------------
-    // SIMPLE EMAIL LOGIN (NEW VM USES THIS)
-    // ------------------------------------------------------------
-    suspend fun loginEmail(email: String, pass: String): Boolean {
+    suspend fun loginEmail(email: String, pass: String): String? {
         return try {
             supabase.auth.signInWith(Email) {
                 this.email = email
                 this.password = pass
             }
-            true
+            supabase.auth.currentUserOrNull()?.id
         } catch (e: Exception) {
-            false
+            null
         }
     }
 
     // ------------------------------------------------------------
-    // SIMPLE EMAIL REGISTER (NEW VM USES THIS)
+    // EMAIL REGISTER
     // ------------------------------------------------------------
-    suspend fun registerEmail(email: String, pass: String): Boolean {
+    suspend fun registerEmail(email: String, pass: String): String? {
         return try {
             supabase.auth.signUpWith(Email) {
                 this.email = email
                 this.password = pass
             }
-            true
+            supabase.auth.currentUserOrNull()?.id
         } catch (e: Exception) {
-            false
+            null
         }
     }
 
     // ------------------------------------------------------------
-    // SYNC GOOGLE AVATAR (OLD VM NEEDS IT)
+    // GOOGLE LOGIN (moved from GoogleAuthStrategy)
     // ------------------------------------------------------------
-    suspend fun syncGoogleAvatar() {
-        val u = supabase.auth.currentUserOrNull() ?: return
-        val avatar = u.userMetadata?.get("avatar_url")?.toString() ?: return
-        userRepo.updateUserImage(u.id, avatar)
+    suspend fun loginGoogle(idToken: String, rawNonce: String): String? {
+        return try {
+            supabase.auth.signInWith(IDToken) {
+                this.idToken = idToken
+                this.nonce = rawNonce
+                provider = Google
+            }
+            supabase.auth.currentUserOrNull()?.id
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    // ------------------------------------------------------------
-    // LOGOUT
-    // ------------------------------------------------------------
     suspend fun logout() {
-        try {
+        runCatching {
             supabase.auth.signOut()
             supabase.auth.clearSession()
-        } catch (_: Exception) { }
+        }
     }
 }

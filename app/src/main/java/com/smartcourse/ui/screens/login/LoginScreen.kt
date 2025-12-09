@@ -38,21 +38,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.smartcourse.R
 import com.smartcourse.auth.AuthViewModel
-import com.smartcourse.auth.EmailAuthStrategy
-import com.smartcourse.auth.GoogleAuthStrategy
 import com.smartcourse.navigation.Screen
-import com.smartcourse.ui.screens.components.CustomBox
-import com.smartcourse.ui.screens.components.CustomButton
-import com.smartcourse.ui.screens.components.CustomColumn
-import com.smartcourse.ui.screens.components.CustomRow
-import com.smartcourse.ui.screens.components.CustomSpacer
-import com.smartcourse.ui.screens.components.CustomText
+import com.smartcourse.ui.screens.components.*
 import kotlinx.coroutines.launch
 
-
-// ------------------------------------------------------------
-//  LOGIN SCREEN ENTRY POINT
-// ------------------------------------------------------------
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun LoginScreen(
@@ -62,7 +51,6 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
-
     var loginError by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
@@ -80,18 +68,12 @@ fun LoginScreen(
 
         onLogin = {
             scope.launch {
-                val success = authVM.loginWithResult(
-                    EmailAuthStrategy(email, password, authVM.supabase),
-                    context = context
-                )
+                authVM.loginEmail(email, password)
 
-                if (!success) {
-                    // clear fields
+                if (authVM.authState == com.smartcourse.auth.AuthState.LOGGED_OUT) {
+                    loginError = "Invalid email or password"
                     email = ""
                     password = ""
-
-                    // show error
-                    loginError = "Invalid email or password"
                 } else {
                     loginError = null
                 }
@@ -99,25 +81,15 @@ fun LoginScreen(
         },
 
         onGoogleLogin = {
-            authVM.login(
-                GoogleAuthStrategy(authVM.supabase),
-                context = context
-            )
+            authVM.loginGoogle(context)
         },
 
         onNavigateToRegister = {
             navController.navigate(Screen.Register.route)
         }
     )
-
-
 }
 
-
-
-// ------------------------------------------------------------
-//  LOGIN CONTENT (LAYOUT ORGANIZATION)
-// ------------------------------------------------------------
 @Composable
 private fun LoginContent(
     email: String,
@@ -158,13 +130,9 @@ private fun LoginContent(
     }
 }
 
-
-
-
 @Composable
 private fun LoginHeader() {
     CustomText(
-        //text = stringResource(id = R.string.welcome_back),
         text = "Welcome Back",
         fontSize = 32.sp,
         textAlign = TextAlign.Center,
@@ -185,8 +153,6 @@ private fun LoginHeader() {
     }
 }
 
-
-
 @Composable
 private fun LoginForm(
     email: String,
@@ -203,7 +169,6 @@ private fun LoginForm(
     CustomColumn(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
-
     ) {
 
         CustomText(
@@ -211,16 +176,12 @@ private fun LoginForm(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 10.dp)
         )
+
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
             singleLine = true,
-            placeholder = {
-                CustomText(
-                    "email@example.com",
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                )
-            },
+            placeholder = { CustomText("email@example.com") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp)
         )
@@ -232,16 +193,12 @@ private fun LoginForm(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 10.dp)
         )
+
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
             singleLine = true,
-            placeholder = {
-                CustomText(
-                    "Enter password",
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                )
-            },
+            placeholder = { CustomText("Enter password") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             visualTransformation =
@@ -250,8 +207,9 @@ private fun LoginForm(
             trailingIcon = {
                 IconButton(onClick = onTogglePassword) {
                     Icon(
-                        imageVector = if (showPassword) Icons.Default.Visibility
-                        else Icons.Default.VisibilityOff,
+                        imageVector =
+                            if (showPassword) Icons.Default.Visibility
+                            else Icons.Default.VisibilityOff,
                         contentDescription = null
                     )
                 }
@@ -260,22 +218,14 @@ private fun LoginForm(
 
         CustomSpacer(height = 40)
 
-        // --------------------------------------------------------
-        // LOGIN BUTTON
-        // --------------------------------------------------------
         CustomButton(
             text = "Login",
             modifier = Modifier.fillMaxWidth(),
             onClick = onLogin
         )
 
-
-
         CustomSpacer(height = 40)
 
-        // --------------------------------------------------------
-        // GOOGLE LOGIN BUTTON
-        // --------------------------------------------------------
         CustomButton(
             modifier = Modifier.fillMaxWidth(),
             text = "Sign in with Google",
@@ -285,17 +235,12 @@ private fun LoginForm(
 
         CustomSpacer(height = 40)
 
-        // --------------------------------------------------------
-        // NAVIGATE TO REGISTER
-        // --------------------------------------------------------
         CustomRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
             CustomText("Don't have an account?")
-
             val color = if (isSystemInDarkTheme()) Color.Yellow else Color.Blue
-
             CustomBox(onClick = onNavigateToRegister) {
                 CustomText(
                     text = "Sign up",
@@ -305,11 +250,6 @@ private fun LoginForm(
             }
         }
 
-        CustomSpacer(height = 40)
-
-        // --------------------------------------------------------
-        // ERROR MESSAGE
-        // --------------------------------------------------------
         if (loginError != null) {
             CustomSpacer(height = 16)
             CustomText(
@@ -320,6 +260,5 @@ private fun LoginForm(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-
     }
 }
