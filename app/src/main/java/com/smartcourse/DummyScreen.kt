@@ -1,14 +1,22 @@
 package com.smartcourse
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.ui.screens.components.CustomButton
+import com.smartcourse.ui.screens.components.CustomSpacer
 
 @Composable
 fun DummyReachedScreen() {
+    val authViewModel = hiltViewModel<AuthViewModel>()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -19,5 +27,17 @@ fun DummyReachedScreen() {
             text = "REACHED THIS PAGE",
             style = MaterialTheme.typography.headlineMedium
         )
+        CustomSpacer(height = 16)
+
+        CustomButton(
+            modifier = Modifier
+                .fillMaxWidth(0.85f)
+                .padding(vertical = 8.dp),
+            text = "Logout ",
+            onClick = {
+                authViewModel.logout()
+            }
+        )
+
     }
 }

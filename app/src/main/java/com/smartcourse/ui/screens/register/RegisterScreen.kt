@@ -86,36 +86,36 @@ fun RegisterScreen(
             navController = navController,
             registerError = registerError,
             onRegister = {
-                scope.launch {
-
-                    // 🔍 VALIDATE FIRST
-                    val validation = authViewModel.validateRegistration(
-                        email = email,
-                        password = password,
-                        confirmPassword = confirmPassword
-                    )
-
-                    if (!validation.success) {
-                        registerError = validation.error
-                        return@launch
-                    }
-
-                    registerError = null
-
-
-                    val regSuccess = authViewModel.registerEmail(email, password)
-                    if (!regSuccess) {
-                        registerError = "Could not register"
-                        return@launch
-                    }
-
-
-                    val loginSuccess = authViewModel.loginEmail(email, password)
-                    if (!loginSuccess) {
-                        registerError = "Could not log in after registration"
-                        return@launch
-                    }
-                }
+//                scope.launch {
+//
+//                    // 🔍 VALIDATE FIRST
+//                    val validation = authViewModel.validateRegistration(
+//                        email = email,
+//                        password = password,
+//                        confirmPassword = confirmPassword
+//                    )
+//
+//                    if (!validation.success) {
+//                        registerError = validation.error
+//                        return@launch
+//                    }
+//
+//                    registerError = null
+//
+//
+//                    val regSuccess = authViewModel.registerEmail(email, password)
+//                    if (!regSuccess) {
+//                        registerError = "Could not register"
+//                        return@launch
+//                    }
+//
+//
+//                    val loginSuccess = authViewModel.loginEmail(email, password)
+//                    if (!loginSuccess) {
+//                        registerError = "Could not log in after registration"
+//                        return@launch
+//                    }
+//                }
             }
         )
     }

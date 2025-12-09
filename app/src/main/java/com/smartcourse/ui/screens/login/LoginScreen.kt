@@ -40,6 +40,8 @@ import androidx.navigation.NavController
 import com.smartcourse.R
 import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.auth.EmailAuthStrategy
+import com.smartcourse.auth.GoogleAuthStrategy
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.components.CustomBox
 import com.smartcourse.ui.screens.components.CustomButton
@@ -90,20 +92,42 @@ fun LoginScreen(
         onPasswordChange = { password = it },
         onTogglePassword = { showPassword = !showPassword },
 
+//        onLogin = {
+//            scope.launch {
+//                loginError = null
+//
+//                val success = authViewModel.loginEmail(email, password)
+//
+//                if (!success) {
+//                    loginError = "Invalid email or password"
+//                }
+//            }
+//        },
+
         onLogin = {
             scope.launch {
-                loginError = null
-
-                val success = authViewModel.loginEmail(email, password)
+                val success = authViewModel.loginWithResult(
+                    EmailAuthStrategy(email, password, authViewModel.supabase),
+                    context = context
+                )
 
                 if (!success) {
+                    // clear fields
+                    email = ""
+                    password = ""
+
+                    // show error
                     loginError = "Invalid email or password"
+                } else {
+                    loginError = null
                 }
             }
         },
-
-        onGoogleLogin = {
-            authViewModel.loginGoogle(context)
+                onGoogleLogin = {
+                    authViewModel.login(
+                        GoogleAuthStrategy(authViewModel.supabase),
+                        context = context
+                    )
         },
 
         onNavigateToRegister = {

@@ -22,6 +22,7 @@ fun RootNavHost(
 ) {
     val state = authVM.authState
 
+
     // THIS IS THE FIX
     LaunchedEffect(state) {
         when (state) {
@@ -51,7 +52,6 @@ fun RootNavHost(
 
         composable(Screen.Loading.route) {
             // This screen is now just UI, NO navigation logic.
-            //DummyLoadingScreen()
             DummyReachedScreen()
         }
 
@@ -67,8 +67,10 @@ fun RootNavHost(
             ChooseRoleScreen(navController, authVM, hiltViewModel())
         }
 
+
         composable(Screen.UserRouter.route) {
             DummyReachedScreen()
+            //UserRouterScreen(navController, authVM)
         }
     }
 }
