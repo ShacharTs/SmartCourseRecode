@@ -17,7 +17,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,11 +36,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.smartcourse.R
-import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.navigation.Screen
-import com.smartcourse.ui.screens.components.*
-import kotlinx.coroutines.launch
+import com.smartcourse.ui.screens.components.CustomBox
+import com.smartcourse.ui.screens.components.CustomButton
+import com.smartcourse.ui.screens.components.CustomColumn
+import com.smartcourse.ui.screens.components.CustomRow
+import com.smartcourse.ui.screens.components.CustomSpacer
+import com.smartcourse.ui.screens.components.CustomText
 
 @Composable
 fun RegisterScreen(
@@ -46,18 +55,22 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var registerError by remember { mutableStateOf<String?>(null) }
 
-    val scope = rememberCoroutineScope()
+    // Observe registration result from ViewModel
+    val signUpResult by authViewModel.signUpState.collectAsState()
 
-    // REACT TO AUTH STATE CHANGE
-    val authState by remember { derivedStateOf { authViewModel.authState } }
+    // React to registration result safely
+    LaunchedEffect(signUpResult) {
+        if (signUpResult == null) return@LaunchedEffect
 
-    LaunchedEffect(authState) {
-        if (authState == AuthState.REGISTERED) {
-            navController.navigate(Screen.ChooseRole.route) {
-                popUpTo(Screen.Register.route) { inclusive = true }
-            }
+        if (signUpResult!!.success) {
+            registerError = null
+            authViewModel.setRegister()
+            // navController.navigate(Screen.ChooseRole.route)
+        } else {
+            registerError = signUpResult!!.error ?: "Registration failed"
         }
     }
+
 
     CustomColumn(
         modifier = Modifier
@@ -84,40 +97,28 @@ fun RegisterScreen(
 
         registerForm(
             navController = navController,
-            registerError = registerError,
+            authViewModel = authViewModel,
             onRegister = {
-//                scope.launch {
-//
-//                    // 🔍 VALIDATE FIRST
-//                    val validation = authViewModel.validateRegistration(
-//                        email = email,
-//                        password = password,
-//                        confirmPassword = confirmPassword
-//                    )
-//
-//                    if (!validation.success) {
-//                        registerError = validation.error
-//                        return@launch
-//                    }
-//
-//                    registerError = null
-//
-//
-//                    val regSuccess = authViewModel.registerEmail(email, password)
-//                    if (!regSuccess) {
-//                        registerError = "Could not register"
-//                        return@launch
-//                    }
-//
-//
-//                    val loginSuccess = authViewModel.loginEmail(email, password)
-//                    if (!loginSuccess) {
-//                        registerError = "Could not log in after registration"
-//                        return@launch
-//                    }
-//                }
-            }
+
+                // 1. Validate using the new validateRegistration()
+                val validation = authViewModel.validateRegistration(
+                    email = email,
+                    password = password,
+                    confirmPassword = confirmPassword
+                )
+
+                if (!validation.success) {
+                    registerError = validation.error
+                    return@registerForm
+                }
+
+                // 2. Safe to continue → Perform signup + login
+                authViewModel.registerAndLogin(email, password)
+
+            },
+            registerError = registerError
         )
+
     }
 }
 
@@ -125,8 +126,9 @@ fun RegisterScreen(
 @Composable
 private fun registerForm(
     navController: NavController,
-    registerError: String? = null,
-    onRegister: () -> Unit
+    authViewModel: AuthViewModel,
+    onRegister: () -> Unit,
+    registerError: String? = null
 ) {
     CustomRow(
         modifier = Modifier.fillMaxWidth(),
@@ -137,10 +139,14 @@ private fun registerForm(
                 navController.navigate(Screen.Login.route)
             }
         ) {
-            val signUpColor = if (isSystemInDarkTheme()) Color.Yellow else Color.Blue
+            val signUpColor = if (isSystemInDarkTheme()) {
+                Color.Yellow
+            } else {
+                Color.Blue
+            }
 
             CustomText(
-                text = "Already have an account?",
+                text = "Already have account ?",
                 color = signUpColor
             )
         }
@@ -151,8 +157,9 @@ private fun registerForm(
     CustomButton(
         text = "Register",
         modifier = Modifier.fillMaxWidth(),
-        onClick = onRegister
+        onClick = { onRegister() }
     )
+
 
     if (registerError != null) {
         CustomSpacer(height = 12)
@@ -164,6 +171,7 @@ private fun registerForm(
     }
 }
 
+
 @Composable
 private fun registerMidArea(
     email: String,
@@ -173,94 +181,162 @@ private fun registerMidArea(
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit
 ) {
+
     var passwordVisible by remember { mutableStateOf(false) }
+
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     CustomRow(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CustomColumn {
-
-            // EMAIL FIELD
-            CustomText(
-                text = "Email",
-                modifier = Modifier.padding(bottom = 10.dp),
-                fontWeight = FontWeight.Bold
-            )
-            OutlinedTextField(
-                value = email,
-                onValueChange = onEmailChange,
-                singleLine = true,
-                placeholder = { CustomText("email@example.com") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp)
-            )
+        CustomColumn{
+            emailField(email, onEmailChange)
 
             CustomSpacer(height = 20)
 
-            // PASSWORD FIELD
-            CustomText(
-                text = "Password",
-                modifier = Modifier.padding(bottom = 10.dp),
-                fontWeight = FontWeight.Bold
+            PasswordField(
+                password = password,
+                onPasswordChange = onPasswordChange,
+                passwordVisible = passwordVisible,
+                onPasswordVisibleChange = { passwordVisible = it }
             )
-            OutlinedTextField(
-                value = password,
-                onValueChange = onPasswordChange,
-                singleLine = true,
-                placeholder = { CustomText("Enter password") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                visualTransformation =
-                    if (passwordVisible) VisualTransformation.None
-                    else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible)
-                                Icons.Default.Visibility
-                            else
-                                Icons.Default.VisibilityOff,
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
+
 
             CustomSpacer(height = 20)
 
-            // CONFIRM PASSWORD FIELD
-            CustomText(
-                text = "Confirm Password",
-                modifier = Modifier.padding(bottom = 10.dp),
-                fontWeight = FontWeight.Bold
+            ConfirmPasswordField(
+                confirmPassword = confrimPassword,
+                onConfirmPasswordChange = onConfirmPasswordChange,
+                confirmPasswordVisible = confirmPasswordVisible,
+                onConfirmPasswordVisibleChange = { confirmPasswordVisible = it }
             )
-            OutlinedTextField(
-                value = confrimPassword,
-                onValueChange = onConfirmPasswordChange,
-                singleLine = true,
-                placeholder = { CustomText("Re-enter password") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                visualTransformation =
-                    if (confirmPasswordVisible) VisualTransformation.None
-                    else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(
-                            imageVector = if (confirmPasswordVisible)
-                                Icons.Default.Visibility
-                            else
-                                Icons.Default.VisibilityOff,
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
+
         }
     }
 }
+
+@Composable
+private fun emailField(
+    email: String,
+    onEmailChange: (String) -> Unit
+) {
+    CustomText(
+        text = "Email",
+        modifier = Modifier.padding(bottom = 10.dp),
+        fontWeight = FontWeight.Bold
+    )
+    CustomSpacer(height = 4)
+
+    OutlinedTextField(
+        value = email,
+        onValueChange = onEmailChange,
+        singleLine = true,
+        placeholder = {
+            CustomText(
+                text = "email@example.com",
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+    )
+}
+
+
+@Composable
+private fun PasswordField(
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    passwordVisible: Boolean,
+    onPasswordVisibleChange: (Boolean) -> Unit
+) {
+    CustomText(
+        text = "Password",
+        modifier = Modifier.padding(bottom = 10.dp),
+        fontWeight = FontWeight.Bold
+    )
+    CustomSpacer(height = 4)
+
+    OutlinedTextField(
+        value = password,
+        onValueChange = onPasswordChange,
+        singleLine = true,
+        placeholder = {
+            CustomText(
+                text = "Enter password",
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        visualTransformation =
+            if (passwordVisible) VisualTransformation.None
+            else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = {
+                onPasswordVisibleChange(!passwordVisible)
+            }) {
+                Icon(
+                    imageVector = if (passwordVisible)
+                        Icons.Default.Visibility
+                    else
+                        Icons.Default.VisibilityOff,
+                    contentDescription = null
+                )
+            }
+        }
+    )
+}
+
+
+@Composable
+private fun ConfirmPasswordField(
+    confirmPassword: String,
+    onConfirmPasswordChange: (String) -> Unit,
+    confirmPasswordVisible: Boolean,
+    onConfirmPasswordVisibleChange: (Boolean) -> Unit
+) {
+    CustomText(
+        text = "Confirm Password",
+        modifier = Modifier.padding(bottom = 10.dp),
+        fontWeight = FontWeight.Bold
+    )
+    CustomSpacer(height = 4)
+
+    OutlinedTextField(
+        value = confirmPassword,
+        onValueChange = onConfirmPasswordChange,
+        singleLine = true,
+        placeholder = {
+            CustomText(
+                text = "Re-enter password",
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        visualTransformation =
+            if (confirmPasswordVisible) VisualTransformation.None
+            else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = {
+                onConfirmPasswordVisibleChange(!confirmPasswordVisible)
+            }) {
+                Icon(
+                    imageVector = if (confirmPasswordVisible)
+                        Icons.Default.Visibility
+                    else
+                        Icons.Default.VisibilityOff,
+                    contentDescription = null
+                )
+            }
+        }
+    )
+}
+
+
+
 
 @Composable
 private fun registerUpperArea() {
@@ -283,3 +359,4 @@ private fun registerUpperArea() {
         )
     }
 }
+
