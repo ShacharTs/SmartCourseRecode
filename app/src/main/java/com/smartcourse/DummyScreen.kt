@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.ui.screens.components.CustomButton
@@ -16,8 +17,8 @@ import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomSpacer
 
 @Composable
-fun DummyReachedScreen() {
-    val authViewModel = hiltViewModel<AuthViewModel>()
+fun DummyReachedScreen(navController: NavController, authViewModel: AuthViewModel) {
+
 
     Box(
         modifier = Modifier

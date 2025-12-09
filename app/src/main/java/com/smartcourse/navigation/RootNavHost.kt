@@ -26,30 +26,27 @@ fun RootNavHost(
     val state = authVM.authState
     Log.d("RootNavHost", "state: $state")
 
-    // NEW: Navigate based on state
     LaunchedEffect(state) {
         when (state) {
             AuthState.LOGGED_OUT -> {
                 navController.navigate(Screen.Login.route) {
-                    popUpTo(Screen.Loading.route) { inclusive = true }
+                    popUpTo(0) { inclusive = true }
                 }
             }
 
             AuthState.REGISTERED -> {
                 navController.navigate(Screen.ChooseRole.route) {
-                    popUpTo(Screen.Loading.route) { inclusive = true }
+                    popUpTo(0) { inclusive = true }
                 }
             }
 
             AuthState.LOGGED_IN -> {
                 navController.navigate(Screen.UserRouter.route) {
-                    popUpTo(Screen.Loading.route) { inclusive = true }
+                    popUpTo(0) { inclusive = true }
                 }
             }
 
-            AuthState.LOADING -> {
-                // פשוט נשאר ב-LOADING
-            }
+            AuthState.LOADING -> {}
         }
     }
 
@@ -58,32 +55,28 @@ fun RootNavHost(
         startDestination = Screen.Loading.route
     ) {
 
-        // LOADING SCREEN
         composable(Screen.Loading.route) {
             Text("Loading...")
         }
 
-        // LOGIN
         composable(Screen.Login.route) {
             LoginScreen(navController, authVM)
         }
 
-        // REGISTER
         composable(Screen.Register.route) {
             RegisterScreen(navController, authVM)
         }
 
-        // CHOOSE ROLE
         composable(Screen.ChooseRole.route) {
             ChooseRoleScreen(navController, authVM, hiltViewModel())
         }
 
-        // USER ROUTER
         composable(Screen.UserRouter.route) {
-            DummyReachedScreen()
+            DummyReachedScreen(navController, authVM)
         }
     }
 }
+
 
 
 
