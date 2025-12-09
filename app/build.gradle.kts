@@ -5,6 +5,8 @@ plugins {
 
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
+
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -79,4 +81,8 @@ dependencies {
 
 
     implementation("androidx.compose.material:material-icons-extended:1.7.0")
+
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+
 }

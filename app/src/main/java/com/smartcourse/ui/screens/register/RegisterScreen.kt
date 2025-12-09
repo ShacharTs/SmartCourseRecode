@@ -34,6 +34,7 @@ import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.components.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
@@ -45,12 +46,16 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var registerError by remember { mutableStateOf<String?>(null) }
 
-    // REACT TO AUTH STATE CHANGE (REGISTER → CHOOSE ROLE)
+    val scope = rememberCoroutineScope()
+
+    // REACT TO AUTH STATE CHANGE
     val authState by remember { derivedStateOf { authViewModel.authState } }
 
     LaunchedEffect(authState) {
         if (authState == AuthState.REGISTERED) {
-            navController.navigate(Screen.ChooseRole.route)
+            navController.navigate(Screen.ChooseRole.route) {
+                popUpTo(Screen.Register.route) { inclusive = true }
+            }
         }
     }
 
@@ -81,30 +86,41 @@ fun RegisterScreen(
             navController = navController,
             registerError = registerError,
             onRegister = {
+                scope.launch {
 
-                // VALIDATE
-                val validation = authViewModel.validateRegistration(
-                    email = email,
-                    password = password,
-                    confirmPassword = confirmPassword
-                )
+                    // 🔍 VALIDATE FIRST
+                    val validation = authViewModel.validateRegistration(
+                        email = email,
+                        password = password,
+                        confirmPassword = confirmPassword
+                    )
 
-                if (!validation.success) {
-                    registerError = validation.error
-                    return@registerForm
+                    if (!validation.success) {
+                        registerError = validation.error
+                        return@launch
+                    }
+
+                    registerError = null
+
+
+                    val regSuccess = authViewModel.registerEmail(email, password)
+                    if (!regSuccess) {
+                        registerError = "Could not register"
+                        return@launch
+                    }
+
+
+                    val loginSuccess = authViewModel.loginEmail(email, password)
+                    if (!loginSuccess) {
+                        registerError = "Could not log in after registration"
+                        return@launch
+                    }
                 }
-
-                registerError = null
-
-                // PERFORM REGISTER
-                authViewModel.registerEmail(email, password)
-
-                // loginEmail is automatic because VM handles authState
-                authViewModel.loginEmail(email, password)
             }
         )
     }
 }
+
 
 @Composable
 private fun registerForm(

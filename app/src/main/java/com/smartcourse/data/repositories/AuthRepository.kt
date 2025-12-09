@@ -9,10 +9,15 @@ import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.gotrue.providers.builtin.IDToken
 import javax.inject.Inject
 
+
+
 class AuthRepository @Inject constructor(
     private val supabase: SupabaseClient,
     private val userRepo: UserRepository
 ) {
+    val client get() = supabase
+
+
 
     suspend fun checkExistingSession(): User? {
         val session = supabase.auth.currentSessionOrNull() ?: return null

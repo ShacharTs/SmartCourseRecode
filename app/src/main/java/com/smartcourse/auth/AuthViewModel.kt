@@ -1,6 +1,7 @@
 package com.smartcourse.auth
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,7 +16,10 @@ import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.jan.supabase.gotrue.auth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.util.UUID
 import javax.inject.Inject
@@ -36,51 +40,101 @@ class AuthViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val existing = authRepo.checkExistingSession()
-            user = existing
-            authState = if (existing?.role == UserRole.TEMP)
-                AuthState.REGISTERED
-            else if (existing != null)
-                AuthState.LOGGED_IN
-            else
-                AuthState.LOGGED_OUT
-        }
-    }
+            val existingSession = authRepo.client.auth.currentSessionOrNull()
 
-    // ------------------------------------------------------------
-    // EMAIL LOGIN
-    // ------------------------------------------------------------
-    fun loginEmail(email: String, password: String) {
-        viewModelScope.launch {
-            authState = AuthState.LOADING
-
-            val uid = authRepo.loginEmail(email, password)
-            if (uid == null) {
+            if (existingSession == null) {
                 authState = AuthState.LOGGED_OUT
                 return@launch
             }
 
-            val profile = authRepo.loadOrCreateUser(uid)
+            val hasRefresh = existingSession.refreshToken != null
+            if (hasRefresh) {
+                runCatching { authRepo.client.auth.refreshCurrentSession() }
+            }
+
+            val sessionUser = authRepo.client.auth.currentUserOrNull()
+            if (sessionUser == null) {
+                authState = AuthState.LOGGED_OUT
+                return@launch
+            }
+
+            val profile = authRepo.loadOrCreateUser(sessionUser.id)
             user = profile
 
             authState = if (profile.role == UserRole.TEMP)
-                AuthState.REGISTERED else AuthState.LOGGED_IN
+                AuthState.REGISTERED
+            else
+                AuthState.LOGGED_IN
         }
     }
+
+
+
+
+    // ------------------------------------------------------------
+    // EMAIL LOGIN
+    // ------------------------------------------------------------
+    suspend fun loginEmail(email: String, password: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                authState = AuthState.LOADING
+
+                val uid = authRepo.loginEmail(email, password)
+                if (uid == null) {
+                    authState = AuthState.LOGGED_OUT
+                    return@withContext false
+                }
+
+                val profile = authRepo.loadOrCreateUser(uid)
+                user = profile
+
+
+
+                authState = if (profile.role == UserRole.TEMP)
+                    AuthState.REGISTERED
+                else
+                    AuthState.LOGGED_IN
+
+
+                Log.d("AuthViewModel", "loginEmail: ${profile.name}")
+                Log.d("AuthViewModel", "loginEmail: ${profile.role}")
+                Log.d("AuthViewModel", "loginEmail: ${profile.email}")
+                Log.d("AuthViewModel", "loginEmail: ${authState.name}")
+
+                return@withContext true
+
+
+
+            } catch (e: Exception) {
+                authState = AuthState.LOGGED_OUT
+                return@withContext false
+            }
+        }
+    }
+
 
     // ------------------------------------------------------------
     // REGISTER + LOGIN
     // ------------------------------------------------------------
-    fun registerEmail(email: String, password: String) {
-        viewModelScope.launch {
+    suspend fun registerEmail(email: String, password: String): Boolean {
+        return try {
             val uid = authRepo.registerEmail(email, password)
-            signUpState.value = AuthResult(uid != null, userId = uid)
 
-            if (uid != null) {
-                loginEmail(email, password)
-            }
+            signUpState.value = AuthResult(
+                success = uid != null,
+                userId = uid
+            )
+
+            uid != null
+        } catch (e: Exception) {
+            signUpState.value = AuthResult(
+                success = false,
+                error = e.localizedMessage
+            )
+            false
         }
     }
+
 
     // ------------------------------------------------------------
     // GOOGLE — REQUEST ID TOKEN (moved from GoogleAuthStrategy)

@@ -19,6 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,16 +38,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.smartcourse.R
+import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.navigation.Screen
-import com.smartcourse.ui.screens.components.*
+import com.smartcourse.ui.screens.components.CustomBox
+import com.smartcourse.ui.screens.components.CustomButton
+import com.smartcourse.ui.screens.components.CustomColumn
+import com.smartcourse.ui.screens.components.CustomRow
+import com.smartcourse.ui.screens.components.CustomSpacer
+import com.smartcourse.ui.screens.components.CustomText
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun LoginScreen(
     navController: NavController,
-    authVM: AuthViewModel
+    authViewModel: AuthViewModel
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -55,6 +62,23 @@ fun LoginScreen(
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    val authState by authViewModel::authState
+
+
+
+
+
+    LaunchedEffect(authState) {
+        if (authState == AuthState.LOGGED_OUT) {
+            // But ONLY show error if this was from a login attempt
+            if (email.isNotBlank() || password.isNotBlank()) {
+                loginError = "Invalid email or password"
+                email = ""
+                password = ""
+            }
+        }
+    }
 
     LoginContent(
         email = email,
@@ -68,20 +92,18 @@ fun LoginScreen(
 
         onLogin = {
             scope.launch {
-                authVM.loginEmail(email, password)
+                loginError = null
 
-                if (authVM.authState == com.smartcourse.auth.AuthState.LOGGED_OUT) {
+                val success = authViewModel.loginEmail(email, password)
+
+                if (!success) {
                     loginError = "Invalid email or password"
-                    email = ""
-                    password = ""
-                } else {
-                    loginError = null
                 }
             }
         },
 
         onGoogleLogin = {
-            authVM.loginGoogle(context)
+            authViewModel.loginGoogle(context)
         },
 
         onNavigateToRegister = {
@@ -89,6 +111,8 @@ fun LoginScreen(
         }
     )
 }
+
+
 
 @Composable
 private fun LoginContent(

@@ -1,9 +1,12 @@
 package com.smartcourse.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.ui.screens.user.UserMenuScreen
+import com.smartcourse.viewmodels.StudentViewModel
 
 
 @Composable
@@ -23,7 +26,8 @@ fun UserRouterScreen(
     when (user.role) {
 
         UserRole.STUDENT -> {
-            //StudentMainScreen(navController, authVM)
+            val studentVM : StudentViewModel = hiltViewModel()
+            UserMenuScreen(navController = navController, authVM = authVM, role = UserRole.STUDENT, studentVM = studentVM, tutorVM = null)
         }
 
         UserRole.TUTOR -> {

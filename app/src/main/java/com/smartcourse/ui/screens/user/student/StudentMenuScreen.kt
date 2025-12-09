@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.student
+package com.smartcourse.ui.screens.user.student
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,28 +38,7 @@ import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.viewmodels.StudentViewModel
 
-//// ------------------------------------------------------------
-//// ENTRY POINT
-//// ------------------------------------------------------------
-//@Composable
-//fun StudentMenuScreen(
-//    navController: NavController,
-//    studentVM: StudentViewModel,
-//    authVM: AuthViewModel
-//) {
-//
-//    val myId = studentVM.userObj.getUID()
-//
-//    LaunchedEffect(Unit) {
-//        studentVM.loadMatchingTutors(myId)
-//    }
-//
-//    StudentMenuLayout(
-//        navController = navController,
-//        studentVM = studentVM,
-//        authVM = authVM
-//    )
-//}
+
 
 // ------------------------------------------------------------
 // MAIN LAYOUT
