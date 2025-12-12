@@ -2,9 +2,9 @@
 
 package com.smartcourse.di
 
-import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestoreSettings
+import com.smartcourse.data.repositories.ChatRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,17 +17,20 @@ object FirebaseModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseApp(): FirebaseApp {
-        return FirebaseApp.getInstance()
-    }
-
-    @Provides
-    @Singleton
-    fun provideFirebaseFirestore(app: FirebaseApp): FirebaseFirestore {
-        return FirebaseFirestore.getInstance(app).apply {
+    fun provideFirebaseFirestore(): FirebaseFirestore {
+        return FirebaseFirestore.getInstance().apply {
             firestoreSettings = firestoreSettings {
                 isPersistenceEnabled = true
             }
         }
     }
+
+    @Provides
+    @Singleton
+    fun provideChatRepository(
+        firestore: FirebaseFirestore
+    ): ChatRepository {
+        return ChatRepository(firestore)
+    }
 }
+

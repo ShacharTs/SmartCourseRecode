@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -13,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
+import com.smartcourse.ui.screens.chat.ChatListScreen
 import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
@@ -67,7 +69,12 @@ fun UserRootScreen(authVM: AuthViewModel) {
 
 
             composable(Screen.ChatList.route) {
-                Text("Chat List Screen Content")
+                ChatListScreen(navController = navController,
+                    authVM = authVM,
+                    chatListVM = hiltViewModel(),
+                    chatVM = hiltViewModel()
+                )
+
             }
 
             composable(Screen.SearchRouter.route) {

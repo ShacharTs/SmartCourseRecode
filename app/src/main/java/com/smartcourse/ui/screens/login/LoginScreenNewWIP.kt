@@ -3,8 +3,6 @@ package com.smartcourse.ui.screens.login
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,8 +25,6 @@ fun WelcomeScreen(isDark: Boolean) {
 
     // Detect dark mode
     //val isDark = isSystemInDarkTheme()
-
-
 
     val fieldBorder = if (isDark) Color(0xFFFFFFFF) else Color(0xFF020000)
     val fieldFocused = if (isDark) Color(0xFFB388FF) else Color(0xFF9333EA)

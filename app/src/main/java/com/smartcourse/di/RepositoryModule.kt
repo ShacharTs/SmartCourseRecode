@@ -1,5 +1,6 @@
 package com.smartcourse.di
 
+
 import com.smartcourse.data.repositories.UserRepository
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -19,6 +20,8 @@ object RepositoryModule {
     ): UserRepository {
         return UserRepository(supabase)
     }
+
+
 
 
 

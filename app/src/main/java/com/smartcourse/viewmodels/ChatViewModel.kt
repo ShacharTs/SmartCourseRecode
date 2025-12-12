@@ -12,9 +12,11 @@ import kotlinx.coroutines.launch
 import com.google.firebase.Timestamp
 import com.smartcourse.data.remote.firebase.FirebaseUserProvider
 import com.smartcourse.data.repositories.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-
-class ChatViewModel (
+@HiltViewModel
+class ChatViewModel @Inject constructor(
     private val repo: ChatRepository,
     private val userRepo: UserRepository
 ) : ViewModel() {
