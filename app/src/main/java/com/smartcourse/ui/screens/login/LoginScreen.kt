@@ -31,6 +31,9 @@ import com.smartcourse.R
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.auth.EmailAuthStrategy
 import com.smartcourse.auth.GoogleAuthStrategy
+import com.smartcourse.ui.theme.screens.LoginColorPalette
+import com.smartcourse.ui.theme.screens.LoginScreenColors
+import com.smartcourse.ui.theme.screens.LoginGradients // NEW: Import gradient constants
 import kotlinx.coroutines.launch
 
 @Composable
@@ -39,10 +42,8 @@ fun LoginScreen(
 ) {
     val isDark: Boolean = isSystemInDarkTheme()
 
-    val fieldBorder = if (isDark) Color(0xFFFFFFFF) else Color(0xFF020000)
-    val fieldFocused = if (isDark) Color(0xFFB388FF) else Color(0xFF9333EA)
-    val placeholderColor = if (isDark) Color(0xFFBBBBBB) else Color(0xFF000000)
-    val textColor = if (isDark) Color.White else Color.Black
+    // --- Screen-Specific Color Palette Lookup ---
+    val colors: LoginColorPalette = if (isDark) LoginScreenColors.Dark else LoginScreenColors.Light
 
     /* State Management */
     var email by remember { mutableStateOf("") }
@@ -83,12 +84,9 @@ fun LoginScreen(
         authViewModel.setRegister()
     }
 
+
     LoginContent(
         isDark = isDark,
-        fieldBorder = fieldBorder,
-        fieldFocused = fieldFocused,
-        placeholderColor = placeholderColor,
-        textColor = textColor,
         email = email,
         password = password,
         showPassword = showPassword,
@@ -100,17 +98,14 @@ fun LoginScreen(
         onGoogleLogin = onGoogleLogin,
         onNavigateToRegister = onNavigateToRegister,
         emailFocusRequester = emailFocusRequester,
-        passwordFocusRequester = passwordFocusRequester
+        passwordFocusRequester = passwordFocusRequester,
+        loginColors = colors
     )
 }
 
 @Composable
 private fun LoginContent(
     isDark: Boolean,
-    fieldBorder: Color,
-    fieldFocused: Color,
-    placeholderColor: Color,
-    textColor: Color,
     email: String,
     password: String,
     showPassword: Boolean,
@@ -122,7 +117,8 @@ private fun LoginContent(
     onGoogleLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
     emailFocusRequester: FocusRequester,
-    passwordFocusRequester: FocusRequester
+    passwordFocusRequester: FocusRequester,
+    loginColors: LoginColorPalette
 ) {
     Box(
         modifier = Modifier
@@ -130,72 +126,66 @@ private fun LoginContent(
             .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
-        // Phone Frame Background
+        // Phone frame
         Box(
             modifier = Modifier
-                .size(width = 412.dp, height = 892.dp)
+                .fillMaxSize()
                 .clip(RoundedCornerShape(18.dp))
                 .background(
                     Brush.verticalGradient(
-                        if (isDark) {
-                            listOf(Color(0xFF0B0514), Color(0xFF1E0938), Color(0xFF3A0F54))
-                        } else {
-                            listOf(Color(0xFF9333EA), Color(0xFFEC4899), Color(0xFFF97316))
-                        }
+                        if (isDark) LoginGradients.Dark else LoginGradients.Light
                     )
                 )
         ) {
-
-            LoginHeader(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 25.dp)
-            )
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp)
+                    .statusBarsPadding()
+                    .imePadding(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(24.dp))
 
-            LoginFields(
-                email = email,
-                password = password,
-                showPassword = showPassword,
-                placeholderColor = placeholderColor,
-                textColor = textColor,
-                fieldBorder = fieldBorder,
-                fieldFocused = fieldFocused,
-                onEmailChange = onEmailChange,
-                onPasswordChange = onPasswordChange,
-                onTogglePassword = onTogglePassword,
-                onLogin = onLogin,
-                emailFocusRequester = emailFocusRequester,
-                passwordFocusRequester = passwordFocusRequester,
-                modifier = Modifier.align(Alignment.TopStart)
-            )
+                LoginHeader()
 
-            LoginButtons(
-                loginError = loginError,
-                onLogin = onLogin,
-                onGoogleLogin = onGoogleLogin,
-                onNavigateToRegister = onNavigateToRegister,
-                modifier = Modifier.align(Alignment.TopCenter),
-                isDark = isDark
-            )
+                Spacer(Modifier.height(32.dp))
 
-            // Bottom Nav Handle
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
-                    .size(width = 108.dp, height = 4.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Black.copy(alpha = 0.7f))
-            )
+                LoginFields(
+                    email = email,
+                    password = password,
+                    showPassword = showPassword,
+                    onEmailChange = onEmailChange,
+                    onPasswordChange = onPasswordChange,
+                    onTogglePassword = onTogglePassword,
+                    onLogin = onLogin,
+                    emailFocusRequester = emailFocusRequester,
+                    passwordFocusRequester = passwordFocusRequester,
+                    loginColors = loginColors
+                )
+
+                // Push buttons toward bottom naturally
+                Spacer(modifier = Modifier.height(25.dp))
+
+                LoginButtons(
+                    loginError = loginError,
+                    onLogin = onLogin,
+                    onGoogleLogin = onGoogleLogin,
+                    onNavigateToRegister = onNavigateToRegister,
+                    loginColors = loginColors
+                )
+            }
         }
     }
 }
 
 
+
 @Composable
 private fun LoginHeader(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -223,25 +213,25 @@ private fun LoginFields(
     email: String,
     password: String,
     showPassword: Boolean,
-    placeholderColor: Color,
-    textColor: Color,
-    fieldBorder: Color,
-    fieldFocused: Color,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onTogglePassword: () -> Unit,
     onLogin: () -> Unit,
     emailFocusRequester: FocusRequester,
     passwordFocusRequester: FocusRequester,
+    loginColors: LoginColorPalette,
     modifier: Modifier = Modifier
 ) {
-    // Column to hold and space the input fields
+    val placeholderColor = loginColors.placeholder
+    val textColor = loginColors.text
+    val fieldBorder = loginColors.fieldBorder
+    val fieldFocused = loginColors.fieldFocused
+
     Column(
         modifier = modifier
-            .width(327.dp)
-            .offset(x = 30.dp, y = 330.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Email Field
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
@@ -266,9 +256,6 @@ private fun LoginFields(
             )
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Password Field
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
@@ -277,11 +264,11 @@ private fun LoginFields(
                 if (showPassword) VisualTransformation.None
                 else PasswordVisualTransformation(),
             trailingIcon = {
-                val image =
-                    if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                 IconButton(onClick = onTogglePassword) {
                     Icon(
-                        imageVector = image,
+                        imageVector =
+                            if (showPassword) Icons.Filled.Visibility
+                            else Icons.Filled.VisibilityOff,
                         contentDescription = "Toggle password visibility",
                         tint = placeholderColor
                     )
@@ -309,6 +296,7 @@ private fun LoginFields(
     }
 }
 
+
 @Composable
 private fun LoginButtons(
     loginError: String?,
@@ -316,44 +304,42 @@ private fun LoginButtons(
     onGoogleLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
     modifier: Modifier = Modifier,
-    isDark: Boolean // Passed down for conditional styling
+    loginColors: LoginColorPalette
 ) {
-    // Determine background color for the error text container in light mode
-    val errorBackgroundColor = if (isDark) Color.Transparent else Color.Black.copy(alpha = 0.5f)
-    // Determine text color for better contrast in light mode
-    val errorTextColor = if (isDark) Color.Red else Color(0xFFFF4444)
-
-    // Vertical padding below the error message when present
-    val errorPaddingBottom = 16.dp
+    val errorBackgroundColor = loginColors.errorBackground
+    val errorTextColor = loginColors.errorText
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .offset(y = 475.dp), // Starting Y-offset for the first element
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(15.dp)
     ) {
-        // ERROR MESSAGE - Visible ONLY when loginError is not null
-        if (loginError != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(errorBackgroundColor)
-                    .padding(vertical = 4.dp), // Small padding around the error text
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = loginError,
-                    color = errorTextColor,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.85f)
+                .heightIn(min = 36.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (loginError != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(errorBackgroundColor)
+                        .padding(vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = loginError,
+                        color = errorTextColor,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
             }
-            // Add space between the error and the first button
-            Spacer(modifier = Modifier.height(errorPaddingBottom))
         }
 
-        // Sign in Button
         GradientButton(
             text = "Sign in",
             modifier = Modifier
@@ -361,9 +347,6 @@ private fun LoginButtons(
                 .clickable(onClick = onLogin)
         )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Register Button
         OutlineButton(
             text = "Register",
             modifier = Modifier
@@ -371,9 +354,8 @@ private fun LoginButtons(
                 .clickable(onClick = onNavigateToRegister)
         )
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // Google Login Button
         GoogleButton(
             modifier = Modifier
                 .fillMaxWidth(0.85f)
@@ -381,6 +363,7 @@ private fun LoginButtons(
         )
     }
 }
+
 
 
 /* ------------------ BUTTON COMPONENTS ------------------ */
