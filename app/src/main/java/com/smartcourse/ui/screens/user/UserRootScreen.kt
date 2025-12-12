@@ -5,20 +5,26 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.ChatRepository
+import com.smartcourse.data.repositories.UserRepository
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.chat.ChatListScreen
+import com.smartcourse.ui.screens.chat.ChatScreen
 import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
+import com.smartcourse.viewmodels.ChatViewModel
 
 
 @Composable
@@ -74,8 +80,23 @@ fun UserRootScreen(authVM: AuthViewModel) {
                     chatListVM = hiltViewModel(),
                     chatVM = hiltViewModel()
                 )
-
             }
+
+
+            composable(Screen.ChatRoom.route) { entry ->
+                val chatId = entry.arguments?.getString("chatId")!!
+
+                val chatVM: ChatViewModel = hiltViewModel(entry)
+
+                ChatScreen(
+                    navController = navController,
+                    chatId = chatId,
+                    vm = chatVM,
+                    authVM = authVM
+                )
+            }
+
+
 
             composable(Screen.SearchRouter.route) {
                 Text("Search Screen Content")

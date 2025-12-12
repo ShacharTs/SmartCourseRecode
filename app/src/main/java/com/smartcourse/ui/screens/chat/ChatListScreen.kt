@@ -78,7 +78,9 @@ fun ChatListContent(
                     chat = chat,
                     imageUrl = chat.otherUser?.image,
                     onClick = {
-                        chatVM.openChatWith(chat.otherUserId, authVM.user!!.getUID(), navController)
+                        chatVM.openChatWith(chat.otherUserId,
+                            authVM.user!!.getUID(),
+                            navController)
                     }
                 )
             }
