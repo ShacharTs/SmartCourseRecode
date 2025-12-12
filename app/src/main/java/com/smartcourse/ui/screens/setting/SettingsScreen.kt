@@ -20,7 +20,7 @@ fun SettingsScreen(
         contentAlignment = androidx.compose.ui.Alignment.Center
     ){
         CustomText(
-            text = " Temp Settings Screen"
+            text = "Temp Settings Screen"
         )
     }
 
