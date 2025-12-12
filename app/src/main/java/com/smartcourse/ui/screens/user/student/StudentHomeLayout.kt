@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
-import com.smartcourse.data.repositories.AuthRepository
 
 
 val BackgroundColor = Color(0xFF0E0E11) // #0E0E11
