@@ -257,11 +257,14 @@ private fun MessageRow(
     else
         MaterialTheme.colorScheme.onSurfaceVariant
 
+    val alignEnd = isMine || isRtlText(text)
+
     CustomRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(6.dp),
-        horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start
+        horizontalArrangement =
+            if (alignEnd) Arrangement.End else Arrangement.Start
     ) {
         Surface(
             color = bg,
@@ -275,6 +278,15 @@ private fun MessageRow(
         }
     }
 }
+
+
+fun isRtlText(text: String): Boolean {
+    return text.any {
+        Character.getDirectionality(it) ==
+                Character.DIRECTIONALITY_RIGHT_TO_LEFT
+    }
+}
+
 
 
 // -----------------------------------------------------------------------------
