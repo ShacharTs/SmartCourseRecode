@@ -11,7 +11,6 @@ import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.ui.screens.chooserole.ChooseRoleScreen
 import com.smartcourse.ui.screens.login.LoginScreen
-import com.smartcourse.ui.screens.login.LoginScreenNew
 import com.smartcourse.ui.screens.register.RegisterScreen
 import com.smartcourse.ui.screens.user.UserRootScreen
 
@@ -94,7 +93,7 @@ private fun NavHostGraph(
         }
 
         composable(Screen.Login.route) {
-            LoginScreenNew(authViewModel = authVM)
+            LoginScreen(authViewModel = authVM)
         }
 
         composable(Screen.Register.route) {
