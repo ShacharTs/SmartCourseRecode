@@ -1,5 +1,6 @@
 package com.smartcourse.ui.screens.user
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -64,20 +65,23 @@ fun UserRootScreen(authVM: AuthViewModel) {
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
-            modifier = Modifier.padding(padding)
         ) {
 
             composable(Screen.Home.route) {
-                ShowUserMenuScreen(authVM)
+                Box(modifier = Modifier.padding(padding)) {
+                    ShowUserMenuScreen(authVM)
+                }
             }
 
 
             composable(Screen.ChatList.route) {
-                ChatListScreen(
-                    navController = navController,
-                    authVM = authVM,
-                    chatListVM = hiltViewModel(),
-                )
+                Box(modifier = Modifier.padding(padding)) {
+                    ChatListScreen(
+                        navController = navController,
+                        authVM = authVM,
+                        chatListVM = hiltViewModel()
+                    )
+                }
             }
 
 
@@ -99,11 +103,16 @@ fun UserRootScreen(authVM: AuthViewModel) {
 
 
             composable(Screen.SearchRouter.route) {
-                Text("Search Screen Content")
+                Box(modifier = Modifier.padding(padding)) {
+                    Text("Search Screen Content")
+                }
+
             }
 
             composable(Screen.Profile.route) {
-                Text("Profile Screen Content")
+                Box(modifier = Modifier.padding(padding)) {
+                    Text("Profile Screen Content")
+                }
             }
         }
     }
