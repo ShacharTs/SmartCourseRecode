@@ -119,13 +119,18 @@ private fun NavHostGraph(
 
         composable(Screen.ChooseRole.route) {
             val chooseRoleVM = hiltViewModel<ChooseRoleViewModel>()
-            ChooseRoleScreen(chooseRoleViewModel = chooseRoleVM, authVM = authVM)
+            ChooseRoleScreen(
+                navController = navController,
+                chooseRoleViewModel = chooseRoleVM,
+                authVM = authVM
+            )
         }
 
         composable(Screen.UserScreen.route) {
             UserRootScreen(
                 navController = navController,
-                authVM = authVM)
+                authVM = authVM
+            )
         }
     }
 }

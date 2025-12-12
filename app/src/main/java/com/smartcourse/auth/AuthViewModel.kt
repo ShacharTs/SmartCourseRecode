@@ -390,6 +390,20 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun onRoleChosen() {
+        viewModelScope.launch {
+            val user = authRepo.restoreValidSession()
+
+            authState = when (user?.role) {
+                null -> AuthState.LOGGED_OUT
+                UserRole.TEMP -> AuthState.CHOOSING_ROLE
+                else -> AuthState.LOGGED_IN
+            }
+        }
+    }
+
+
+
     fun logout() {
         viewModelScope.launch {
             authRepo.logout()

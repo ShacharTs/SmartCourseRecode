@@ -2,6 +2,7 @@ package com.smartcourse.ui.screens.chooserole
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.UserRepository

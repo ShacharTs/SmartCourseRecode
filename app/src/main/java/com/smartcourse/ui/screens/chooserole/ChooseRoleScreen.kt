@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.smartcourse.R
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
@@ -29,11 +30,11 @@ import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
-import com.smartcourse.ui.screens.chooserole.ChooseRoleViewModel
 
 
 @Composable
 fun ChooseRoleScreen(
+    navController: NavController,
     chooseRoleViewModel: ChooseRoleViewModel,
     authVM: AuthViewModel
 ) {
@@ -65,13 +66,14 @@ fun ChooseRoleScreen(
 
         CustomSpacer(height = 80)
 
-        buttonsLowerPart(chooseRoleViewModel, role)
+        buttonsLowerPart(chooseRoleViewModel, authVM, role)
     }
 }
 
 @Composable
 private fun buttonsLowerPart(
     chooseRoleViewModel: ChooseRoleViewModel,
+    authVM: AuthViewModel,
     role: String,
 ) {
     // Confirm Button
@@ -81,23 +83,17 @@ private fun buttonsLowerPart(
             .padding(vertical = 8.dp),
         text = "Confirm",
         onClick = {
-            chooseRoleViewModel.updateUserRole(UserRole.valueOf(role))
+            chooseRoleViewModel.updateUserRole(
+                UserRole.valueOf(role)
+            ) {
+                authVM.onRoleChosen()
+            }
         }
+
 
 
     )
 
-    // Back Button
-    CustomButton(
-        modifier = Modifier
-            .fillMaxWidth(0.85f)
-            .padding(vertical = 8.dp),
-        text = "Go back",
-        onClick = {
-            //chooseRoleViewModel.authVM.logout()
-
-        }
-    )
 }
 
 @Composable
