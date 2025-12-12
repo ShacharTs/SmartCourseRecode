@@ -13,21 +13,23 @@ import com.google.firebase.firestore.firestoreSettings
  */
 object FirebaseClientProvider {
 
-    // Firebase Auth (used internally by FirebaseUserProvider)
+    // Use lazy, but ensure it's ONLY accessed after the app is fully set up.
+    // However, since Hilt calls this, we must trust the Application's onCreate.
+
     val auth: FirebaseAuth by lazy {
         FirebaseAuth.getInstance()
     }
 
-    // Firestore (messages storage)
+    // Use a regular lazy block, assuming SmartCourseApp.onCreate has executed completely.
     val firestore: FirebaseFirestore by lazy {
         FirebaseFirestore.getInstance().apply {
+            // Check if this is the cause of the crash (sometimes settings are applied too early)
             firestoreSettings = firestoreSettings {
                 isPersistenceEnabled = true
             }
         }
     }
 
-    // Realtime DB (typing + presence)
     val realtime: FirebaseDatabase by lazy {
         FirebaseDatabase.getInstance().apply {
             setPersistenceEnabled(true)

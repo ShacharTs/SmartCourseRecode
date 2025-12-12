@@ -12,6 +12,9 @@ sealed class Screen(val route: String) {
 
     object Loading : Screen("loading")
 
+    object Home : Screen("home")
+
+
 
     object UserRouter : Screen("user_router")   // decides student/tutor/admin
 

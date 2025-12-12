@@ -7,7 +7,6 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.chat.Message
-import com.smartcourse.data.remote.firebase.FirebaseClientProvider
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,9 +14,10 @@ import javax.inject.Singleton
 
 @Singleton
 class ChatRepository @Inject constructor (
+    private val firestore: FirebaseFirestore
 ){
 
-    private val db: FirebaseFirestore = FirebaseClientProvider.firestore
+    //private val firestore: FirebaseFirestore = FirebaseClientProvider.firestore
 
     /**
      * Deterministic chat ID for any two users.
@@ -37,7 +37,7 @@ class ChatRepository @Inject constructor (
      */
     suspend fun ensureChatExists(userA: String, userB: String): String {
         val chatId = createChatId(userA, userB)
-        val ref = db.collection(DbTable.CHATS).document(chatId)
+        val ref = firestore.collection(DbTable.CHATS).document(chatId)
 
         val snap = ref.get().await()
         if (!snap.exists()) {
@@ -64,7 +64,7 @@ class ChatRepository @Inject constructor (
         otherId: String
     ) {
         // Write message inside chat/{chatId}/msgs
-        db.collection(DbTable.MESSAGES)
+        firestore.collection(DbTable.MESSAGES)
             .document(chatId)
             .collection(DbTable.MSGS)
             .add(message)
@@ -78,7 +78,7 @@ class ChatRepository @Inject constructor (
      * Update last message + timestamp only.
      */
     private fun updateChatMetadata(chatId: String, lastMessage: String) {
-        db.collection(DbTable.CHATS)
+        firestore.collection(DbTable.CHATS)
             .document(chatId)
             .set(
                 mapOf(
@@ -94,7 +94,7 @@ class ChatRepository @Inject constructor (
     // ------------------------------------------------------------
 
     suspend fun getChatById(chatId: String): ChatItem {
-        val ref = db.collection(DbTable.CHATS).document(chatId)
+        val ref = firestore.collection(DbTable.CHATS).document(chatId)
         val doc = ref.get().await()
 
         if (!doc.exists()) {
@@ -144,7 +144,7 @@ class ChatRepository @Inject constructor (
         onMessages: (List<Message>) -> Unit
     ): ListenerRegistration {
 
-        return db.collection(DbTable.MESSAGES)
+        return firestore.collection(DbTable.MESSAGES)
             .document(chatId)
             .collection(DbTable.MSGS)
             .orderBy(DbTable.TIMESTAMP)
@@ -174,7 +174,7 @@ class ChatRepository @Inject constructor (
         onChats: (List<ChatItem>) -> Unit
     ): ListenerRegistration {
 
-        return db.collection(DbTable.CHATS)
+        return firestore.collection(DbTable.CHATS)
             .whereArrayContains(DbTable.PARTICIPANTS, userId)
             .addSnapshotListener { snapshot, error ->
 
