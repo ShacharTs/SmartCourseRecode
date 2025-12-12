@@ -50,7 +50,7 @@ private fun LaunchedEffectStates(
 
             AuthState.REGISTERING -> {
                 navController.navigate(Screen.Register.route) {
-                    popUpTo(0) { inclusive = true }
+                    popUpTo(Screen.Login.route) { inclusive = false }
                     launchSingleTop = true
                 }
             }
@@ -63,7 +63,7 @@ private fun LaunchedEffectStates(
             }
 
             AuthState.LOGGED_IN -> {
-                navController.navigate(Screen.UserRouter.route) {
+                navController.navigate(Screen.UserScreen.route) {
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
                 }
@@ -73,6 +73,7 @@ private fun LaunchedEffectStates(
         }
     }
 }
+
 
 
 
@@ -103,7 +104,7 @@ private fun NavHostGraph(
             ChooseRoleScreen(authViewModel = authVM, chooseRoleViewModel = hiltViewModel())
         }
 
-        composable(Screen.UserRouter.route) {
+        composable(Screen.UserScreen.route) {
             UserRootScreen(authVM = authVM)
         }
 

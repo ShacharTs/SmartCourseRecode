@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.smartcourse.DummyReachedScreen
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
@@ -61,7 +62,8 @@ fun UserRootScreen(authVM: AuthViewModel) {
         ) {
 
             composable(Screen.Home.route) {
-                Text("Home Screen Content")
+                //Text("Home Screen Content")
+                DummyReachedScreen(navController, authVM)
             }
 
             composable(Screen.ChatList.route) {

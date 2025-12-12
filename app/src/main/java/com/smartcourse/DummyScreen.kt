@@ -47,16 +47,6 @@ fun DummyReachedScreen(navController: NavController, authViewModel: AuthViewMode
 
 
             CustomSpacer(height = 30)
-
-            CustomButton(
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .padding(vertical = 8.dp),
-                text = "Logout ",
-                onClick = {
-                    authViewModel.logout()
-                }
-            )
         }
 
 

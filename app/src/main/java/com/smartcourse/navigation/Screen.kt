@@ -16,7 +16,7 @@ sealed class Screen(val route: String) {
 
 
 
-    object UserRouter : Screen("user_router")   // decides student/tutor/admin
+    object UserScreen : Screen("user_screen")
 
 
     object SearchRouter : Screen("search_router")
