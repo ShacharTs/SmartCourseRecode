@@ -34,10 +34,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.smartcourse.R
 import com.smartcourse.auth.AuthViewModel
-import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.components.CustomBox
 import com.smartcourse.ui.screens.components.CustomButton
 import com.smartcourse.ui.screens.components.CustomColumn
@@ -47,7 +45,6 @@ import com.smartcourse.ui.screens.components.CustomText
 
 @Composable
 fun RegisterScreen(
-    navController: NavController,
     authViewModel: AuthViewModel
 ) {
     var email by remember { mutableStateOf("") }
@@ -96,7 +93,6 @@ fun RegisterScreen(
         CustomSpacer(height = 20)
 
         registerForm(
-            navController = navController,
             authViewModel = authViewModel,
             onRegister = {
 
@@ -125,7 +121,6 @@ fun RegisterScreen(
 
 @Composable
 private fun registerForm(
-    navController: NavController,
     authViewModel: AuthViewModel,
     onRegister: () -> Unit,
     registerError: String? = null
@@ -136,7 +131,7 @@ private fun registerForm(
     ) {
         CustomBox(
             onClick = {
-                navController.navigate(Screen.Login.route)
+                authViewModel.setLoggedOut()
             }
         ) {
             val signUpColor = if (isSystemInDarkTheme()) {

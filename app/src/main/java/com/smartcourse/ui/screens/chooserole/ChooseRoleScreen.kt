@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.smartcourse.R
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
@@ -35,7 +34,6 @@ import com.smartcourse.viewmodels.ChooseRoleViewModel
 
 @Composable
 fun ChooseRoleScreen(
-    navController: NavController,
     authViewModel: AuthViewModel,
     chooseRoleViewModel: ChooseRoleViewModel
 ) {
@@ -67,7 +65,7 @@ fun ChooseRoleScreen(
 
         CustomSpacer(height = 80)
 
-        buttonsLowerPart(chooseRoleViewModel, role, authViewModel, navController)
+        buttonsLowerPart(chooseRoleViewModel, role, authViewModel)
     }
 }
 
@@ -75,8 +73,7 @@ fun ChooseRoleScreen(
 private fun buttonsLowerPart(
     chooseRoleViewModel: ChooseRoleViewModel,
     role: String,
-    authViewModel: AuthViewModel,
-    navController: NavController
+    authViewModel: AuthViewModel
 ) {
     // Confirm Button
     CustomButton(
@@ -86,11 +83,6 @@ private fun buttonsLowerPart(
         text = "Confirm",
         onClick = {
             chooseRoleViewModel.updateUserRole(UserRole.valueOf(role))
-
-
-//            authViewModel.refreshUser {
-//                authViewModel.setLoggedIn()
-//            }
         }
 
 
@@ -103,7 +95,8 @@ private fun buttonsLowerPart(
             .padding(vertical = 8.dp),
         text = "Go back",
         onClick = {
-            navController.popBackStack()
+            //navController.popBackStack()
+            authViewModel.setLoggedOut()
         }
     )
 }

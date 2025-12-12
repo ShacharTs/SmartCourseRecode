@@ -2,7 +2,6 @@
 package com.smartcourse.auth
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -43,7 +42,6 @@ class AuthViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            authState = AuthState.LOADING
             checkExistingSession()
         }
     }
@@ -59,42 +57,60 @@ class AuthViewModel @Inject constructor(
     }
 
     fun setRegister(){
-        authState = AuthState.REGISTERED
+        authState = AuthState.REGISTERING
     }
 
     fun setLoading(){
         authState = AuthState.LOADING
     }
 
+    fun setChooseRole(){
+        authState = AuthState.CHOOSING_ROLE
+    }
+
 
     private suspend fun checkExistingSession() {
+
+        // DO NOT override user navigation
+        if (authState != AuthState.LOADING) return
+
         try {
             val session = supabase.auth.currentSessionOrNull()
 
             if (session == null) {
-                setLoggedOut()
+                // Only set if still loading
+                if (authState == AuthState.LOADING) {
+                    setLoggedOut()
+                }
                 return
             }
 
             val loggedUser = session.user
             if (loggedUser == null) {
-                setLoggedOut()
+                if (authState == AuthState.LOADING) {
+                    setLoggedOut()
+                }
                 return
             }
 
             val profile = userRepo.loadUser(loggedUser.id)
             user = profile
 
+            if (authState != AuthState.LOADING) return
+
             authState = when (profile?.role) {
                 null,
-                UserRole.TEMP -> AuthState.REGISTERED
+                UserRole.TEMP -> AuthState.CHOOSING_ROLE
                 else -> AuthState.LOGGED_IN
             }
 
         } catch (e: Exception) {
-            setLoggedOut()
+            if (authState == AuthState.LOADING) {
+                setLoggedOut()
+            }
         }
     }
+
 
 
 
@@ -144,7 +160,7 @@ class AuthViewModel @Inject constructor(
                 val role = loaded.getUserRole()
 
                 authState = if (role == null ||  role == UserRole.TEMP) {
-                    AuthState.REGISTERED
+                    AuthState.CHOOSING_ROLE
                 } else {
                     AuthState.LOGGED_IN
                 }
@@ -179,7 +195,7 @@ class AuthViewModel @Inject constructor(
                 val role = loaded.getUserRole()
 
                 authState = if (role == UserRole.TEMP) {
-                    AuthState.REGISTERED
+                    AuthState.CHOOSING_ROLE
                 } else {
                     AuthState.LOGGED_IN
                 }
@@ -262,8 +278,8 @@ class AuthViewModel @Inject constructor(
                     user = loadOrCreateUser(sessionUser.id)
                 }
 
-                // 4. Move to REGISTERED
-                authState = AuthState.REGISTERED
+                // 4. Move to CHOOSING_ROLE
+                authState = AuthState.CHOOSING_ROLE
 
             } catch (e: Exception) {
                 e.printStackTrace()

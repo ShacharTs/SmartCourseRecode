@@ -1,10 +1,10 @@
 package com.smartcourse.navigation
 
-import android.util.Log
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,36 +21,75 @@ fun RootNavHost(
     authVM: AuthViewModel
 ) {
     val state = authVM.authState
-    Log.d("RootNavHost", "state: $state")
 
-    val currentDestination = navController.currentDestination
+    LaunchedEffectStates(
+        state = state,
+        navController = navController
+    )
 
+    NavHostGraph(
+        navController = navController,
+        authVM = authVM
+    )
+}
+
+
+@Composable
+private fun LaunchedEffectStates(
+    state: AuthState,
+    navController: NavHostController
+) {
     LaunchedEffect(state) {
         when (state) {
+
             AuthState.LOGGED_OUT -> {
-                if (currentDestination?.route != Screen.Login.route) {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
                     }
+                    launchSingleTop = true
                 }
             }
 
-            AuthState.REGISTERED -> {
+            AuthState.REGISTERING -> {
+                navController.navigate(Screen.Register.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+
+            AuthState.CHOOSING_ROLE -> {
                 navController.navigate(Screen.ChooseRole.route) {
-                    popUpTo(0) { inclusive = true }
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
                 }
             }
 
             AuthState.LOGGED_IN -> {
                 navController.navigate(Screen.UserRouter.route) {
-                    popUpTo(0) { inclusive = true }
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
                 }
             }
 
-            AuthState.LOADING -> {}
+            AuthState.LOADING -> Unit
         }
     }
+}
 
+
+
+@Composable
+private fun NavHostGraph(
+    navController: NavHostController,
+    authVM: AuthViewModel
+) {
     NavHost(
         navController = navController,
         startDestination = Screen.Loading.route
@@ -61,21 +100,20 @@ fun RootNavHost(
         }
 
         composable(Screen.Login.route) {
-            LoginScreen(navController, authVM)
+            LoginScreen(authViewModel = authVM)
         }
 
         composable(Screen.Register.route) {
-            RegisterScreen(navController, authVM)
+            RegisterScreen(authViewModel = authVM)
         }
 
         composable(Screen.ChooseRole.route) {
-            ChooseRoleScreen(navController, authVM, hiltViewModel())
+            ChooseRoleScreen(authViewModel = authVM, chooseRoleViewModel = hiltViewModel())
         }
 
         composable(Screen.UserRouter.route) {
             UserRootScreen(authVM = authVM)
         }
-
 
 
     }

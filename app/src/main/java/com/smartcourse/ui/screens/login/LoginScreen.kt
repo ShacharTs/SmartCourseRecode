@@ -1,6 +1,5 @@
 package com.smartcourse.ui.screens.login
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -19,7 +18,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,13 +34,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.smartcourse.R
-import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.auth.EmailAuthStrategy
 import com.smartcourse.auth.GoogleAuthStrategy
-import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.components.CustomBox
 import com.smartcourse.ui.screens.components.CustomButton
 import com.smartcourse.ui.screens.components.CustomColumn
@@ -51,10 +46,8 @@ import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
 import kotlinx.coroutines.launch
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun LoginScreen(
-    navController: NavController,
     authViewModel: AuthViewModel
 ) {
     var email by remember { mutableStateOf("") }
@@ -64,23 +57,6 @@ fun LoginScreen(
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    val authState by authViewModel::authState
-
-
-
-
-
-    LaunchedEffect(authState) {
-        if (authState == AuthState.LOGGED_OUT) {
-            // But ONLY show error if this was from a login attempt
-            if (email.isNotBlank() || password.isNotBlank()) {
-                loginError = "Invalid email or password"
-                email = ""
-                password = ""
-            }
-        }
-    }
 
     LoginContent(
         email = email,
@@ -100,29 +76,28 @@ fun LoginScreen(
                 )
 
                 if (!success) {
-                    // clear fields
                     email = ""
                     password = ""
-
-                    // show error
                     loginError = "Invalid email or password"
                 } else {
                     loginError = null
                 }
             }
         },
-                onGoogleLogin = {
-                    authViewModel.login(
-                        GoogleAuthStrategy(authViewModel.supabase),
-                        context = context
-                    )
+
+        onGoogleLogin = {
+            authViewModel.login(
+                GoogleAuthStrategy(authViewModel.supabase),
+                context = context
+            )
         },
 
         onNavigateToRegister = {
-            navController.navigate(Screen.Register.route)
+            authViewModel.setRegister()
         }
     )
 }
+
 
 
 
