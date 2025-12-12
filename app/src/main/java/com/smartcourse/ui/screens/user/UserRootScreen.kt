@@ -10,10 +10,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.smartcourse.DummyReachedScreen
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
+import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
@@ -62,9 +62,9 @@ fun UserRootScreen(authVM: AuthViewModel) {
         ) {
 
             composable(Screen.Home.route) {
-                //Text("Home Screen Content")
-                DummyReachedScreen(navController, authVM)
+                ShowUserMenuScreen(authVM)
             }
+
 
             composable(Screen.ChatList.route) {
                 Text("Chat List Screen Content")
@@ -77,6 +77,33 @@ fun UserRootScreen(authVM: AuthViewModel) {
             composable(Screen.Profile.route) {
                 Text("Profile Screen Content")
             }
+        }
+    }
+}
+
+@Composable
+private fun ShowUserMenuScreen(authVM: AuthViewModel) {
+    when (authVM.user?.role) {
+
+        UserRole.STUDENT -> {
+            //StudentHomeScreen(navController, authVM)
+            CustomText("StudentHomeScreen")
+        }
+
+        UserRole.TUTOR -> {
+            //TutorHomeScreen(navController, authVM)
+            CustomText("TutorHomeScreen")
+        }
+
+        UserRole.ADMIN -> {
+            //AdminHomeScreen(navController, authVM)
+            CustomText("AdminHomeScreen")
+        }
+
+        else -> {
+            // TEMP / null safety
+            //DummyReachedScreen(navController, authVM)
+            CustomText("DummyReachedScreen")
         }
     }
 }
