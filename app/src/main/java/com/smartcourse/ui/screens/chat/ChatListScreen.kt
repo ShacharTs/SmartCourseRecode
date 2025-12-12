@@ -33,7 +33,6 @@ import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.viewmodels.ChatListViewModel
-import com.smartcourse.viewmodels.ChatViewModel
 
 /**
  * ChatListScreen is a composable function that displays a list of chats.
@@ -44,7 +43,6 @@ fun ChatListScreen(
     navController: NavController,
     chatListVM: ChatListViewModel,
     authVM: AuthViewModel,
-    //chatVM: ChatViewModel
 ) {
     val myId = authVM.user?.getUID() ?: ""
 
@@ -59,7 +57,6 @@ fun ChatListScreen(
         chats = chats,
         authVM = authVM,
         navController = navController,
-        //chatVM = chatVM
     )
 }
 
@@ -68,7 +65,6 @@ fun ChatListContent(
     chats: List<ChatItem>,
     authVM: AuthViewModel,
     navController: NavController,
-    //chatVM: ChatViewModel
 ) {
     CustomColumn(
         modifier = Modifier.fillMaxSize()
@@ -80,9 +76,6 @@ fun ChatListContent(
                     imageUrl = chat.otherUser?.image,
                     onClick = {
                         navController.navigate(Screen.ChatRoom.createRoute(chat.chatId))
-//                        chatVM.openChatWith(chat.otherUserId,
-//                            authVM.user!!.getUID(),
-//                            navController)
                     }
                 )
             }

@@ -13,6 +13,6 @@ data class Message(
     val chatId: String = "",
     val senderId: String = "",
     val text: String = "",
-    val timestamp: Timestamp? = null,
+    val timestamp: Timestamp = Timestamp.now(),
     val type: String = "text",
 )

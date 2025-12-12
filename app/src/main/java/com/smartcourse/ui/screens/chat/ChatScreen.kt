@@ -2,12 +2,12 @@
 
 package com.smartcourse.ui.screens.chat
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -33,15 +33,18 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
@@ -57,142 +60,202 @@ import com.smartcourse.viewmodels.ChatViewModel
 
 @Composable
 fun ChatScreen(
-    navController: NavController ,chatVM: ChatViewModel, authVM: AuthViewModel
+    navController: NavController,
+    chatVM: ChatViewModel,
+    authVM: AuthViewModel
 ) {
-
     val chatId = chatVM.chatId
+    val myId = authVM.user?.getUID() ?: return
 
-    val myId = authVM.user?.getUID() ?: ""
-
-    var input by remember { mutableStateOf("") }
-    var otherId by remember { mutableStateOf("") }
+    var input by rememberSaveable { mutableStateOf("") }
+    var otherId by remember { mutableStateOf<String?>(null) }
 
     var thisUser by remember { mutableStateOf<User?>(null) }
     var otherUser by remember { mutableStateOf<User?>(null) }
 
-    // Resolve me / other from Supabase user list
-    fun resolveUsers(myId: String, users: List<User?>): Pair<User?, User?> {
-        val u1 = users.getOrNull(0)
-        val u2 = users.getOrNull(1)
+    val listState = rememberLazyListState()
+    val messages by chatVM.messages.collectAsState()
 
-        val me = if (u1?.getUID() == myId) u1 else u2
-        val other = if (u1?.getUID() == myId) u2 else u1
 
-        return Pair(me, other)
-    }
-
-    // Init firebase + load users
+    /** ONE lifecycle-controlled init block */
     LaunchedEffect(chatId) {
         chatVM.ensureFirebaseReady()
 
-        // Firebase: find other user id
-        otherId = chatVM.getReceiverId(chatId, myId)
+        val receiver = chatVM.getReceiverId(chatId, myId)
+        otherId = receiver
 
-        // Supabase: load both users
         val (me, other) = resolveUsers(myId, chatVM.getBothUsers(chatId))
         thisUser = me
         otherUser = other
+
+        chatVM.startListening(chatId)
     }
 
-    // Listen to chat messages
-    LaunchedEffect(Unit) { chatVM.startListening(chatId) }
-
-    val messages by chatVM.messages.collectAsState()
-
-    val listState = rememberLazyListState()
-
-    // Auto-scroll to bottom on new messages
-    LaunchedEffect(messages) {
-        if (messages.isNotEmpty()) listState.scrollToItem(0)
+    /** STOP listener on exit */
+    DisposableEffect(chatId) {
+        onDispose {
+            chatVM.stopListening()
+        }
     }
 
-    Scaffold(topBar = {
-        ChatTopBar(
-            navController = navController, otherUser = otherUser
-        )
-    }, bottomBar = {
-        ChatInputBar(input = input, onInputChange = { input = it }, onSend = {
-            if (input.isNotBlank()) {
-                chatVM.sendMessage(
-                    chatId = chatId, text = input, myId = myId, otherId = otherId
-                )
-                input = ""
-            }
-        })
-    }) { innerPadding ->
+    /** Auto-scroll */
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
+    ChatScaffold(
+        navController = navController,
+        otherUser = otherUser,
+        otherId = otherId,
+        chatVM = chatVM,
+        chatId = chatId,
+        myId = myId,
+        messages = messages,
+        listState = listState
+    )
+
+}
+
+@Composable
+private fun ChatScaffold(
+    navController: NavController,
+    otherUser: User?,
+    otherId: String?,
+    chatVM: ChatViewModel,
+    chatId: String,
+    myId: String,
+    messages: List<Message>,
+    listState: LazyListState
+) {
+    var input by remember { mutableStateOf("") }
+
+    Scaffold(
+        topBar = {
+            ChatTopBar(
+                navController = navController,
+                otherUser = otherUser
+            )
+        },
+        bottomBar = {
+            ChatInputBar(
+                input = input,
+                onInputChange = { input = it },
+                onSend = {
+                    val receiver = otherId ?: return@ChatInputBar
+                    if (input.isBlank()) return@ChatInputBar
+
+                    chatVM.sendMessage(
+                        chatId = chatId,
+                        text = input,
+                        myId = myId,
+                        otherId = receiver
+                    )
+                    input = ""
+                }
+            )
+        }
+    ) { paddingValues ->
 
         ChatMessageList(
             messages = messages,
             myId = myId,
             listState = listState,
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
+                // ⬇️ IMPORTANT: remove TOP padding, keep others
+                .padding(
+                    start = paddingValues.calculateStartPadding(LayoutDirection.Ltr),
+                    end = paddingValues.calculateEndPadding(LayoutDirection.Ltr),
+                    bottom = paddingValues.calculateBottomPadding()
+                )
         )
     }
 }
 
 
-@Composable
-fun ChatTopBar(
-    navController: NavController, otherUser: User?
-) {
-    TopAppBar(title = {
-        CustomRow(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(start = 20.dp)
-                .fillMaxWidth()
-                .clickable(onClick = {
-                    //todo send to profile + make a profile screen for view
-                })
-        ) {
-            CustomImage(
-                imageUrl = otherUser?.image, size = 40.dp
-            )
-
-            CustomSpacer(modifier = Modifier.width(12.dp))
-
-            CustomText(
-                text = otherUser?.name ?: "Loading...",
-                style = MaterialTheme.typography.titleLarge
-            )
-        }
-    }, navigationIcon = {
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back"
-            )
-        }
-    })
+/** Resolve users helper */
+fun resolveUsers(myId: String, users: List<User?>): Pair<User?, User?> {
+    val u1 = users.getOrNull(0)
+    val u2 = users.getOrNull(1)
+    val me = if (u1?.getUID() == myId) u1 else u2
+    val other = if (u1?.getUID() == myId) u2 else u1
+    return me to other
 }
 
+/* ---------------- TOP BAR ---------------- */
+
+@Composable
+fun ChatTopBar(
+    navController: NavController,
+    otherUser: User?
+) {
+    TopAppBar(
+        title = {
+            CustomRow(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CustomImage(
+                    imageUrl = otherUser?.image,
+                    size = 40.dp
+                )
+
+                CustomSpacer(width = 12)
+
+                CustomText(
+                    text = otherUser?.name ?: "Loading...",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        }
+    )
+}
+
+/* ---------------- MESSAGE LIST ---------------- */
 
 @Composable
 fun ChatMessageList(
-    messages: List<Message>, myId: String, listState: LazyListState, modifier: Modifier = Modifier
+    messages: List<Message>,
+    myId: String,
+    listState: LazyListState,
+    modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = modifier, state = listState, reverseLayout = true
+        state = listState,
+        modifier = modifier
     ) {
-        items(messages) { msg ->
+        items(messages, key = { it.messageId }) { msg ->
             MessageRow(
-                isMine = msg.senderId == myId, text = msg.text
+                isMine = msg.senderId == myId,
+                text = msg.text
             )
         }
     }
 }
 
-
 @Composable
 private fun MessageRow(
-    isMine: Boolean, text: String
+    isMine: Boolean,
+    text: String
 ) {
-    val bubbleColor = if (isMine) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.surfaceVariant
+    val bg = if (isMine)
+        MaterialTheme.colorScheme.primary
+    else
+        MaterialTheme.colorScheme.surfaceVariant
 
-    val textColor = if (isMine) MaterialTheme.colorScheme.onPrimary
-    else MaterialTheme.colorScheme.onSurfaceVariant
+    val fg = if (isMine)
+        MaterialTheme.colorScheme.onPrimary
+    else
+        MaterialTheme.colorScheme.onSurfaceVariant
 
     CustomRow(
         modifier = Modifier
@@ -201,16 +264,18 @@ private fun MessageRow(
         horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start
     ) {
         Surface(
-            color = bubbleColor,
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.padding(4.dp)
+            color = bg,
+            shape = MaterialTheme.shapes.medium
         ) {
             CustomText(
-                text = text, modifier = Modifier.padding(12.dp), color = textColor
+                text = text,
+                color = fg,
+                modifier = Modifier.padding(12.dp)
             )
         }
     }
 }
+
 
 // -----------------------------------------------------------------------------
 // INPUT BAR (WhatsApp style)

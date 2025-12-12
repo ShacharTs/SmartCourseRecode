@@ -77,7 +77,6 @@ fun UserRootScreen(authVM: AuthViewModel) {
                     navController = navController,
                     authVM = authVM,
                     chatListVM = hiltViewModel(),
-                    //chatVM = hiltViewModel()
                 )
             }
 

@@ -38,12 +38,18 @@ class ChatViewModel @Inject constructor(
      * Start listening to incoming messages for this chat.
      */
     fun startListening(chatId: String) {
-        listener?.remove()
+        viewModelScope.launch {
+            // BLOCK until Firebase is authenticated
+            FirebaseUserProvider.ensureFirebaseUser()
 
-        listener = repo.listenToMessages(chatId) { msgs ->
-            _messages.value = msgs
+            listener?.remove()
+
+            listener = repo.listenToMessages(chatId) { msgs ->
+                _messages.value = msgs
+            }
         }
     }
+
 
     /**
      * Stop listening when leaving chat screen.
