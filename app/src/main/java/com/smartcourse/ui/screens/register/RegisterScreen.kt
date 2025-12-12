@@ -35,39 +35,32 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smartcourse.R
-import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.ui.screens.components.CustomBox
 import com.smartcourse.ui.screens.components.CustomButton
 import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
+import com.smartcourse.ui.screens.register.RegisterViewModel
 
 @Composable
 fun RegisterScreen(
-    authViewModel: AuthViewModel
+    registerVM: RegisterViewModel,
+    onNavigateBack: () -> Unit,
+    onRegisterSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var registerError by remember { mutableStateOf<String?>(null) }
 
-    // Observe registration result from ViewModel
-    val signUpResult by authViewModel.signUpState.collectAsState()
+    val uiState by registerVM.uiState.collectAsState()
 
-    // React to registration result safely
-    LaunchedEffect(signUpResult) {
-        if (signUpResult == null) return@LaunchedEffect
-
-        if (signUpResult!!.success) {
-            registerError = null
-            authViewModel.setRegister()
-            // navController.navigate(Screen.ChooseRole.route)
-        } else {
-            registerError = signUpResult!!.error ?: "Registration failed"
+    // Navigate on successful registration
+    LaunchedEffect(uiState.success) {
+        if (uiState.success) {
+            onRegisterSuccess()
         }
     }
-
 
     CustomColumn(
         modifier = Modifier
@@ -93,56 +86,43 @@ fun RegisterScreen(
         CustomSpacer(height = 20)
 
         registerForm(
-            authViewModel = authViewModel,
+            isLoading = uiState.isLoading,
+            error = uiState.error,
+            onNavigateBack = onNavigateBack,
             onRegister = {
-
-                // 1. Validate using the new validateRegistration()
-                val validation = authViewModel.validateRegistration(
+                val error = registerVM.validate(
                     email = email,
                     password = password,
                     confirmPassword = confirmPassword
                 )
 
-                if (!validation.success) {
-                    registerError = validation.error
-                    return@registerForm
+                if (error != null) {
+                    registerVM.setError(error)
+                } else {
+                    registerVM.register(email, password)
                 }
-
-                // 2. Safe to continue → Perform signup + login
-                authViewModel.registerAndLogin(email, password)
-
-            },
-            registerError = registerError
+            }
         )
-
     }
 }
 
 
+
 @Composable
 private fun registerForm(
-    authViewModel: AuthViewModel,
+    isLoading: Boolean,
+    error: String?,
     onRegister: () -> Unit,
-    registerError: String? = null
+    onNavigateBack: () -> Unit
 ) {
     CustomRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Absolute.Center
+        horizontalArrangement = Arrangement.Center
     ) {
-        CustomBox(
-            onClick = {
-                authViewModel.setLoggedOut()
-            }
-        ) {
-            val signUpColor = if (isSystemInDarkTheme()) {
-                Color.Yellow
-            } else {
-                Color.Blue
-            }
-
+        CustomBox(onClick = onNavigateBack) {
             CustomText(
                 text = "Already have account ?",
-                color = signUpColor
+                color = if (isSystemInDarkTheme()) Color.Yellow else Color.Blue
             )
         }
     }
@@ -150,21 +130,22 @@ private fun registerForm(
     CustomSpacer(height = 30)
 
     CustomButton(
-        text = "Register",
+        text = if (isLoading) "Registering..." else "Register",
         modifier = Modifier.fillMaxWidth(),
-        onClick = { onRegister() }
+        onClick = onRegister
     )
 
 
-    if (registerError != null) {
+    if (error != null) {
         CustomSpacer(height = 12)
         CustomText(
-            text = registerError,
+            text = error,
             color = Color.Red,
             fontSize = 14.sp
         )
     }
 }
+
 
 
 @Composable

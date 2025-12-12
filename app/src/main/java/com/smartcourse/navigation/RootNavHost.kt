@@ -9,10 +9,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.ui.screens.login.LoginViewModel
 import com.smartcourse.ui.screens.chooserole.ChooseRoleScreen
 import com.smartcourse.ui.screens.login.LoginScreen
 import com.smartcourse.ui.screens.register.RegisterScreen
 import com.smartcourse.ui.screens.user.UserRootScreen
+import com.smartcourse.ui.screens.chooserole.ChooseRoleViewModel
+import com.smartcourse.ui.screens.register.RegisterViewModel
 
 @Composable
 fun RootNavHost(
@@ -38,6 +41,7 @@ private fun LaunchedEffectStates(
     state: AuthState,
     navController: NavHostController
 ) {
+
     LaunchedEffect(state) {
         when (state) {
 
@@ -76,8 +80,6 @@ private fun LaunchedEffectStates(
 
 
 
-
-
 @Composable
 private fun NavHostGraph(
     navController: NavHostController,
@@ -93,24 +95,43 @@ private fun NavHostGraph(
         }
 
         composable(Screen.Login.route) {
-            LoginScreen(authViewModel = authVM)
+            val loginVM = hiltViewModel<LoginViewModel>()
+
+            LoginScreen(
+                navController = navController,
+                loginVM = loginVM,
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route)
+                }
+            )
         }
 
         composable(Screen.Register.route) {
-            RegisterScreen(authViewModel = authVM)
+            val registerVM = hiltViewModel<RegisterViewModel>()
+            RegisterScreen(
+                registerVM = registerVM,
+                onNavigateBack = { navController.popBackStack() },
+                onRegisterSuccess = {
+                    navController.navigate(Screen.ChooseRole.route)
+                }
+            )
         }
 
         composable(Screen.ChooseRole.route) {
-            ChooseRoleScreen(authViewModel = authVM, chooseRoleViewModel = hiltViewModel())
+            val chooseRoleVM = hiltViewModel<ChooseRoleViewModel>()
+            ChooseRoleScreen(chooseRoleViewModel = chooseRoleVM, authVM = authVM)
         }
 
         composable(Screen.UserScreen.route) {
-            UserRootScreen(authVM = authVM)
+            UserRootScreen(
+                navController = navController,
+                authVM = authVM)
         }
-
-
     }
 }
+
+
+
 
 
 

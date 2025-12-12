@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.repositories.AuthRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +36,7 @@ fun MenuTopAppBar(
 
             // Logout Button (מופיע שני)
             IconButton(onClick = {
-                authVM.logout() // Call the logout function
+                authVM.logout()
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ExitToApp,

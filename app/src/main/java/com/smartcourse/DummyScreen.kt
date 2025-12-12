@@ -2,7 +2,6 @@ package com.smartcourse
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,13 +12,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
-import com.smartcourse.ui.screens.components.CustomButton
 import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomSpacer
 
 @Composable
-fun DummyReachedScreen(navController: NavController, authViewModel: AuthViewModel) {
+fun DummyReachedScreen(
+    navController: NavController,
+    authViewModel: AuthViewModel
+) {
 
+    //val user = authViewModel
 
     Box(
         modifier = Modifier
@@ -36,14 +38,11 @@ fun DummyReachedScreen(navController: NavController, authViewModel: AuthViewMode
                 color = Color.White
             )
 
-            Text("User: ${authViewModel.user?.name}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White)
+//            Text("User: ${user?.getUserName()}",
+//                style = MaterialTheme.typography.bodyMedium,
+//                color = Color.White)
 
 
-            Text("AuthState: ${authViewModel.authState}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White)
 
 
             CustomSpacer(height = 30)

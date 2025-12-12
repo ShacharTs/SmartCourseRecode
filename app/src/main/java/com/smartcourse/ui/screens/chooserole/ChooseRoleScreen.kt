@@ -29,13 +29,13 @@ import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
-import com.smartcourse.viewmodels.ChooseRoleViewModel
+import com.smartcourse.ui.screens.chooserole.ChooseRoleViewModel
 
 
 @Composable
 fun ChooseRoleScreen(
-    authViewModel: AuthViewModel,
-    chooseRoleViewModel: ChooseRoleViewModel
+    chooseRoleViewModel: ChooseRoleViewModel,
+    authVM: AuthViewModel
 ) {
     var role by remember { mutableStateOf(UserRole.STUDENT.name) }
 
@@ -65,7 +65,7 @@ fun ChooseRoleScreen(
 
         CustomSpacer(height = 80)
 
-        buttonsLowerPart(chooseRoleViewModel, role, authViewModel)
+        buttonsLowerPart(chooseRoleViewModel, role)
     }
 }
 
@@ -73,7 +73,6 @@ fun ChooseRoleScreen(
 private fun buttonsLowerPart(
     chooseRoleViewModel: ChooseRoleViewModel,
     role: String,
-    authViewModel: AuthViewModel
 ) {
     // Confirm Button
     CustomButton(
@@ -95,8 +94,8 @@ private fun buttonsLowerPart(
             .padding(vertical = 8.dp),
         text = "Go back",
         onClick = {
-            //navController.popBackStack()
-            authViewModel.setLoggedOut()
+            //chooseRoleViewModel.authVM.logout()
+
         }
     )
 }

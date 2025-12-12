@@ -1,19 +1,19 @@
-package com.smartcourse.viewmodels
+package com.smartcourse.ui.screens.chat
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ListenerRegistration
 import com.smartcourse.data.models.chat.Message
+import com.smartcourse.data.remote.firebase.FirebaseUserProvider
 import com.smartcourse.data.repositories.ChatRepository
+import com.smartcourse.data.repositories.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import com.google.firebase.Timestamp
-import com.smartcourse.data.remote.firebase.FirebaseUserProvider
-import com.smartcourse.data.repositories.UserRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -74,7 +74,7 @@ class ChatViewModel @Inject constructor(
             chatId = chatId,
             text = text,
             senderId = myId,
-            timestamp = Timestamp.now(),
+            timestamp = Timestamp.Companion.now(),
             type = "text",
         )
 

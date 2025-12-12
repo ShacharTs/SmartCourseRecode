@@ -47,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.chat.Message
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.ui.screens.components.CustomBox
@@ -55,17 +54,17 @@ import com.smartcourse.ui.screens.components.CustomImage
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
-import com.smartcourse.viewmodels.ChatViewModel
+import com.smartcourse.ui.screens.chat.ChatViewModel
 
 
 @Composable
 fun ChatScreen(
     navController: NavController,
     chatVM: ChatViewModel,
-    authVM: AuthViewModel
+    myId: String
 ) {
     val chatId = chatVM.chatId
-    val myId = authVM.user?.getUID() ?: return
+    //val myId = authRepo.currentUser.value?.getUID() ?: return
 
     var input by rememberSaveable { mutableStateOf("") }
     var otherId by remember { mutableStateOf<String?>(null) }

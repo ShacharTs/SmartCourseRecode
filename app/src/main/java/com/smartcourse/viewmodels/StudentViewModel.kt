@@ -109,3 +109,34 @@
 //        }
 //    }
 //}
+
+package com.smartcourse.viewmodels
+
+import androidx.lifecycle.ViewModel
+import com.smartcourse.data.models.usermodel.User
+import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.AuthRepository
+import com.smartcourse.data.repositories.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
+
+@HiltViewModel
+class StudentHomeViewModel @Inject constructor(
+    authRepository: AuthRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
+
+    val user = authRepository.currentUser.value
+
+
+    init {
+        require(user?.role == UserRole.STUDENT)
+        loadTutors()
+    }
+
+    private fun loadTutors() {
+        // discovery logic
+    }
+}
+

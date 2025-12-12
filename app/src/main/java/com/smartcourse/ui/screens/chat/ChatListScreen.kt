@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -22,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.UserTable
 import com.smartcourse.navigation.Screen
@@ -32,7 +30,7 @@ import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
-import com.smartcourse.viewmodels.ChatListViewModel
+import com.smartcourse.ui.screens.chat.ChatListViewModel
 
 /**
  * ChatListScreen is a composable function that displays a list of chats.
@@ -41,29 +39,20 @@ import com.smartcourse.viewmodels.ChatListViewModel
 @Composable
 fun ChatListScreen(
     navController: NavController,
-    chatListVM: ChatListViewModel,
-    authVM: AuthViewModel,
+    chatListVM: ChatListViewModel
 ) {
-    val myId = authVM.user?.getUID() ?: ""
-
-    LaunchedEffect(Unit) {
-        chatListVM.ensureFirebaseReady()
-        chatListVM.loadUserChats(myId)
-    }
-
     val chats by chatListVM.chats.collectAsState()
 
     ChatListContent(
         chats = chats,
-        authVM = authVM,
-        navController = navController,
+        navController = navController
     )
 }
+
 
 @Composable
 fun ChatListContent(
     chats: List<ChatItem>,
-    authVM: AuthViewModel,
     navController: NavController,
 ) {
     CustomColumn(

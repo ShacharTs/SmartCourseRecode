@@ -30,17 +30,35 @@ class EmailAuthStrategy(
                 userId = user?.id,
             )
 
-
-
-
         } catch (e: Exception) {
-            AuthResult(false, error = e.message)
+            AuthResult(
+                success = false,
+                error = mapAuthError(e.message)
+            )
         }
     }
-
 
 
     override suspend fun logout() {
         supabase.auth.signOut()
     }
+
+    private fun mapAuthError(raw: String?): String {
+        if (raw == null) return "Login failed"
+
+        return when {
+            raw.contains("invalid login credentials", true) ->
+                "Invalid email or password"
+
+            raw.contains("missing email", true) ->
+                "Email is required"
+
+            raw.contains("email not confirmed", true) ->
+                "Please confirm your email first"
+
+            else ->
+                "Login failed"
+        }
+    }
+
 }

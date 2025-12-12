@@ -6,13 +6,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun AppBottomNavBar(
-    navController: NavHostController,
+    navController: NavController,
     items: List<BottomNavItem>
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()

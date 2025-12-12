@@ -6,14 +6,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
@@ -24,22 +24,28 @@ import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
-import com.smartcourse.viewmodels.ChatViewModel
-
+import com.smartcourse.ui.screens.chat.ChatListViewModel
+import com.smartcourse.ui.screens.chat.ChatViewModel
 
 @Composable
-fun UserRootScreen(authVM: AuthViewModel) {
+fun UserRootScreen(
+    navController: NavHostController,
+    authVM: AuthViewModel
+) {
     val navController = rememberNavController()
 
-    val role = authVM.user?.getUserRole()
-    val items = bottomNavItemsForRole(role ?: UserRole.TEMP)
 
-    // Observe current inner route
+    val currentUser by authVM.currentUser.collectAsState()
+    val role = currentUser?.getUserRole() ?: UserRole.TEMP
+
+    val items = bottomNavItemsForRole(role)
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-     val topBarRoutes = setOf(
-        Screen.Home.route,
+
+    val topBarRoutes = setOf(
+        Screen.Home.route
     )
 
     val bottomBarRoutes = setOf(
@@ -49,16 +55,9 @@ fun UserRootScreen(authVM: AuthViewModel) {
         Screen.Profile.route
     )
 
-
-    val showTopBar = currentRoute in topBarRoutes
-
-    val showBottomBar = currentRoute in bottomBarRoutes
-
-
-
     Scaffold(
         topBar = {
-            if (showTopBar) {
+            if (currentRoute in topBarRoutes) {
                 MenuTopAppBar(
                     navController = navController,
                     authVM = authVM
@@ -66,37 +65,39 @@ fun UserRootScreen(authVM: AuthViewModel) {
             }
         },
         bottomBar = {
-            if (showBottomBar && items.isNotEmpty()) {
+            if (currentRoute in bottomBarRoutes && items.isNotEmpty()) {
                 AppBottomNavBar(
                     navController = navController,
                     items = items
                 )
             }
         }
-
     ) { padding ->
+
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = Screen.Home.route
         ) {
 
             composable(Screen.Home.route) {
                 MenuScreen(padding) {
-                    ShowUserMenuScreen(authVM = authVM)
-                }
-            }
-
-
-            composable(Screen.ChatList.route) {
-                MenuScreen(padding) {
-                    ChatListScreen(
+                    ShowUserMenuScreen(
                         navController = navController,
-                        authVM = authVM,
-                        chatListVM = hiltViewModel()
+                        authVM = authVM
                     )
                 }
             }
 
+            composable(Screen.ChatList.route) {
+                val chatListVM = hiltViewModel<ChatListViewModel>()
+
+                MenuScreen(padding) {
+                    ChatListScreen(
+                        navController = navController,
+                        chatListVM = chatListVM
+                    )
+                }
+            }
 
             composable(
                 route = Screen.ChatRoom.route,
@@ -105,21 +106,19 @@ fun UserRootScreen(authVM: AuthViewModel) {
                 )
             ) { entry ->
                 val chatVM: ChatViewModel = hiltViewModel(entry)
+                val myId = authVM.currentUser.value?.getUID() ?: return@composable
 
                 ChatScreen(
                     chatVM = chatVM,
-                    authVM = authVM,
-                    navController = navController
+                    navController = navController,
+                    myId = myId
                 )
             }
-
-
 
             composable(Screen.SearchRouter.route) {
                 MenuScreen(padding) {
                     Text("Search Screen Content")
                 }
-
             }
 
             composable(Screen.Profile.route) {
@@ -131,7 +130,6 @@ fun UserRootScreen(authVM: AuthViewModel) {
     }
 }
 
-
 @Composable
 fun MenuScreen(
     padding: PaddingValues,
@@ -142,30 +140,32 @@ fun MenuScreen(
     }
 }
 
-
 @Composable
-private fun ShowUserMenuScreen(authVM: AuthViewModel) {
-    when (authVM.user?.role) {
+private fun ShowUserMenuScreen(
+    navController: NavController,
+    authVM: AuthViewModel
+) {
+    val currentUser by authVM.currentUser.collectAsState()
+    val role = currentUser?.getUserRole()
 
-        UserRole.STUDENT -> {
-            UserHomeLayout(navController = rememberNavController(), authVM = authVM)
-        }
+    when (role) {
 
+        UserRole.STUDENT,
         UserRole.TUTOR -> {
-            //TutorHomeScreen(navController, authVM)
-            //CustomText("TutorHomeScreen")
-            UserHomeLayout(navController = rememberNavController(), authVM = authVM)
+            UserHomeLayout(
+                navController = navController,
+                authVM = authVM
+            )
         }
 
         UserRole.ADMIN -> {
-            //AdminHomeScreen(navController, authVM)
             CustomText("AdminHomeScreen")
         }
 
-        else -> {
-            // TEMP / null safety
-            //DummyReachedScreen(navController, authVM)
-            CustomText("DummyReachedScreen")
+        null, UserRole.TEMP -> {
+            // This should NEVER happen if navigation is correct
+            CustomText("Invalid user state")
         }
     }
 }
+
