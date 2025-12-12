@@ -26,6 +26,7 @@ import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
 import com.smartcourse.ui.screens.chat.ChatListViewModel
 import com.smartcourse.ui.screens.chat.ChatViewModel
+import com.smartcourse.ui.screens.setting.SettingsScreen
 
 @Composable
 fun UserRootScreen(
@@ -125,6 +126,14 @@ fun UserRootScreen(
                 MenuScreen(padding) {
                     Text("Profile Screen Content")
                 }
+            }
+
+
+            composable(Screen.Settings.route){
+                SettingsScreen(
+                    navController = navController,
+                    authVM = authVM
+                )
             }
         }
     }
