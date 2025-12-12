@@ -1,4 +1,4 @@
-package com.smartcourse.navigation.model
+package com.smartcourse.ui.screens.navbar
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

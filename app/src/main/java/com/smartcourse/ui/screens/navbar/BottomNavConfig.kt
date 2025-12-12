@@ -1,4 +1,4 @@
-package com.smartcourse.navigation.model
+package com.smartcourse.ui.screens.navbar
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat

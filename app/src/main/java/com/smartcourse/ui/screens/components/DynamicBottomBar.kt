@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.smartcourse.navigation.model.BottomNavItem
+import com.smartcourse.ui.screens.navbar.BottomNavItem
 
 @Composable
 fun DynamicBottomBar(

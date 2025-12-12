@@ -16,6 +16,8 @@ import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.ui.screens.chooserole.ChooseRoleScreen
 import com.smartcourse.ui.screens.login.LoginScreen
 import com.smartcourse.ui.screens.register.RegisterScreen
+import com.smartcourse.ui.screens.user.UserMenuScreen
+import com.smartcourse.ui.screens.user.UserMenuScreenNew
 import com.smartcourse.viewmodels.ChooseRoleViewModel
 
 @Composable
@@ -72,7 +74,11 @@ fun RootNavHost(
         }
 
         composable(Screen.UserRouter.route) {
-            DummyReachedScreen(navController, authVM)
+            UserMenuScreenNew(
+                navController = navController,
+                authVM = authVM
+            )
+            //DummyReachedScreen(navController, authVM)
         }
     }
 }
