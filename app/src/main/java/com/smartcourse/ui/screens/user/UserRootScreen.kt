@@ -15,17 +15,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.smartcourse.DummyReachedScreen
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.chat.ChatListScreen
 import com.smartcourse.ui.screens.chat.ChatScreen
-import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
-import com.smartcourse.ui.screens.user.student.StudentMenuLayout
 import com.smartcourse.viewmodels.ChatViewModel
 
 
@@ -72,7 +69,7 @@ fun UserRootScreen(authVM: AuthViewModel) {
 
             composable(Screen.Home.route) {
                 MenuScreen(padding) {
-                    ShowUserMenuScreen(authVM)
+                    UserHomeLayout(navController = navController, authVM = authVM)
                 }
             }
 
@@ -133,30 +130,29 @@ fun MenuScreen(
 }
 
 
-@Composable
-private fun ShowUserMenuScreen(authVM: AuthViewModel) {
-    when (authVM.user?.role) {
-
-        UserRole.STUDENT -> {
-            //StudentHomeScreen(navController, authVM)
-            //CustomText("StudentHomeScreen")
-            StudentMenuLayout(navController = rememberNavController(), authVM = authVM)
-        }
-
-        UserRole.TUTOR -> {
-            //TutorHomeScreen(navController, authVM)
-            CustomText("TutorHomeScreen")
-        }
-
-        UserRole.ADMIN -> {
-            //AdminHomeScreen(navController, authVM)
-            CustomText("AdminHomeScreen")
-        }
-
-        else -> {
-            // TEMP / null safety
-            //DummyReachedScreen(navController, authVM)
-            CustomText("DummyReachedScreen")
-        }
-    }
-}
+//@Composable
+//private fun ShowUserMenuScreen(authVM: AuthViewModel) {
+//    when (authVM.user?.role) {
+//
+//        UserRole.STUDENT -> {
+//            UserMenuLayout(navController = rememberNavController(), authVM = authVM)
+//        }
+//
+//        UserRole.TUTOR -> {
+//            //TutorHomeScreen(navController, authVM)
+//            //CustomText("TutorHomeScreen")
+//            UserMenuLayout(navController = rememberNavController(), authVM = authVM)
+//        }
+//
+//        UserRole.ADMIN -> {
+//            //AdminHomeScreen(navController, authVM)
+//            CustomText("AdminHomeScreen")
+//        }
+//
+//        else -> {
+//            // TEMP / null safety
+//            //DummyReachedScreen(navController, authVM)
+//            CustomText("DummyReachedScreen")
+//        }
+//    }
+//}
