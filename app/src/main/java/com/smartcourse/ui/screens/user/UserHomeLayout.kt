@@ -1,6 +1,7 @@
 package com.smartcourse.ui.screens.user
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.ui.screens.components.CustomColumn
@@ -16,7 +17,7 @@ fun UserHomeLayout(
     val user = authVM.user
 
     CustomColumn(
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally
     ){
         CustomText(
             text = "User name: ${user?.getUserName()}"

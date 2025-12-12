@@ -101,9 +101,10 @@ fun ChatScreen(
     /** Auto-scroll */
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(0)
+            listState.animateScrollToItem(messages.lastIndex)
         }
     }
+
 
     ChatScaffold(
         navController = navController,

@@ -20,6 +20,7 @@ import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.chat.ChatListScreen
 import com.smartcourse.ui.screens.chat.ChatScreen
+import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
@@ -41,7 +42,18 @@ fun UserRootScreen(authVM: AuthViewModel) {
         Screen.Home.route,
     )
 
+    val bottomBarRoutes = setOf(
+        Screen.Home.route,
+        Screen.ChatList.route,
+        Screen.SearchRouter.route,
+        Screen.Profile.route
+    )
+
+
     val showTopBar = currentRoute in topBarRoutes
+
+    val showBottomBar = currentRoute in bottomBarRoutes
+
 
 
     Scaffold(
@@ -54,13 +66,14 @@ fun UserRootScreen(authVM: AuthViewModel) {
             }
         },
         bottomBar = {
-            if (items.isNotEmpty()) {
+            if (showBottomBar && items.isNotEmpty()) {
                 AppBottomNavBar(
                     navController = navController,
                     items = items
                 )
             }
         }
+
     ) { padding ->
         NavHost(
             navController = navController,
@@ -69,7 +82,7 @@ fun UserRootScreen(authVM: AuthViewModel) {
 
             composable(Screen.Home.route) {
                 MenuScreen(padding) {
-                    UserHomeLayout(navController = navController, authVM = authVM)
+                    ShowUserMenuScreen(authVM = authVM)
                 }
             }
 
@@ -130,29 +143,29 @@ fun MenuScreen(
 }
 
 
-//@Composable
-//private fun ShowUserMenuScreen(authVM: AuthViewModel) {
-//    when (authVM.user?.role) {
-//
-//        UserRole.STUDENT -> {
-//            UserMenuLayout(navController = rememberNavController(), authVM = authVM)
-//        }
-//
-//        UserRole.TUTOR -> {
-//            //TutorHomeScreen(navController, authVM)
-//            //CustomText("TutorHomeScreen")
-//            UserMenuLayout(navController = rememberNavController(), authVM = authVM)
-//        }
-//
-//        UserRole.ADMIN -> {
-//            //AdminHomeScreen(navController, authVM)
-//            CustomText("AdminHomeScreen")
-//        }
-//
-//        else -> {
-//            // TEMP / null safety
-//            //DummyReachedScreen(navController, authVM)
-//            CustomText("DummyReachedScreen")
-//        }
-//    }
-//}
+@Composable
+private fun ShowUserMenuScreen(authVM: AuthViewModel) {
+    when (authVM.user?.role) {
+
+        UserRole.STUDENT -> {
+            UserHomeLayout(navController = rememberNavController(), authVM = authVM)
+        }
+
+        UserRole.TUTOR -> {
+            //TutorHomeScreen(navController, authVM)
+            //CustomText("TutorHomeScreen")
+            UserHomeLayout(navController = rememberNavController(), authVM = authVM)
+        }
+
+        UserRole.ADMIN -> {
+            //AdminHomeScreen(navController, authVM)
+            CustomText("AdminHomeScreen")
+        }
+
+        else -> {
+            // TEMP / null safety
+            //DummyReachedScreen(navController, authVM)
+            CustomText("DummyReachedScreen")
+        }
+    }
+}

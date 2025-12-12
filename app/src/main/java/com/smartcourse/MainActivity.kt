@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.navigation.RootNavigation
 import com.smartcourse.ui.theme.SmartCourseTheme
@@ -19,9 +22,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            SmartCourseTheme {
-                RootNavigation(authViewModel)
+            CompositionLocalProvider(
+                LocalLayoutDirection provides LayoutDirection.Ltr
+            ){
+                SmartCourseTheme {
+                    RootNavigation(authViewModel)
+                }
             }
+
         }
     }
 }
