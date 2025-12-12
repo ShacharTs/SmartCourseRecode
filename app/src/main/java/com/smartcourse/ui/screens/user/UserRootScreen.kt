@@ -77,7 +77,7 @@ fun UserRootScreen(authVM: AuthViewModel) {
                     navController = navController,
                     authVM = authVM,
                     chatListVM = hiltViewModel(),
-                    chatVM = hiltViewModel()
+                    //chatVM = hiltViewModel()
                 )
             }
 
@@ -88,15 +88,15 @@ fun UserRootScreen(authVM: AuthViewModel) {
                     navArgument("chatId") { type = NavType.StringType }
                 )
             ) { entry ->
-
                 val chatVM: ChatViewModel = hiltViewModel(entry)
 
                 ChatScreen(
-                    navController = navController,
                     chatVM = chatVM,
-                    authVM = authVM
+                    authVM = authVM,
+                    navController = navController
                 )
             }
+
 
 
             composable(Screen.SearchRouter.route) {

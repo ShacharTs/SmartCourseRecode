@@ -59,6 +59,7 @@ import com.smartcourse.viewmodels.ChatViewModel
 fun ChatScreen(
     navController: NavController ,chatVM: ChatViewModel, authVM: AuthViewModel
 ) {
+
     val chatId = chatVM.chatId
 
     val myId = authVM.user?.getUID() ?: ""

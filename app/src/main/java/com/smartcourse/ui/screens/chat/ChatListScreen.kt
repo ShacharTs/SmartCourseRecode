@@ -25,6 +25,7 @@ import coil.compose.AsyncImage
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.UserTable
+import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.components.CustomBox
 import com.smartcourse.ui.screens.components.CustomCard
 import com.smartcourse.ui.screens.components.CustomColumn
@@ -43,7 +44,7 @@ fun ChatListScreen(
     navController: NavController,
     chatListVM: ChatListViewModel,
     authVM: AuthViewModel,
-    chatVM: ChatViewModel
+    //chatVM: ChatViewModel
 ) {
     val myId = authVM.user?.getUID() ?: ""
 
@@ -58,7 +59,7 @@ fun ChatListScreen(
         chats = chats,
         authVM = authVM,
         navController = navController,
-        chatVM = chatVM
+        //chatVM = chatVM
     )
 }
 
@@ -67,7 +68,7 @@ fun ChatListContent(
     chats: List<ChatItem>,
     authVM: AuthViewModel,
     navController: NavController,
-    chatVM: ChatViewModel
+    //chatVM: ChatViewModel
 ) {
     CustomColumn(
         modifier = Modifier.fillMaxSize()
@@ -78,9 +79,10 @@ fun ChatListContent(
                     chat = chat,
                     imageUrl = chat.otherUser?.image,
                     onClick = {
-                        chatVM.openChatWith(chat.otherUserId,
-                            authVM.user!!.getUID(),
-                            navController)
+                        navController.navigate(Screen.ChatRoom.createRoute(chat.chatId))
+//                        chatVM.openChatWith(chat.otherUserId,
+//                            authVM.user!!.getUID(),
+//                            navController)
                     }
                 )
             }
