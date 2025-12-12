@@ -1,6 +1,7 @@
 package com.smartcourse.ui.screens.user
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -14,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.smartcourse.DummyReachedScreen
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
@@ -23,6 +25,7 @@ import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
+import com.smartcourse.ui.screens.user.student.StudentMenuLayout
 import com.smartcourse.viewmodels.ChatViewModel
 
 
@@ -68,14 +71,14 @@ fun UserRootScreen(authVM: AuthViewModel) {
         ) {
 
             composable(Screen.Home.route) {
-                Box(modifier = Modifier.padding(padding)) {
+                MenuScreen(padding) {
                     ShowUserMenuScreen(authVM)
                 }
             }
 
 
             composable(Screen.ChatList.route) {
-                Box(modifier = Modifier.padding(padding)) {
+                MenuScreen(padding) {
                     ChatListScreen(
                         navController = navController,
                         authVM = authVM,
@@ -103,14 +106,14 @@ fun UserRootScreen(authVM: AuthViewModel) {
 
 
             composable(Screen.SearchRouter.route) {
-                Box(modifier = Modifier.padding(padding)) {
+                MenuScreen(padding) {
                     Text("Search Screen Content")
                 }
 
             }
 
             composable(Screen.Profile.route) {
-                Box(modifier = Modifier.padding(padding)) {
+                MenuScreen(padding) {
                     Text("Profile Screen Content")
                 }
             }
@@ -118,13 +121,26 @@ fun UserRootScreen(authVM: AuthViewModel) {
     }
 }
 
+
+@Composable
+fun MenuScreen(
+    padding: PaddingValues,
+    content: @Composable () -> Unit
+) {
+    Box(modifier = Modifier.padding(padding)) {
+        content()
+    }
+}
+
+
 @Composable
 private fun ShowUserMenuScreen(authVM: AuthViewModel) {
     when (authVM.user?.role) {
 
         UserRole.STUDENT -> {
             //StudentHomeScreen(navController, authVM)
-            CustomText("StudentHomeScreen")
+            //CustomText("StudentHomeScreen")
+            StudentMenuLayout(navController = rememberNavController(), authVM = authVM)
         }
 
         UserRole.TUTOR -> {

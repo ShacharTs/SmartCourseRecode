@@ -1,72 +1,74 @@
-//package com.smartcourse.ui.screens.user.student
-//
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.clickable
-//import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.PaddingValues
-//import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.foundation.layout.fillMaxWidth
-//import androidx.compose.foundation.layout.padding
-//import androidx.compose.foundation.lazy.grid.GridCells
-//import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-//import androidx.compose.foundation.lazy.grid.items
-//import androidx.compose.foundation.shape.RoundedCornerShape
-//import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.automirrored.filled.Logout
-//import androidx.compose.material.icons.filled.Settings
-//import androidx.compose.material3.CenterAlignedTopAppBar
-//import androidx.compose.material3.ExperimentalMaterial3Api
-//import androidx.compose.material3.Icon
-//import androidx.compose.material3.IconButton
-//import androidx.compose.material3.MaterialTheme
-//import androidx.compose.material3.Scaffold
-//import androidx.compose.material3.Text
-//import androidx.compose.runtime.Composable
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.draw.clip
-//import androidx.compose.ui.text.font.FontWeight
-//import androidx.compose.ui.unit.dp
-//import androidx.compose.ui.unit.sp
-//import androidx.navigation.NavController
-//import com.smartcourse.auth.AuthViewModel
-//import com.smartcourse.data.models.usermodel.User
-//import com.smartcourse.ui.screens.components.CustomButton
-//import com.smartcourse.ui.screens.components.CustomColumn
-//import com.smartcourse.ui.screens.components.CustomDivider
-//import com.smartcourse.ui.screens.components.CustomSpacer
-//import com.smartcourse.ui.screens.components.CustomText
-//import com.smartcourse.viewmodels.StudentViewModel
-//
-//
-//
-//// ------------------------------------------------------------
-//// MAIN LAYOUT
-//// ------------------------------------------------------------
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun StudentMenuLayout(
-//    navController: NavController,
-//    studentVM: StudentViewModel,
-//    authVM: AuthViewModel
-//) {
-//    Scaffold(
-//        topBar = {
+package com.smartcourse.ui.screens.user.student
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.models.usermodel.User
+import com.smartcourse.ui.screens.components.CustomButton
+import com.smartcourse.ui.screens.components.CustomColumn
+import com.smartcourse.ui.screens.components.CustomDivider
+import com.smartcourse.ui.screens.components.CustomSpacer
+import com.smartcourse.ui.screens.components.CustomText
+
+
+
+
+// ------------------------------------------------------------
+// MAIN LAYOUT
+// ------------------------------------------------------------
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StudentMenuLayout(
+    navController: NavController,
+    //studentVM: StudentViewModel,
+    authVM: AuthViewModel
+) {
+    Scaffold(
+        topBar = {
 //            StudentMenuTopBar(
 //                navController = navController,
 //                authVM = authVM
 //            )
-//        }
-//    ) { padding ->
+            CustomText("StudentTopBar")
+        }
+    ) { padding ->
 //        StudentMenuContent(
 //            modifier = Modifier.padding(padding),
 //            navController = navController,
 //            studentVM = studentVM,
 //            tutors = studentVM.matches.value
 //        )
-//    }
-//}
-//
+        CustomText("StudentMenuContent")
+    }
+}
+
 //// ------------------------------------------------------------
 //// TOP BAR
 //// ------------------------------------------------------------
@@ -212,5 +214,5 @@
 //
 //    }
 //}
-//
-//
+
+
