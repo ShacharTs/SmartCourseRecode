@@ -57,8 +57,10 @@ import com.smartcourse.viewmodels.ChatViewModel
 
 @Composable
 fun ChatScreen(
-    navController: NavController, chatId: String, vm: ChatViewModel, authVM: AuthViewModel
+    navController: NavController ,chatVM: ChatViewModel, authVM: AuthViewModel
 ) {
+    val chatId = chatVM.chatId
+
     val myId = authVM.user?.getUID() ?: ""
 
     var input by remember { mutableStateOf("") }
@@ -80,21 +82,21 @@ fun ChatScreen(
 
     // Init firebase + load users
     LaunchedEffect(chatId) {
-        vm.ensureFirebaseReady()
+        chatVM.ensureFirebaseReady()
 
         // Firebase: find other user id
-        otherId = vm.getReceiverId(chatId, myId)
+        otherId = chatVM.getReceiverId(chatId, myId)
 
         // Supabase: load both users
-        val (me, other) = resolveUsers(myId, vm.getBothUsers(chatId))
+        val (me, other) = resolveUsers(myId, chatVM.getBothUsers(chatId))
         thisUser = me
         otherUser = other
     }
 
     // Listen to chat messages
-    LaunchedEffect(Unit) { vm.startListening(chatId) }
+    LaunchedEffect(Unit) { chatVM.startListening(chatId) }
 
-    val messages by vm.messages.collectAsState()
+    val messages by chatVM.messages.collectAsState()
 
     val listState = rememberLazyListState()
 
@@ -110,7 +112,7 @@ fun ChatScreen(
     }, bottomBar = {
         ChatInputBar(input = input, onInputChange = { input = it }, onSend = {
             if (input.isNotBlank()) {
-                vm.sendMessage(
+                chatVM.sendMessage(
                     chatId = chatId, text = input, myId = myId, otherId = otherId
                 )
                 input = ""

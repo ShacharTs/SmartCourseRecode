@@ -27,10 +27,15 @@ sealed class Screen(val route: String) {
 
     // Chat
     object ChatList : Screen("chat_list")
-    //object ChatTest : Screen("chat_test")
-    object ChatRoom : Screen("chat/{chatId}")       // navigation param
+
+    object ChatRoom : Screen("chat/{chatId}") {
+        fun createRoute(chatId: String) = "chat/$chatId"
+    }
+
+
 
     object Camera : Screen("camera")
+
 
 
 }

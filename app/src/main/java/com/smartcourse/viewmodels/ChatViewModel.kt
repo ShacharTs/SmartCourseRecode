@@ -1,5 +1,6 @@
 package com.smartcourse.viewmodels
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -18,8 +19,15 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val repo: ChatRepository,
-    private val userRepo: UserRepository
+    private val userRepo: UserRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    val chatId: String =
+        checkNotNull(savedStateHandle["chatId"]) {
+            "chatId is required"
+        }
+
 
     private var listener: ListenerRegistration? = null
 
@@ -75,7 +83,6 @@ class ChatViewModel @Inject constructor(
     }
 
 
-
     suspend fun getReceiverId(chatId: String, mySupabaseId: String): String {
         val chat = repo.getChatById(chatId)
 
@@ -86,19 +93,12 @@ class ChatViewModel @Inject constructor(
     }
 
 
-
     fun openChatWith(otherUserId: String, myId: String, navController: NavController) {
         viewModelScope.launch {
             val chatId = repo.ensureChatExists(myId, otherUserId)
             navController.navigate("chat/$chatId")
         }
     }
-
-
-
-
-
-
 
 
     /**
@@ -109,7 +109,6 @@ class ChatViewModel @Inject constructor(
             FirebaseUserProvider.ensureFirebaseUser()
         }
     }
-
 
 
     /**
@@ -128,11 +127,6 @@ class ChatViewModel @Inject constructor(
      * Load both User objects participating in this chat.
      */
     suspend fun getBothUsers(chatId: String) = userRepo.getUsersInChat(chatId)
-
-
-
-
-
 
 
     override fun onCleared() {

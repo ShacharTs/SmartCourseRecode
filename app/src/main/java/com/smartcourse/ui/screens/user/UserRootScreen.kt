@@ -5,18 +5,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
-import com.smartcourse.data.repositories.ChatRepository
-import com.smartcourse.data.repositories.UserRepository
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.chat.ChatListScreen
 import com.smartcourse.ui.screens.chat.ChatScreen
@@ -75,7 +73,8 @@ fun UserRootScreen(authVM: AuthViewModel) {
 
 
             composable(Screen.ChatList.route) {
-                ChatListScreen(navController = navController,
+                ChatListScreen(
+                    navController = navController,
                     authVM = authVM,
                     chatListVM = hiltViewModel(),
                     chatVM = hiltViewModel()
@@ -83,19 +82,21 @@ fun UserRootScreen(authVM: AuthViewModel) {
             }
 
 
-            composable(Screen.ChatRoom.route) { entry ->
-                val chatId = entry.arguments?.getString("chatId")!!
+            composable(
+                route = Screen.ChatRoom.route,
+                arguments = listOf(
+                    navArgument("chatId") { type = NavType.StringType }
+                )
+            ) { entry ->
 
                 val chatVM: ChatViewModel = hiltViewModel(entry)
 
                 ChatScreen(
                     navController = navController,
-                    chatId = chatId,
-                    vm = chatVM,
+                    chatVM = chatVM,
                     authVM = authVM
                 )
             }
-
 
 
             composable(Screen.SearchRouter.route) {
