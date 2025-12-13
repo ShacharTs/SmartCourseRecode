@@ -21,6 +21,7 @@ data class User(
     @SerialName(UserTable.ROLE)
     var role: UserRole? = null,
 
+    // later remove not needed anymore
     @Transient
     var courses: List<Course> = emptyList()
 
