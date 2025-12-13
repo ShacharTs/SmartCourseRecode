@@ -110,10 +110,9 @@
 //    }
 //}
 
-package com.smartcourse.viewmodels
+package com.smartcourse.ui.screens.user.student
 
 import androidx.lifecycle.ViewModel
-import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.UserRepository

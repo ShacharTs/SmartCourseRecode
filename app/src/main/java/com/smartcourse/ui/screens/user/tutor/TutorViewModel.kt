@@ -1,18 +1,4 @@
-package com.smartcourse.viewmodels
-
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import com.smartcourse.data.models.chat.ChatItem
-import com.smartcourse.data.models.usermodel.User
-import com.smartcourse.data.repositories.ChatRepository
-import com.smartcourse.data.repositories.UserRepository
-import com.smartcourse.navigation.Screen
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-import javax.inject.Inject
+package com.smartcourse.ui.screens.user.tutor
 
 //@HiltViewModel
 //class TutorViewModel @Inject constructor(
