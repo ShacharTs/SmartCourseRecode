@@ -1,20 +1,14 @@
 package com.smartcourse.ui.screens.user.student
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -22,219 +16,242 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.ui.theme.screens.StudentHomeColorPalette
+import com.smartcourse.ui.theme.screens.StudentHomeLayoutColors
 
+/* =========================================================
+   DATA
+   ========================================================= */
 
-val BackgroundColor = Color(0xFF0E0E11) // #0E0E11
-val CardColor = Color(0xFF1A1A22)       // #1A1A22
-val PlaceholderColor = Color(0xFF2A2A32) // #2A2A32 (Used for Avatars and Buttons)
-val SubtextColor = Color(0xFFB0B0B8)    // #B0B0B8
-val StarYellow = Color(0xFFFFD54F)      // #FFD54F
+data class TutorUiData(val name: String, val subject: String, val rating: String)
+data class ChatUiData(val name: String, val message: String)
 
-/**
- * A circular placeholder for a tutor's avatar/profile picture.
- */
+/* =========================================================
+   TEMP DATA (SWAP WITH VM)
+   ========================================================= */
+
+fun tempMyTutors() = listOf(
+    TutorUiData("Dana", "Math", "4.9"),
+    TutorUiData("Ron", "Physics", "4.6"),
+    TutorUiData("Alex", "Chem", "4.8")
+)
+
+fun tempDiscoverTutors() = listOf(
+    TutorUiData("Dana", "Linear Algebra", "4.9"),
+    TutorUiData("Alex", "Organic Chem", "4.8"),
+    TutorUiData("Ron", "Quantum Physics", "4.6"),
+    TutorUiData("Ben", "Biology", "4.7")
+)
+
+fun tempLatestChats() = listOf(
+    ChatUiData("Dana", "Tomorrow works"),
+    ChatUiData("Ron", "Sent the exercises"),
+    ChatUiData("Alex", "See you at 5")
+)
+
+/* =========================================================
+   BASIC COMPONENTS
+   ========================================================= */
+
 @Composable
-fun TutorAvatar(name: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun TutorAvatar(
+    tutor: TutorUiData,
+    colors: StudentHomeColorPalette,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
         Box(
             modifier = Modifier
-                .size(56.dp)
+                .size(52.dp)
                 .clip(CircleShape)
-                .background(PlaceholderColor)
+                .background(colors.accent)
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        // Name (text x="60" y="140")
-        Text(
-            text = name,
-            color = Color.White,
-            fontSize = 14.sp
-        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(tutor.name, color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(tutor.subject, color = colors.subtext, fontSize = 14.sp)
     }
 }
 
-/**
- * A reusable button for the action row in the card.
- */
 @Composable
-fun ActionButton(text: String) {
+fun ActionButton(
+    text: String,
+    isPrimary: Boolean,
+    colors: StudentHomeColorPalette,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
-            .width(90.dp)
-            .height(36.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(PlaceholderColor),
+            .width(60.dp)
+            .height(30.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isPrimary) colors.accent else colors.card)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = 14.sp // Matched to SVG
-        )
+        Text(text, color = colors.textPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
-/**
- * A reusable card for displaying a featured tutor.
- */
+/* =========================================================
+   DISCOVER CARD
+   ========================================================= */
+
 @Composable
-fun TutorDiscoverCard(tutorName: String, subject: String, rating: String, availability: String) {
+fun TutorDiscoverCard(
+    tutor: TutorUiData,
+    colors: StudentHomeColorPalette,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(150.dp) // height="150"
-            .clip(RoundedCornerShape(16.dp)) // rx="16" ry="16"
-            .background(CardColor)
-            .padding(16.dp)
+            .width(156.dp)
+            .height(120.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(colors.card)
+            .clickable(onClick = onClick)
+            .padding(12.dp)
     ) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            // Left: Avatar (circle cx="56" cy="255" r="24" -> diameter 48dp)
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(PlaceholderColor)
-                    .align(Alignment.Top) // Align top to match text starting position
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Right: Details and Buttons
-            Column(
-                modifier = Modifier.fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Details
-                Column {
-                    Text(
-                        text = tutorName,
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(colors.accent)
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = subject,
-                        color = SubtextColor,
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "★ $rating · $availability",
-                        color = StarYellow,
-                        fontSize = 14.sp
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(tutor.name, color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text(tutor.subject, color = colors.subtext, fontSize = 12.sp)
+                    }
                 }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("★ ${tutor.rating}", color = colors.star, fontSize = 12.sp)
+            }
 
-                // Buttons (rect y="310")
-                Row {
-                    ActionButton(text = "Chat")
-                    Spacer(modifier = Modifier.width(10.dp)) // Adjusted space between buttons
-                    ActionButton(text = "Save")
-                }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ActionButton("Chat", true, colors) {}
+                ActionButton("Save", false, colors) {}
             }
         }
     }
 }
 
+/* =========================================================
+   SECTIONS
+   ========================================================= */
 
-// --- Main Composable ---
+@Composable
+fun MyTutorsSection(
+    tutors: List<TutorUiData>,
+    colors: StudentHomeColorPalette
+) {
+    Text("My Tutors", color = colors.textPrimary, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+    Spacer(modifier = Modifier.height(10.dp))
+
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        items(tutors.size) { TutorAvatar(tutors[it], colors) {} }
+    }
+}
+
+@Composable
+fun DiscoverTutorsSection(
+    tutors: List<TutorUiData>,
+    colors: StudentHomeColorPalette
+) {
+    Text(
+        "Discover Tutors",
+        color = colors.textPrimary,
+        fontSize = 26.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(260.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        userScrollEnabled = false
+    ) {
+        items(tutors) { TutorDiscoverCard(it, colors) {} }
+    }
+}
+
+@Composable
+fun LatestChatsSection(
+    chats: List<ChatUiData>,
+    colors: StudentHomeColorPalette
+) {
+    Text(
+        "Latest Chats",
+        color = colors.textPrimary,
+        fontSize = 26.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+
+    chats.forEach {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(colors.card)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(colors.accent)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text("${it.name} — ${it.message}", color = colors.textPrimary, fontSize = 15.sp)
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
+/* =========================================================
+   MAIN SCREEN
+   ========================================================= */
+
 @Composable
 fun StudentHomeLayout(
     navController: NavController,
     authVM: AuthViewModel
 ) {
-    // Hardcoded Data (as per the SVG text)
-    val myTutors = listOf("Dana", "Ron", "Alex")
-    val latestChats = listOf(
-        "Dana — Tomorrow works",
-        "Ron — Sent the exercises"
-    )
+    val colors = if (isSystemInDarkTheme()) {
+        StudentHomeLayoutColors.Dark
+    } else {
+        StudentHomeLayoutColors.Light
+    }
 
-    // Using LazyColumn for vertical scrolling, similar to the 780px height
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundColor)
-            .padding(horizontal = 16.dp)
+            .background(colors.background),
+        contentPadding = PaddingValues(16.dp, 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // --- 1. My Tutors Title ---
-        item {
-            // y="40"
-            Text(
-                text = "My Tutors",
-                color = Color.White,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 16.dp, bottom = 24.dp) // Adjusted for visual spacing
-            )
-        }
-
-        // --- 2. Tutor Avatars ---
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 50.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                myTutors.forEach { name ->
-                    TutorAvatar(name = name)
-                }
-            }
-        }
-
-        // --- 3. Discover Tutors Title ---
-        item {
-            // y="190"
-            Text(
-                text = "Discover Tutors",
-                color = Color.White,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 10.dp)
-            )
-        }
-
-        // --- 4. Tutor Card (Discovery) ---
-        item {
-            TutorDiscoverCard(
-                tutorName = "Dana",
-                subject = "Linear Algebra",
-                rating = "4.9",
-                availability = "Available today"
-            )
-            Spacer(modifier = Modifier.height(55.dp))
-        }
-
-        // --- 5. Latest Chats Title ---
-        item {
-            // y="420"
-            Text(
-                text = "Latest Chats",
-                color = Color.White,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
-
-        // --- 6. Latest Chats List ---
-        items(latestChats) { chat ->
-            Text(
-                text = chat,
-                color = Color.White,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 15.dp) // Adjusted to match the y-spacing
-            )
-        }
-
-        // Final bottom padding
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
-        }
+        item { MyTutorsSection(tempMyTutors(), colors) }
+        item { DiscoverTutorsSection(tempDiscoverTutors(), colors) }
+        item { LatestChatsSection(tempLatestChats(), colors) }
     }
 }
