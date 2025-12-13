@@ -140,22 +140,49 @@ import javax.inject.Inject
 //    }
 //}
 
+//@HiltViewModel
+//class StudentHomeViewModel @Inject constructor(
+//    private val userRepository: UserRepository
+//) : ViewModel() {
+//
+//    private lateinit var student: Student
+//
+//    fun setStudent(student: Student) {
+//        this.student = student
+//        loadTutors()
+//    }
+//
+//    fun getNamer(): String {
+//        return student.name
+//    }
+//
+//
+//    private fun loadTutors() {
+//        // use student.user.userId
+//        // use student.coursesSeekingHelp
+//    }
+//}
+
+
 @HiltViewModel
 class StudentHomeViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private lateinit var student: Student
+    private var student: Student? = null
 
-    fun setStudent(student: Student) {
+    fun load(student: Student) {
         this.student = student
         loadTutors()
     }
 
     private fun loadTutors() {
-        // use student.user.userId
-        // use student.coursesSeekingHelp
+        val s = student ?: return
+        val courses = s.coursesSeekingHelp
+        // SQL / repo logic here
     }
 }
+
+
 
 

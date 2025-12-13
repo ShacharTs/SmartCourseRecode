@@ -16,6 +16,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.models.usermodel.Student
+import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.chat.ChatListScreen
@@ -27,6 +29,8 @@ import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
 import com.smartcourse.ui.screens.chat.ChatListViewModel
 import com.smartcourse.ui.screens.chat.ChatViewModel
 import com.smartcourse.ui.screens.setting.SettingsScreen
+import com.smartcourse.ui.screens.user.student.StudentHomeLayout
+import com.smartcourse.ui.screens.user.tutor.TutorHomeLayout
 
 @Composable
 fun UserRootScreen(
@@ -149,32 +153,85 @@ fun MenuScreen(
     }
 }
 
+//@Composable
+//private fun ShowUserMenuScreen(
+//    navController: NavController,
+//    authVM: AuthViewModel
+//) {
+//    val currentUser by authVM.currentUser.collectAsState()
+//    val role = currentUser?.getUserRole()
+//
+//    when (role) {
+//
+//        UserRole.STUDENT,
+//        UserRole.TUTOR -> {
+//            UserHomeLayout(
+//                navController = navController,
+//                authVM = authVM
+//            )
+//        }
+//
+//        UserRole.ADMIN -> {
+//            CustomText("AdminHomeScreen")
+//        }
+//
+//        null, UserRole.TEMP -> {
+//            // This should NEVER happen if navigation is correct
+//            CustomText("Invalid user state")
+//        }
+//    }
+//}
+
+//@Composable
+//private fun ShowUserMenuScreen(
+//    navController: NavController,
+//    authVM: AuthViewModel
+//) {
+//    val domainUser = authVM.domainUser
+//
+//    when (domainUser) {
+//        null -> {
+//            CustomText("Loading user...")
+//        }
+//
+//        is Student -> {
+//            StudentHomeLayout(
+//                navController = navController,
+//                authVM = authVM
+//            )
+//        }
+//
+//        is Tutor -> {
+//            TutorHomeLayout(
+//                navController = navController,
+//                authVM = authVM
+//            )
+//        }
+//    }
+//}
+
 @Composable
-private fun ShowUserMenuScreen(
+fun ShowUserMenuScreen(
     navController: NavController,
     authVM: AuthViewModel
 ) {
-    val currentUser by authVM.currentUser.collectAsState()
-    val role = currentUser?.getUserRole()
+    when (val user = authVM.domainUser) {
+        null -> CustomText("Loading...")
 
-    when (role) {
+        is Student -> StudentHomeLayout(
+            navController = navController,
+            student = user
+        )
 
-        UserRole.STUDENT,
-        UserRole.TUTOR -> {
-            UserHomeLayout(
-                navController = navController,
-                authVM = authVM
-            )
-        }
-
-        UserRole.ADMIN -> {
-            CustomText("AdminHomeScreen")
-        }
-
-        null, UserRole.TEMP -> {
-            // This should NEVER happen if navigation is correct
-            CustomText("Invalid user state")
-        }
+        is Tutor -> TutorHomeLayout(
+            navController = navController,
+            tutor = user
+        )
     }
 }
+
+
+
+
+
 

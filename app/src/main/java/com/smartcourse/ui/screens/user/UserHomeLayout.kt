@@ -48,32 +48,32 @@ import com.smartcourse.ui.screens.user.tutor.TutorHomeLayout
 //}
 
 
-@Composable
-fun UserHomeLayout(
-    navController: NavController,
-    authVM: AuthViewModel
-) {
-    when (val domainUser = authVM.domainUser) {
-
-        is Student -> {
-            StudentHomeLayout(
-                navController = navController,
-                authVM = authVM
-            )
-        }
-
-        is Tutor -> {
-            TutorHomeLayout(
-                navController = navController,
-                authVM = authVM
-            )
-        }
-
-        null -> {
-            CustomText("Loading...")
-        }
-    }
-}
+//@Composable
+//fun UserHomeLayout(
+//    navController: NavController,
+//    authVM: AuthViewModel
+//) {
+//    when (val domainUser = authVM.domainUser) {
+//
+//        is Student -> {
+//            StudentHomeLayout(
+//                navController = navController,
+//                authVM = authVM
+//            )
+//        }
+//
+//        is Tutor -> {
+//            TutorHomeLayout(
+//                navController = navController,
+//                authVM = authVM
+//            )
+//        }
+//
+//        null -> {
+//            CustomText("Loading...")
+//        }
+//    }
+//}
 
 
 

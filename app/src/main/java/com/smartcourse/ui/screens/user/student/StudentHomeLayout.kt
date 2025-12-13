@@ -21,8 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.ui.theme.screens.StudentHomeColorPalette
 import com.smartcourse.ui.theme.screens.StudentHomeLayoutColors
@@ -164,6 +164,7 @@ fun MyTutorsSection(
     Text("My Tutors", color = colors.textPrimary, fontSize = 26.sp, fontWeight = FontWeight.Bold)
     Spacer(modifier = Modifier.height(10.dp))
 
+
     LazyRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         items(tutors.size) { TutorAvatar(tutors[it], colors) {} }
     }
@@ -238,14 +239,18 @@ fun LatestChatsSection(
 @Composable
 fun StudentHomeLayout(
     navController: NavController,
-    authVM: AuthViewModel
+    student: Student,
 ) {
-    val student = authVM.domainUser as? Student ?: return
+    val studentHomeViewModel: StudentHomeViewModel = hiltViewModel()
 
     val colors = if (isSystemInDarkTheme()) {
         StudentHomeLayoutColors.Dark
     } else {
         StudentHomeLayoutColors.Light
+    }
+
+    LaunchedEffect(student.user.getUID()) {
+        studentHomeViewModel.load(student)
     }
 
     LazyColumn(

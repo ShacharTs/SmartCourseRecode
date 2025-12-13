@@ -438,6 +438,12 @@ class AuthViewModel @Inject constructor(
             domainUser = null
         }
     }
+
+    fun onUserLoaded(user: DomainUser) {
+        domainUser = user
+    }
+
 }
+
 
 

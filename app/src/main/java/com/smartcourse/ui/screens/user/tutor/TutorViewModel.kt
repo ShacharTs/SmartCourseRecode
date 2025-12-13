@@ -1,5 +1,11 @@
 package com.smartcourse.ui.screens.user.tutor
 
+import androidx.lifecycle.ViewModel
+import com.smartcourse.data.models.usermodel.Tutor
+import com.smartcourse.data.repositories.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
 //@HiltViewModel
 //class TutorViewModel @Inject constructor(
 //    private val userRepository: UserRepository,
@@ -37,3 +43,23 @@ package com.smartcourse.ui.screens.user.tutor
 //        }
 //    }
 //}
+
+
+@HiltViewModel
+class TutorHomeViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
+
+    private var tutor: Tutor? = null
+
+    fun load(tutor: Tutor) {
+        this.tutor = tutor
+        loadStudents()
+    }
+
+    private fun loadStudents() {
+        val t = tutor ?: return
+        val courses = t.teachingCourses
+        // SQL / repo logic later
+    }
+}
