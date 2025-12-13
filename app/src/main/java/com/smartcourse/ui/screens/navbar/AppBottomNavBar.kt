@@ -1,5 +1,6 @@
 package com.smartcourse.ui.screens.navbar
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -9,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.smartcourse.ui.theme.screens.NavBarColors
 
 @Composable
 fun AppBottomNavBar(
@@ -20,19 +22,21 @@ fun AppBottomNavBar(
 
     if (items.isEmpty()) return
 
-    NavigationBar {
+    // Screen-specific nav bar colors
+    val colors = if (isSystemInDarkTheme()) {
+        NavBarColors.Dark
+    } else {
+        NavBarColors.Light
+    }
+
+    NavigationBar(
+        containerColor = colors.background
+    ) {
         items.forEach { item ->
+            val selected = currentRoute == item.route
+
             NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label
-                    )
-                },
-                label = {
-                    Text(text = item.label)
-                },
-                selected = currentRoute == item.route,
+                selected = selected,
                 onClick = {
                     navController.navigate(item.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
@@ -41,6 +45,25 @@ fun AppBottomNavBar(
                         launchSingleTop = true
                         restoreState = true
                     }
+                },
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label,
+                        tint = if (selected)
+                            colors.iconSelected
+                        else
+                            colors.iconUnselected
+                    )
+                },
+                label = {
+                    Text(
+                        text = item.label,
+                        color = if (selected)
+                            colors.textSelected
+                        else
+                            colors.textUnselected
+                    )
                 }
             )
         }
