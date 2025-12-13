@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * Holds all screen-specific colors for the Student Home screen.
- * Matches the architecture used in LoginScreenColors.
+ * Aligned with Student Menu SVGs (Light / Dark).
  */
 data class StudentHomeColorPalette(
     val background: Color,
@@ -17,38 +17,53 @@ data class StudentHomeColorPalette(
 
 /**
  * Light / Dark palettes for Student Home.
+ * These values now MATCH the Student Menu SVG designs.
  */
 object StudentHomeLayoutColors {
 
+    /**
+     * DARK MODE — matches StudentMenuLayoutDarkMode.svg
+     */
     val Dark = StudentHomeColorPalette(
-        background = Color(0xFF0A0812),
-        card = Color(0xFF171122),
+        // Deep dark background (top of gradient)
+        background = Color(0xFF0B0514),
+
+        // Card surface used in SVG (#16112A / #171122 range)
+        card = Color(0xFF16112A),
+
+        // Accent purple used for avatars / highlights
         accent = Color(0xFF3A0F54),
+
+        // Secondary text
         subtext = Color(0xFFA9A9B3),
+
+        // Rating star
         star = Color(0xFFFFD54F),
+
+        // Primary text
         textPrimary = Color.White
     )
 
+    /**
+     * LIGHT MODE — matches StudentMenuLayoutLightMode.svg
+     */
     val Light = StudentHomeColorPalette(
+        // Light gradient base (derived midpoint, NOT white)
+        background = Color(0xFFF5EAFE),
 
-        // Soft lavender-gray background (NO white beam)
-        background = Color(0xFFEDE9F6),
+        // White cards on gradient background
+        card = Color.White,
 
-        // Cards slightly darker than background
-        card = Color(0xFFE2DDF1),
+        // Strong brand purple (SVG accent)
+        accent = Color(0xFF9333EA),
 
-        // Your purple, slightly softened for daylight
-        accent = Color(0xFF9372B2),
+        // Muted gray text
+        subtext = Color(0xFF6B7280),
 
-        // Secondary text (calm, readable)
-        subtext = Color(0xFF5E5873),
-
-        // Your orange, perfect for ratings
+        // Orange rating star
         star = Color(0xFFF97316),
 
-        // Primary text (not pure black)
-        textPrimary = Color(0xFF1C1A22)
+        // Near-black primary text
+        textPrimary = Color(0xFF111827)
     )
-
-
 }

@@ -36,9 +36,9 @@ fun MenuTopAppBar(
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = colors.background,
-            navigationIconContentColor = colors.iconUnselected,
-            actionIconContentColor = colors.iconUnselected,
-            titleContentColor = colors.textSelected
+            navigationIconContentColor = colors.title,
+            actionIconContentColor = colors.title,
+            titleContentColor = colors.title
         ),
         navigationIcon = {
             IconButton(onClick = {
@@ -57,16 +57,16 @@ fun MenuTopAppBar(
                 fontSize = 30.sp,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
-                color = colors.textSelected
             )
         },
+        // later move to setting
         actions = {
             IconButton(onClick = {
                 authVM.logout()
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = "Logout"
+                    contentDescription = "Logout",
                 )
             }
         }

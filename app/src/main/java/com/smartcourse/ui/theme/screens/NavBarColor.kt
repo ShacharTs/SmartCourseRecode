@@ -12,7 +12,8 @@ data class NavBarColorPalette(
     val iconUnselected: Color,
     val textSelected: Color,
     val textUnselected: Color,
-    val divider: Color
+    val divider: Color,
+    val title: Color
 )
 
 /**
@@ -27,47 +28,35 @@ object NavBarColors {
         background = Color(0xFF16112A),
 
         // Primary action color (same as chat "me" bubble)
-        iconSelected = Color(0xFFEC4899),
-        textSelected = Color(0xFFFFFFFF),
+        iconSelected = Color(0xFFF375B3),
+        textSelected = Color(0xFFF375B3),
 
         // Muted inactive state
         iconUnselected = Color(0xFFA9A9B3),
         textUnselected = Color(0xFFA9A9B3),
 
         // Optional divider / top border
-        divider = Color(0xFF241636)
+        divider = Color(0xFF241636),
+
+        title = Color(0xFFFFFFFF)
     )
 
     /** Light Mode Navigation Bar */
     val Light = NavBarColorPalette(
         // Light surface, matches chat/profile light
-        background = Color.White,
+        background = Color(0xFFFFFFFF),
 
         // Primary brand color
-        iconSelected = Color(0xFFEC4899),
-        textSelected = Color(0xFFEC4899),
+        iconSelected = Color(0xFF000000),
+        textSelected = Color(0xFF000000),
 
         // Muted gray for unselected
         iconUnselected = Color(0xFF6B7280),
         textUnselected = Color(0xFF6B7280),
 
         // Subtle divider on white
-        divider = Color(0xFFE5E7EB)
-    )
-}
+        divider = Color(0xFFE5E7EB),
 
-
-object NavBarGradients {
-
-    val Dark = listOf(
-        Color(0xFF0B0514),
-        Color(0xFF1E0938),
-        Color(0xFF3A0F54)
-    )
-
-    val Light = listOf(
-        Color(0xFF9333EA),
-        Color(0xFFEC4899),
-        Color(0xFFF97316)
+        title = Color(0xFF000000)
     )
 }
