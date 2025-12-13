@@ -1,0 +1,102 @@
+<svg width="360" height="800" viewBox="0 0 360 800"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <defs>
+        <style>
+            .text-main { fill:#FFFFFF; font-family:system-ui,sans-serif; }
+            .text-sub { fill:#A9A9B3; font-family:system-ui,sans-serif; }
+            .text-error { fill:#FF4D4D; font-weight:800; }
+            .primary { fill:#EC4899; }
+            .bold { font-weight:700; }
+
+            .error-bg { fill:#241636; }
+            .white-bg { fill:#FFFFFF; }
+        </style>
+
+        <linearGradient id="bgDark" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#0B0514"/>
+            <stop offset="50%" stop-color="#1E0938"/>
+            <stop offset="100%" stop-color="#3A0F54"/>
+        </linearGradient>
+
+        <linearGradient id="btnDark" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#9333EA"/>
+            <stop offset="100%" stop-color="#EC4899"/>
+        </linearGradient>
+
+        <g id="googleIconDark">
+            <rect width="20" height="20" rx="4" fill="none" stroke="#A9A9B3"/>
+            <text x="10" y="14" text-anchor="middle"
+                font-size="10" fill="#A9A9B3">G</text>
+        </g>
+
+        <g id="logoDark">
+            <rect width="180" height="180" rx="24" fill="#1E0938"/>
+            <text x="90" y="105" text-anchor="middle"
+                class="text-main bold" font-size="20">LOGO</text>
+        </g>
+    </defs>
+
+    <rect width="360" height="800" rx="18" fill="url(#bgDark)"/>
+
+    <g transform="translate(24,24)">
+        <text x="156" y="20" text-anchor="middle"
+            class="text-main" font-size="20">
+            Nice to see you again
+        </text>
+
+        <use xlink:href="#logoDark" x="66" y="48"/>
+
+        <!-- Inputs -->
+        <g transform="translate(0,256)">
+            <rect width="312" height="56" rx="12"
+                fill="none" stroke="#EC4899" stroke-width="2"/>
+            <text x="16" y="36" class="text-sub" font-size="16">Email</text>
+
+            <g transform="translate(0,80)">
+                <rect width="312" height="56" rx="12"
+                    fill="none" stroke="#3A0F54"/>
+                <text x="16" y="36" class="text-sub" font-size="16">Password</text>
+                <text x="288" y="36" text-anchor="middle"
+                    class="text-sub" font-size="14">SHOW</text>
+            </g>
+        </g>
+
+        <!-- Actions -->
+        <g transform="translate(0,472)">
+            <rect x="23" width="266" height="36" rx="8" class="error-bg"/>
+            <text x="156" y="24" text-anchor="middle"
+                class="text-error" font-size="14">
+                Invalid email or password
+            </text>
+
+            <!-- Sign in -->
+            <g transform="translate(0,52)">
+                <rect x="23" width="266" height="50" rx="12"
+                    fill="url(#btnDark)"/>
+                <text x="156" y="32" text-anchor="middle"
+                    class="text-main" font-size="16">Sign in</text>
+            </g>
+
+            <!-- Register -->
+            <g transform="translate(0,116)">
+                <rect x="23" width="266" height="50" rx="12"
+                    fill="none" stroke="#EC4899" stroke-width="2"/>
+                <text x="156" y="32" text-anchor="middle"
+                    class="primary" font-size="16">Register</text>
+            </g>
+
+            <!-- Google -->
+            <g transform="translate(0,191)">
+                <rect x="23" width="266" height="48" rx="12"
+                    fill="#FFFFFF" stroke="#CFCFCF" stroke-width="2"/>
+                <use xlink:href="#googleIconDark" x="96" y="14"/>
+                <text x="136" y="31"
+                    fill="#444444" font-size="14">
+                    Sign in with Google
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,174 @@
+<svg width="360" height="820" viewBox="0 0 360 820"
+    xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <style>
+            /* LOW-GLARE BASE (NO WHITE AT ALL) */
+            .background { fill:#E3DDF0; }     /* clearly tinted */
+            .card { fill:#D8D1EB; }           /* darker than bg */
+
+            /* BRAND ACCENTS (YOUR COLORS) */
+            .accent-purple { fill:#9333EA; }
+            .accent-pink { fill:#EC4899; }
+            .accent-orange { fill:#F97316; }
+
+            /* TEXT (NOT PURE BLACK) */
+            .text { fill:#2B2438; font-family:system-ui,sans-serif; }
+            .bold { font-weight:700; }
+            .semi-bold { font-weight:600; }
+            .subtext { fill:#4E4663; }
+
+            /* BUTTONS */
+            .btn-primary { fill:#9333EA; }
+            .btn-secondary {
+            fill:#E3DDF0;
+            stroke:#9333EA;
+            stroke-width:1;
+            }
+        </style>
+    </defs>
+
+    <!-- BACKGROUND -->
+    <rect width="360" height="820" class="background"/>
+
+    <g transform="translate(16,0)">
+
+        <!-- ================= MY TUTORS ================= -->
+        <text x="0" y="42" class="text bold" font-size="26">My Tutors</text>
+
+        <g transform="translate(0,66)">
+            <g>
+                <rect width="100" height="150" rx="12" class="card"/>
+                <circle cx="50" cy="46" r="26" class="accent-purple"/>
+                <text x="50" y="96" text-anchor="middle"
+                    class="text semi-bold" font-size="16">Dana</text>
+                <text x="50" y="118" text-anchor="middle"
+                    class="subtext" font-size="14">Math</text>
+            </g>
+
+            <g transform="translate(120,0)">
+                <rect width="100" height="150" rx="12" class="card"/>
+                <circle cx="50" cy="46" r="26" class="accent-pink"/>
+                <text x="50" y="96" text-anchor="middle"
+                    class="text semi-bold" font-size="16">Ron</text>
+                <text x="50" y="118" text-anchor="middle"
+                    class="subtext" font-size="14">Physics</text>
+            </g>
+
+            <g transform="translate(240,0)">
+                <rect width="100" height="150" rx="12" class="card"/>
+                <circle cx="50" cy="46" r="26" class="accent-purple"/>
+                <text x="50" y="96" text-anchor="middle"
+                    class="text semi-bold" font-size="16">Alex</text>
+                <text x="50" y="118" text-anchor="middle"
+                    class="subtext" font-size="14">Chem</text>
+            </g>
+        </g>
+
+        <!-- ================= DISCOVER ================= -->
+        <text x="0" y="246" class="text bold" font-size="26">Discover Tutors</text>
+
+        <g transform="translate(0,270)">
+
+            <!-- COLUMN 1 -->
+            <g>
+                <g>
+                    <rect width="156" height="120" rx="14" class="card"/>
+                    <circle cx="24" cy="28" r="16" class="accent-purple"/>
+                    <text x="50" y="26" class="text semi-bold" font-size="14">Dana</text>
+                    <text x="50" y="44" class="subtext" font-size="12">Linear Algebra</text>
+                    <text x="50" y="60" class="accent-orange" font-size="12">★ 4.9</text>
+
+                    <rect x="12" y="74" width="60" height="30" rx="8" class="btn-primary"/>
+                    <text x="42" y="94" text-anchor="middle"
+                        fill="#FFFFFF" class="semi-bold" font-size="12">Chat</text>
+
+                    <rect x="84" y="74" width="60" height="30" rx="8" class="btn-secondary"/>
+                    <text x="114" y="94" text-anchor="middle"
+                        class="text semi-bold" font-size="12">Save</text>
+                </g>
+
+                <g transform="translate(0,136)">
+                    <rect width="156" height="120" rx="14" class="card"/>
+                    <circle cx="24" cy="28" r="16" class="accent-pink"/>
+                    <text x="50" y="26" class="text semi-bold" font-size="14">Alex</text>
+                    <text x="50" y="44" class="subtext" font-size="12">Organic Chem</text>
+                    <text x="50" y="60" class="accent-orange" font-size="12">★ 4.8</text>
+
+                    <rect x="12" y="74" width="60" height="30" rx="8" class="btn-primary"/>
+                    <text x="42" y="94" text-anchor="middle"
+                        fill="#FFFFFF" class="semi-bold" font-size="12">Chat</text>
+
+                    <rect x="84" y="74" width="60" height="30" rx="8" class="btn-secondary"/>
+                    <text x="114" y="94" text-anchor="middle"
+                        class="text semi-bold" font-size="12">Save</text>
+                </g>
+            </g>
+
+            <!-- COLUMN 2 -->
+            <g transform="translate(172,0)">
+                <g>
+                    <rect width="156" height="120" rx="14" class="card"/>
+                    <circle cx="24" cy="28" r="16" class="accent-purple"/>
+                    <text x="50" y="26" class="text semi-bold" font-size="14">Ron</text>
+                    <text x="50" y="44" class="subtext" font-size="12">Quantum Physics</text>
+                    <text x="50" y="60" class="accent-orange" font-size="12">★ 4.6</text>
+
+                    <rect x="12" y="74" width="60" height="30" rx="8" class="btn-primary"/>
+                    <text x="42" y="94" text-anchor="middle"
+                        fill="#FFFFFF" class="semi-bold" font-size="12">Chat</text>
+
+                    <rect x="84" y="74" width="60" height="30" rx="8" class="btn-secondary"/>
+                    <text x="114" y="94" text-anchor="middle"
+                        class="text semi-bold" font-size="12">Save</text>
+                </g>
+
+                <g transform="translate(0,136)">
+                    <rect width="156" height="120" rx="14" class="card"/>
+                    <circle cx="24" cy="28" r="16" class="accent-pink"/>
+                    <text x="50" y="26" class="text semi-bold" font-size="14">Ben</text>
+                    <text x="50" y="44" class="subtext" font-size="12">Biology</text>
+                    <text x="50" y="60" class="accent-orange" font-size="12">★ 4.7</text>
+
+                    <rect x="12" y="74" width="60" height="30" rx="8" class="btn-primary"/>
+                    <text x="42" y="94" text-anchor="middle"
+                        fill="#FFFFFF" class="semi-bold" font-size="12">Chat</text>
+
+                    <rect x="84" y="74" width="60" height="30" rx="8" class="btn-secondary"/>
+                    <text x="114" y="94" text-anchor="middle"
+                        class="text semi-bold" font-size="12">Save</text>
+                </g>
+            </g>
+        </g>
+
+        <!-- ================= LATEST CHATS ================= -->
+        <text x="0" y="560" class="text bold" font-size="26">Latest Chats</text>
+
+        <g transform="translate(0,584)">
+            <g>
+                <rect width="328" height="50" rx="10" class="card"/>
+                <circle cx="26" cy="25" r="14" class="accent-purple"/>
+                <text x="50" y="32" class="text" font-size="15">
+                    Dana — Tomorrow works
+                </text>
+            </g>
+
+            <g transform="translate(0,60)">
+                <rect width="328" height="50" rx="10" class="card"/>
+                <circle cx="26" cy="25" r="14" class="accent-pink"/>
+                <text x="50" y="32" class="text" font-size="15">
+                    Ron — Sent the exercises
+                </text>
+            </g>
+
+            <g transform="translate(0,120)">
+                <rect width="328" height="50" rx="10" class="card"/>
+                <circle cx="26" cy="25" r="14" class="accent-purple"/>
+                <text x="50" y="32" class="text" font-size="15">
+                    Alex — See you at 5
+                </text>
+            </g>
+        </g>
+
+    </g>
+</svg>

@@ -1,0 +1,130 @@
+<svg width="360" height="800"
+    viewBox="0 0 360 800"
+    xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <style>
+            .title {
+            font-size:22px;
+            font-weight:700;
+            fill:#111827;
+            font-family:system-ui,sans-serif;
+            }
+            .subtitle {
+            font-size:14px;
+            fill:#4B5563;
+            font-family:system-ui,sans-serif;
+            }
+            .card-title {
+            font-size:18px;
+            font-weight:700;
+            fill:#111827;
+            font-family:system-ui,sans-serif;
+            }
+            .card-sub {
+            font-size:14px;
+            fill:#4B5563;
+            font-family:system-ui,sans-serif;
+            }
+            .btn-text {
+            font-size:16px;
+            font-weight:600;
+            fill:#FFFFFF;
+            font-family:system-ui,sans-serif;
+            }
+        </style>
+
+        <!-- Light background -->
+        <linearGradient id="bgLight" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#9333EA"/>
+            <stop offset="50%" stop-color="#EC4899"/>
+            <stop offset="100%" stop-color="#F97316"/>
+        </linearGradient>
+
+        <!-- Button -->
+        <linearGradient id="btnGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#9333EA"/>
+            <stop offset="100%" stop-color="#F97316"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect width="360" height="800" fill="url(#bgLight)"/>
+
+    <!-- Header -->
+    <g transform="translate(24,36)">
+        <text x="156" y="24" text-anchor="middle" class="title">
+            <tspan x="156" dy="0">How do you want to</tspan>
+            <tspan x="156" dy="24">use SmartCourse?</tspan>
+        </text>
+        <text x="156" y="72" text-anchor="middle" class="subtitle">
+            Choose what fits you best
+        </text>
+    </g>
+
+    <!-- STUDENT CARD -->
+    <g transform="translate(24,120)">
+        <rect width="312" height="200"
+            rx="32"
+            fill="#FFFFFF"
+            stroke="#9333EA"
+            stroke-width="3"/>
+
+        <!-- Image area -->
+        <rect x="20" y="32" width="120" height="136"
+            rx="20"
+            fill="#F3E8FF"/>
+        <text x="80" y="104" text-anchor="middle"
+            font-size="14" fill="#6B21A8">
+            Student
+        </text>
+
+        <!-- Text area -->
+        <g transform="translate(156,56)">
+            <text class="card-title">Student</text>
+            <text y="28" class="card-sub">
+                Learn, ask questions,
+            </text>
+            <text y="48" class="card-sub">
+                and get help fast
+            </text>
+        </g>
+    </g>
+
+    <!-- TUTOR CARD -->
+    <g transform="translate(24,340)">
+        <rect width="312" height="200"
+            rx="32"
+            fill="#FFFFFF"
+            stroke="#F97316"
+            stroke-width="3"/>
+
+        <!-- Image area -->
+        <rect x="20" y="32" width="120" height="136"
+            rx="20"
+            fill="#FFF7ED"/>
+        <text x="80" y="104" text-anchor="middle"
+            font-size="14" fill="#9A3412">
+            Tutor
+        </text>
+
+        <!-- Text area -->
+        <g transform="translate(156,56)">
+            <text class="card-title">Tutor</text>
+            <text y="28" class="card-sub">
+                Teach students and
+            </text>
+            <text y="48" class="card-sub">
+                earn money
+            </text>
+        </g>
+    </g>
+
+    <!-- Confirm button -->
+    <g transform="translate(24,580)">
+        <rect width="312" height="56" rx="18" fill="url(#btnGradient)"/>
+        <text x="156" y="36" text-anchor="middle" class="btn-text">
+            Confirm
+        </text>
+    </g>
+</svg>

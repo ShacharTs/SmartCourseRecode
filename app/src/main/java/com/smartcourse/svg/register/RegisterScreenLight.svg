@@ -1,0 +1,74 @@
+<svg width="360" height="800" viewBox="0 0 360 800"
+    xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <style>
+            .title { font-size:32px; font-weight:700; fill:#111827; font-family:system-ui,sans-serif; }
+            .label { font-size:14px; font-weight:700; fill:#111827; font-family:system-ui,sans-serif; }
+            .hint  { font-size:14px; fill:#4B5563; font-family:system-ui,sans-serif; }
+            .link  { font-size:14px; fill:#9333EA; font-family:system-ui,sans-serif; }
+            .btn-text { font-size:16px; fill:#FFFFFF; font-weight:600; }
+            .field { fill:#FFFFFF; stroke:#9333EA; stroke-width:1.5; }
+        </style>
+
+        <linearGradient id="bgLight" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#9333EA"/>
+            <stop offset="50%" stop-color="#EC4899"/>
+            <stop offset="100%" stop-color="#F97316"/>
+        </linearGradient>
+
+        <linearGradient id="btnLight" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#9333EA"/>
+            <stop offset="100%" stop-color="#F97316"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect width="360" height="800" fill="url(#bgLight)"/>
+
+    <g transform="translate(24,24)">
+        <!-- Title -->
+        <text x="156" y="32" text-anchor="middle" class="title">Register</text>
+
+        <!-- Logo -->
+        <rect x="66" y="64" width="180" height="180" rx="24" fill="#FFFFFF"/>
+        <text x="156" y="170" text-anchor="middle"
+            font-size="20" font-weight="700" fill="#9333EA">LOGO</text>
+
+        <!-- Email -->
+        <g transform="translate(0,280)">
+            <text class="label">Email</text>
+            <rect y="20" width="312" height="56" rx="10" class="field"/>
+            <text x="16" y="54" class="hint">email@example.com</text>
+        </g>
+
+        <!-- Password -->
+        <g transform="translate(0,376)">
+            <text class="label">Password</text>
+            <rect y="20" width="312" height="56" rx="10" class="field"/>
+            <text x="16" y="54" class="hint">Enter password</text>
+            <text x="288" y="54" text-anchor="middle" class="hint">SHOW</text>
+        </g>
+
+        <!-- Confirm -->
+        <g transform="translate(0,472)">
+            <text class="label">Confirm Password</text>
+            <rect y="20" width="312" height="56" rx="10" class="field"/>
+            <text x="16" y="54" class="hint">Re-enter password</text>
+            <text x="288" y="54" text-anchor="middle" class="hint">SHOW</text>
+        </g>
+
+        <!-- Link -->
+        <text x="156" y="580" text-anchor="middle" class="link">
+            Already have account ?
+        </text>
+
+        <!-- Button -->
+        <g transform="translate(0,610)">
+            <rect width="312" height="50" rx="12" fill="url(#btnLight)"/>
+            <text x="156" y="32" text-anchor="middle" class="btn-text">
+                Register
+            </text>
+        </g>
+    </g>
+</svg>

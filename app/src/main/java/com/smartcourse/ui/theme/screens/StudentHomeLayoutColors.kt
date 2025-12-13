@@ -38,7 +38,7 @@ object StudentHomeLayoutColors {
         card = Color(0xFFE2DDF1),
 
         // Your purple, slightly softened for daylight
-        accent = Color(0xFF9333EA),
+        accent = Color(0xFF9372B2),
 
         // Secondary text (calm, readable)
         subtext = Color(0xFF5E5873),
