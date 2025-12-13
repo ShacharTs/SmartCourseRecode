@@ -1,0 +1,142 @@
+<svg width="360" height="820" viewBox="0 0 360 820"
+    xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <style>
+            /* =========================
+            CHAT LIGHT THEME (APPLIED)
+            ========================= */
+
+            :root {
+            --bg-top: #9333EA;
+            --bg-mid: #EC4899;
+            --bg-bottom: #F97316;
+
+            --surface: #FFFFFF;
+            --surface-2: #F9FAFB;
+
+            --primary: #EC4899;
+            --accent: #9333EA;
+            --highlight: #F97316;
+
+            --danger: rgb(183, 28, 28);
+
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            }
+
+            .text {
+            fill: var(--text-main);
+            font-family: system-ui, sans-serif;
+            }
+
+            .muted {
+            fill: var(--text-muted);
+            font-family: system-ui, sans-serif;
+            }
+
+            .title { font-size:22px; font-weight:700; }
+            .section { font-size:16px; font-weight:700; }
+            .row { font-size:14px; font-weight:500; }
+            .bio { font-size:14px; }
+
+            .btn-text {
+            fill:#FFFFFF;
+            font-size:14px;
+            font-weight:700;
+            font-family: system-ui, sans-serif;
+            }
+        </style>
+
+        <!-- Same gradient logic as chat light -->
+        <linearGradient id="bgLight" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#9333EA"/>
+            <stop offset="50%" stop-color="#EC4899"/>
+            <stop offset="100%" stop-color="#F97316"/>
+        </linearGradient>
+    </defs>
+
+    <!-- =========================
+         BACKGROUND (CHAT LIGHT STYLE)
+         ========================= -->
+    <rect width="360" height="820" fill="url(#bgLight)"/>
+
+    <!-- =========================
+         TOP BAR
+         ========================= -->
+    <text x="24" y="52" class="text title">Profile</text>
+
+    <!-- =========================
+         PROFILE CARD
+         ========================= -->
+    <rect x="16" y="80" rx="18" ry="18"
+        width="328" height="180"
+        fill="var(--surface)"/>
+
+    <circle cx="180" cy="125" r="38" fill="var(--accent)"/>
+
+    <text x="180" y="133" text-anchor="middle"
+        class="btn-text" font-size="20">
+        ST
+    </text>
+
+    <text x="180" y="180" text-anchor="middle" class="text title">
+        Shachar Tsrafati
+    </text>
+
+    <text x="180" y="205" text-anchor="middle" class="muted">
+        Student
+    </text>
+
+    <!-- =========================
+         BIO
+         ========================= -->
+    <text x="24" y="290" class="text section">Bio</text>
+
+    <rect x="16" y="305" rx="16" ry="16"
+        width="328" height="90"
+        fill="var(--surface-2)"/>
+
+    <text x="32" y="335" class="muted bio">
+        Computer Science student focused on algorithms,
+    </text>
+    <text x="32" y="355" class="muted bio">
+        data structures, and backend systems.
+    </text>
+
+    <!-- =========================
+         COURSES
+         ========================= -->
+    <text x="24" y="420" class="text section">Courses</text>
+
+    <rect x="16" y="435" rx="16" ry="16"
+        width="328" height="150"
+        fill="var(--surface-2)"/>
+
+    <text x="32" y="470" class="text row">• Algorithms 1</text>
+    <text x="32" y="510" class="text row">• Data Structures</text>
+    <text x="32" y="550" class="text row">• Operating Systems</text>
+
+    <!-- =========================
+         CHANGE PROFILE (PRIMARY)
+         ========================= -->
+    <rect x="16" y="610" rx="18" ry="18"
+        width="328" height="54"
+        fill="var(--primary)"/>
+
+    <text x="180" y="644" text-anchor="middle" class="btn-text">
+        Change Profile
+    </text>
+
+    <!-- =========================
+         LOGOUT (DESTRUCTIVE)
+         ========================= -->
+    <rect x="16" y="675" rx="18" ry="18"
+        width="328" height="54"
+        fill="var(--danger)"/>
+
+    <text x="180" y="709" text-anchor="middle" class="btn-text">
+        Logout
+    </text>
+
+</svg>

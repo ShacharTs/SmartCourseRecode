@@ -40,12 +40,6 @@
     <!-- CONTENT -->
     <g transform="translate(20,32)">
 
-        <!-- Greeting -->
-        <text class="title">Hello, User</text>
-        <text y="28" class="subtitle">
-            What kind of tutor are you looking for?
-        </text>
-
         <!-- Search bar -->
         <g transform="translate(0,56)">
             <rect width="320" height="44" rx="14" fill="#16112A"/>
