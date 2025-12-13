@@ -1,0 +1,121 @@
+<svg width="360" height="800"
+    viewBox="0 0 360 800"
+    xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <style>
+            .title {
+            font:700 22px system-ui;
+            fill:#111827;
+            }
+            .subtitle {
+            font:14px system-ui;
+            fill:#4B5563;
+            }
+            .search-text {
+            font:14px system-ui;
+            fill:#6B7280;
+            }
+            .name {
+            font:600 16px system-ui;
+            fill:#111827;
+            }
+            .tag {
+            font:12px system-ui;
+            fill:#9333EA;
+            }
+        </style>
+
+        <!-- Light background -->
+        <linearGradient id="bgLight" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#9333EA"/>
+            <stop offset="50%" stop-color="#EC4899"/>
+            <stop offset="100%" stop-color="#F97316"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect width="360" height="800" fill="url(#bgLight)"/>
+
+    <!-- CONTENT -->
+    <g transform="translate(20,32)">
+
+        <!-- Greeting -->
+        <text class="title">Hello, User</text>
+        <text y="28" class="subtitle">
+            What kind of tutor are you looking for?
+        </text>
+
+        <!-- Search bar -->
+        <g transform="translate(0,56)">
+            <rect width="320" height="44" rx="14" fill="#FFFFFF"/>
+            <circle cx="20" cy="22" r="8" fill="#E5E7EB"/>
+            <text x="36" y="26"
+                dominant-baseline="middle"
+                class="search-text">
+                Search by name or category
+            </text>
+        </g>
+
+        <!-- Result card 1 -->
+        <g transform="translate(0,120)">
+            <rect width="320" height="84" rx="18" fill="#FFFFFF"/>
+            <rect x="16" y="16" width="52" height="52" rx="14" fill="#F3E8FF"/>
+            <g transform="translate(84,26)">
+                <text class="name">Angela Taylor</text>
+                <text y="26" class="tag">Math · Physics</text>
+            </g>
+        </g>
+
+        <!-- Result card 2 -->
+        <g transform="translate(0,216)">
+            <rect width="320" height="84" rx="18" fill="#FFFFFF"/>
+            <rect x="16" y="16" width="52" height="52" rx="14" fill="#F3E8FF"/>
+            <g transform="translate(84,26)">
+                <text class="name">Dani Daniels</text>
+                <text y="26" class="tag">Biology · Chemistry</text>
+            </g>
+        </g>
+
+        <!-- Result card 3 -->
+        <g transform="translate(0,312)">
+            <rect width="320" height="84" rx="18" fill="#FFFFFF"/>
+            <rect x="16" y="16" width="52" height="52" rx="14" fill="#F3E8FF"/>
+            <g transform="translate(84,26)">
+                <text class="name">Elizabeth Taylor</text>
+                <text y="26" class="tag">English · Literature</text>
+            </g>
+        </g>
+
+        <!-- Result card 4 -->
+        <g transform="translate(0,408)">
+            <rect width="320" height="84" rx="18" fill="#FFFFFF"/>
+            <rect x="16" y="16" width="52" height="52" rx="14" fill="#F3E8FF"/>
+            <g transform="translate(84,26)">
+                <text class="name">Michael Ross</text>
+                <text y="26" class="tag">Computer Science · Algorithms</text>
+            </g>
+        </g>
+
+        <!-- Result card 5 -->
+        <g transform="translate(0,504)">
+            <rect width="320" height="84" rx="18" fill="#FFFFFF"/>
+            <rect x="16" y="16" width="52" height="52" rx="14" fill="#F3E8FF"/>
+            <g transform="translate(84,26)">
+                <text class="name">Sara Nguyen</text>
+                <text y="26" class="tag">Statistics · Data Science</text>
+            </g>
+        </g>
+
+        <!-- Result card 6 -->
+        <g transform="translate(0,600)">
+            <rect width="320" height="84" rx="18" fill="#FFFFFF"/>
+            <rect x="16" y="16" width="52" height="52" rx="14" fill="#F3E8FF"/>
+            <g transform="translate(84,26)">
+                <text class="name">Omar Khaled</text>
+                <text y="26" class="tag">Linear Algebra · Calculus</text>
+            </g>
+        </g>
+
+    </g>
+</svg>
