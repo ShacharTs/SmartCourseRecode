@@ -1,0 +1,75 @@
+<svg width="360" height="800"
+    viewBox="0 0 360 800"
+    xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <style>
+            .title { fill:#FFFFFF; font-size:16px; font-weight:600; }
+            .msg-me { fill:#FFFFFF; font-size:14px; }
+            .msg-other { fill:#E5E7EB; font-size:14px; }
+            .placeholder { fill:#A9A9B3; font-size:14px; }
+        </style>
+
+        <linearGradient id="bgDark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0B0514"/>
+            <stop offset="50%" stop-color="#1E0938"/>
+            <stop offset="100%" stop-color="#3A0F54"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect width="360" height="800" fill="url(#bgDark)"/>
+
+    <!-- TOP BAR -->
+    <rect width="360" height="64" fill="#16112A"/>
+
+    <text x="16" y="40" fill="#A9A9B3" font-size="20">&lt;</text>
+    <circle cx="56" cy="32" r="16" fill="#241636"/>
+    <text x="80" y="40" class="title">Angela Taylor</text>
+
+    <!-- MESSAGES -->
+    <g transform="translate(12,80)">
+
+        <!-- Other -->
+        <rect width="240" height="48" rx="16" fill="#16112A"/>
+        <text x="12" y="30" class="msg-other">
+            Hi! Are you available today?
+        </text>
+
+        <!-- Me -->
+        <g transform="translate(108,64)">
+            <rect width="240" height="48" rx="16" fill="#EC4899"/>
+            <text x="12" y="30" class="msg-me">
+                Yes, sure
+            </text>
+        </g>
+
+        <!-- Other -->
+        <g transform="translate(0,128)">
+            <rect width="240" height="64" rx="16" fill="#16112A"/>
+            <text x="12" y="30" class="msg-other">
+                Great! Can we start at 6pm?
+            </text>
+        </g>
+
+        <!-- Me -->
+        <g transform="translate(108,208)">
+            <rect width="240" height="48" rx="16" fill="#EC4899"/>
+            <text x="12" y="30" class="msg-me">
+                Works for me
+            </text>
+        </g>
+
+    </g>
+
+    <!-- INPUT BAR -->
+    <rect y="720" width="360" height="80" fill="#16112A"/>
+
+    <circle cx="24" cy="760" r="12" fill="#3A0F54"/>
+
+    <rect x="48" y="740" width="236" height="40" rx="20" fill="#241636"/>
+    <text x="64" y="766" class="placeholder">Message</text>
+
+    <circle cx="320" cy="760" r="14" fill="#EC4899"/>
+
+</svg>

@@ -1,0 +1,85 @@
+<svg width="360" height="800"
+    viewBox="0 0 360 800"
+    xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+        <style>
+            .title { font-size:22px; font-weight:700; fill:#FFFFFF; }
+            .name { font-size:16px; font-weight:600; fill:#FFFFFF; }
+            .message { font-size:14px; fill:#A9A9B3; }
+        </style>
+
+        <linearGradient id="bgDark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0B0514"/>
+            <stop offset="50%" stop-color="#1E0938"/>
+            <stop offset="100%" stop-color="#3A0F54"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect width="360" height="800" fill="url(#bgDark)"/>
+
+    <!-- CONTENT -->
+    <g transform="translate(16,24)">
+
+        <!-- Header -->
+        <text x="180" y="24" text-anchor="middle" class="title">
+            Chats
+        </text>
+
+        <!-- Chat item 1 -->
+        <g transform="translate(0,56)">
+            <rect width="328" height="72" rx="18" fill="#16112A"/>
+
+            <!-- Avatar -->
+            <circle cx="36" cy="36" r="24" fill="#241636"/>
+
+            <!-- Text -->
+            <g transform="translate(72,26)">
+                <text class="name">Angela Taylor</text>
+                <text y="22" class="message">Hey! Are we meeting today?</text>
+            </g>
+        </g>
+
+        <!-- Chat item 2 -->
+        <g transform="translate(0,140)">
+            <rect width="328" height="72" rx="18" fill="#16112A"/>
+            <circle cx="36" cy="36" r="24" fill="#241636"/>
+            <g transform="translate(72,26)">
+                <text class="name">Michael Ross</text>
+                <text y="22" class="message">I sent you the homework.</text>
+            </g>
+        </g>
+
+        <!-- Chat item 3 -->
+        <g transform="translate(0,224)">
+            <rect width="328" height="72" rx="18" fill="#16112A"/>
+            <circle cx="36" cy="36" r="24" fill="#241636"/>
+            <g transform="translate(72,26)">
+                <text class="name">Sara Nguyen</text>
+                <text y="22" class="message">Thanks for the explanation 🙏</text>
+            </g>
+        </g>
+
+        <!-- Chat item 4 -->
+        <g transform="translate(0,308)">
+            <rect width="328" height="72" rx="18" fill="#16112A"/>
+            <circle cx="36" cy="36" r="24" fill="#241636"/>
+            <g transform="translate(72,26)">
+                <text class="name">Omar Khaled</text>
+                <text y="22" class="message">Can we reschedule?</text>
+            </g>
+        </g>
+
+        <!-- Chat item 5 -->
+        <g transform="translate(0,392)">
+            <rect width="328" height="72" rx="18" fill="#16112A"/>
+            <circle cx="36" cy="36" r="24" fill="#241636"/>
+            <g transform="translate(72,26)">
+                <text class="name">Elizabeth Taylor</text>
+                <text y="22" class="message">See you next week!</text>
+            </g>
+        </g>
+
+    </g>
+</svg>
