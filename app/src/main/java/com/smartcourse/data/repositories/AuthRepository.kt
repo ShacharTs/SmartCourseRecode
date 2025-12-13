@@ -3,6 +3,7 @@ package com.smartcourse.data.repositories
 import android.content.Context
 import com.smartcourse.auth.AuthResult
 import com.smartcourse.auth.AuthStrategy
+import com.smartcourse.data.models.usermodel.DomainUser
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import io.github.jan.supabase.SupabaseClient
@@ -106,4 +107,9 @@ class AuthRepository @Inject constructor(
 
         loadOrCreateUser(sessionUser.id)
     }
+
+    suspend fun toDomainUser(user: User): DomainUser {
+        return userRepo.toDomainUser(user)
+    }
+
 }

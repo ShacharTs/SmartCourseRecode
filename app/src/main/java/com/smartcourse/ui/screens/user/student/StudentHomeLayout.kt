@@ -1,5 +1,6 @@
 package com.smartcourse.ui.screens.user.student
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -13,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.ui.theme.screens.StudentHomeColorPalette
 import com.smartcourse.ui.theme.screens.StudentHomeLayoutColors
 
@@ -237,6 +240,8 @@ fun StudentHomeLayout(
     navController: NavController,
     authVM: AuthViewModel
 ) {
+    val student = authVM.domainUser as? Student ?: return
+
     val colors = if (isSystemInDarkTheme()) {
         StudentHomeLayoutColors.Dark
     } else {

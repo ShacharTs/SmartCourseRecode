@@ -353,11 +353,13 @@
 
 package com.smartcourse.auth
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartcourse.data.models.usermodel.DomainUser
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -374,13 +376,38 @@ class AuthViewModel @Inject constructor(
     var authState by mutableStateOf(AuthState.LOADING)
         private set
 
+    var domainUser by mutableStateOf<DomainUser?>(null)
+        private set
+
+
+//    init {
+//        viewModelScope.launch {
+//            authRepo.currentUser.collect { user ->
+//                authState = when (user?.role) {
+//                    null -> AuthState.LOGGED_OUT
+//                    UserRole.TEMP -> AuthState.CHOOSING_ROLE
+//                    else -> AuthState.LOGGED_IN
+//                }
+//            }
+//        }
+//
+//        viewModelScope.launch {
+//            authRepo.restoreValidSession()
+//        }
+//    }
+
     init {
         viewModelScope.launch {
             authRepo.currentUser.collect { user ->
+
                 authState = when (user?.role) {
                     null -> AuthState.LOGGED_OUT
                     UserRole.TEMP -> AuthState.CHOOSING_ROLE
                     else -> AuthState.LOGGED_IN
+                }
+
+                domainUser = user?.let {
+                    authRepo.toDomainUser(it)
                 }
             }
         }
@@ -389,6 +416,7 @@ class AuthViewModel @Inject constructor(
             authRepo.restoreValidSession()
         }
     }
+
 
     fun onRoleChosen() {
         viewModelScope.launch {
@@ -407,6 +435,7 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             authRepo.logout()
+            domainUser = null
         }
     }
 }

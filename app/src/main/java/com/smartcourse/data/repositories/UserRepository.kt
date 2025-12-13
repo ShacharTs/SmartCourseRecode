@@ -2,9 +2,13 @@
 
 package com.smartcourse.data.repositories
 
+import android.util.Log
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.Course
+import com.smartcourse.data.models.usermodel.DomainUser
+import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.data.models.usermodel.TableNames
+import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserCourseTable
 import com.smartcourse.data.models.usermodel.UserRole
@@ -244,5 +248,33 @@ class UserRepository @Inject constructor(
         // Sort newest first
         return result.sortedByDescending { it.lastTimestamp }
     }
+
+
+    // later use
+    suspend fun toDomainUser(user: User): DomainUser =
+        when (user.role) {
+
+            UserRole.STUDENT -> {
+                val links = getUserCourses(user.userId)
+                val courses = links.mapNotNull { getCourseById(it.course_id) }
+                Student(user, courses)
+            }
+
+            UserRole.TUTOR -> {
+                val links = getUserCourses(user.userId)
+                val courses = links.mapNotNull { getCourseById(it.course_id) }
+                Tutor(user, courses)
+            }
+
+            UserRole.TEMP -> {
+                error("TEMP user not supported")
+            }
+
+            else -> error("Unhandled role: ${user.role}")
+
+        }
+
+
+
 
 }
