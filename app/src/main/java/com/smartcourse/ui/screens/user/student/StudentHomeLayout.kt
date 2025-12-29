@@ -251,7 +251,11 @@ fun LatestChatsSection(
                 .height(50.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(colors.card)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .clickable{
+                    //todo go to chat
+                    Log.d("Load Last Chat", "${it}")
+                },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -261,6 +265,7 @@ fun LatestChatsSection(
                     .background(colors.accent)
             )
             Spacer(modifier = Modifier.width(10.dp))
+            //todo need to change later to load the lastest msg
             Text("${it.name} — ${it.message}", color = colors.textPrimary, fontSize = 15.sp)
         }
         Spacer(modifier = Modifier.height(10.dp))
