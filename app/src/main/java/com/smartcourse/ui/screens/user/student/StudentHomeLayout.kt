@@ -1,10 +1,20 @@
 package com.smartcourse.ui.screens.user.student
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -19,15 +29,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.smartcourse.data.models.usermodel.Student
-import com.smartcourse.ui.theme.screens.StudentHomeColorPalette
-import com.smartcourse.ui.theme.screens.StudentHomeLayoutColors
+import com.smartcourse.ui.theme.AppGradients
+import com.smartcourse.ui.theme.LocalAppPalette
+import com.smartcourse.ui.theme.StudentHomeColorPalette
+
 
 /* =========================================================
    DATA
@@ -245,32 +256,15 @@ fun StudentHomeLayout(
 ) {
     val studentHomeViewModel: StudentHomeViewModel = hiltViewModel()
 
-    val isDark = isSystemInDarkTheme()
+    // 1. Pull the centralized palette and gradients
+    val palette = LocalAppPalette.current
+    val homeColors = palette.home
+    val isDark = palette.isDark
 
-    val colors = if (isDark) {
-        StudentHomeLayoutColors.Dark
-    } else {
-        StudentHomeLayoutColors.Light
-    }
-
-    // Gradient MUST be applied at layout level
-    val backgroundBrush = if (isDark) {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFF0B0514),
-                Color(0xFF1E0938),
-                Color(0xFF3A0F54)
-            )
-        )
-    } else {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFF9333EA),
-                Color(0xFFEC4899),
-                Color(0xFFF97316)
-            )
-        )
-    }
+    // 2. Use the centralized gradients (Matches Settings and Login)
+    val backgroundBrush = Brush.verticalGradient(
+        colors = if (isDark) AppGradients.Dark else AppGradients.Light
+    )
 
     LaunchedEffect(student.user.getUID()) {
         studentHomeViewModel.load(student)
@@ -283,9 +277,10 @@ fun StudentHomeLayout(
         contentPadding = PaddingValues(16.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { MyTutorsSection(tempMyTutors(), colors) }
-        item { DiscoverTutorsSection(tempDiscoverTutors(), colors) }
-        item { LatestChatsSection(tempLatestChats(), colors) }
+        // 3. Pass the clean homeColors palette to your sections
+        item { MyTutorsSection(tempMyTutors(), homeColors) }
+        item { DiscoverTutorsSection(tempDiscoverTutors(), homeColors) }
+        item { LatestChatsSection(tempLatestChats(), homeColors) }
     }
 }
 

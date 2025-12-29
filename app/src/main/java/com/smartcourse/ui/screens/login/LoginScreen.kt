@@ -56,9 +56,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.smartcourse.R
-import com.smartcourse.ui.theme.screens.LoginColorPalette
-import com.smartcourse.ui.theme.screens.LoginGradients
-import com.smartcourse.ui.theme.screens.LoginScreenColors
+import com.smartcourse.ui.theme.AppGradients
+import com.smartcourse.ui.theme.LoginColorPalette
+import com.smartcourse.ui.theme.LoginScreenColors
 import kotlinx.coroutines.launch
 
 @Composable
@@ -102,7 +102,7 @@ fun LoginScreen(
         }
     }
 
-    // ✅ LOGIN WITH GOOGLE — UI DOES NOT KNOW STRATEGY
+    //  LOGIN WITH GOOGLE — UI DOES NOT KNOW STRATEGY
     val onGoogleLogin: () -> Unit = {
         scope.launch {
             val result = loginVM.loginWithGoogle(context)
@@ -156,7 +156,7 @@ private fun LoginContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(if (isDark) Color.Black else Color.White),
         contentAlignment = Alignment.Center
     ) {
         // Phone frame
@@ -166,7 +166,7 @@ private fun LoginContent(
                 .clip(RoundedCornerShape(18.dp))
                 .background(
                     Brush.verticalGradient(
-                        if (isDark) LoginGradients.Dark else LoginGradients.Light
+                        if (isDark) AppGradients.Dark else AppGradients.Light
                     )
                 )
         ) {
@@ -180,7 +180,7 @@ private fun LoginContent(
             ) {
                 Spacer(Modifier.height(24.dp))
 
-                LoginHeader()
+                LoginHeader(loginColors = loginColors)
 
                 Spacer(Modifier.height(32.dp))
 
@@ -205,7 +205,8 @@ private fun LoginContent(
                     onLogin = onLogin,
                     onGoogleLogin = onGoogleLogin,
                     onNavigateToRegister = onNavigateToRegister,
-                    loginColors = loginColors
+                    loginColors = loginColors,
+                    isDark = isDark
                 )
             }
         }
@@ -213,9 +214,11 @@ private fun LoginContent(
 }
 
 
-
 @Composable
-private fun LoginHeader(modifier: Modifier = Modifier) {
+private fun LoginHeader(
+    loginColors: LoginColorPalette,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxWidth(),
@@ -223,7 +226,7 @@ private fun LoginHeader(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = "Nice to see you again",
-            color = Color.White,
+            color = loginColors.text,
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium
         )
@@ -337,7 +340,8 @@ private fun LoginButtons(
     onGoogleLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
     modifier: Modifier = Modifier,
-    loginColors: LoginColorPalette
+    loginColors: LoginColorPalette,
+    isDark: Boolean
 ) {
     val errorBackgroundColor = loginColors.errorBackground
     val errorTextColor = loginColors.errorText
@@ -373,93 +377,110 @@ private fun LoginButtons(
             }
         }
 
-        GradientButton(
+        PrimaryButton(
             text = "Sign in",
             modifier = Modifier
                 .fillMaxWidth(0.85f)
-                .clickable(onClick = onLogin)
+                .clickable { onLogin() }
         )
 
         OutlineButton(
             text = "Register",
             modifier = Modifier
                 .fillMaxWidth(0.85f)
-                .clickable(onClick = onNavigateToRegister)
+                .clickable { onNavigateToRegister() }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         GoogleButton(
+            isDark = isDark,
             modifier = Modifier
                 .fillMaxWidth(0.85f)
-                .clickable(onClick = onGoogleLogin)
+                .clickable { onGoogleLogin() }
         )
     }
 }
 
 
-
 /* ------------------ BUTTON COMPONENTS ------------------ */
 
 @Composable
-fun GradientButton(text: String, modifier: Modifier = Modifier) {
+fun PrimaryButton(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    // Solid background for the main action
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .height(50.dp)
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        Color(0xFF9333EA),
-                        Color(0xFFEC4899)
-                    )
-                )
-            )
-            .shadow(10.dp),
+            .height(54.dp)
+            .background(Color(0xFF6B21A8)), // Deep Purple
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = Color.White, fontSize = 16.sp)
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
 @Composable
-fun OutlineButton(text: String, modifier: Modifier = Modifier) {
+fun OutlineButton(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    // Border only for the secondary action
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .height(50.dp)
-            .border(2.dp, Color(0xFF9333EA), RoundedCornerShape(12.dp))
-            .background(Color.White),
+            .height(54.dp)
+            .border(1.5.dp, Color(0xFF6B21A8), RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = Color(0xFF9333EA), fontSize = 16.sp)
+        Text(
+            text = text,
+            color = Color(0xFF6B21A8),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
 @Composable
-fun GoogleButton(modifier: Modifier = Modifier) {
+fun GoogleButton(
+    isDark: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val bg = if (isDark) Color(0xFF2D2D2D) else Color.White
+    val border = if (isDark) Color(0xFF444444) else Color(0xFFE5E7EB)
+
     Box(
         modifier = modifier
+            .shadow(elevation = 1.dp, shape = RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
-            .height(48.dp)
-            .border(2.dp, Color.LightGray, RoundedCornerShape(12.dp))
-            .background(Color.White),
+            .height(50.dp)
+            .border(1.dp, border, RoundedCornerShape(12.dp))
+            .background(bg),
         contentAlignment = Alignment.Center
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Icon(
                 painter = painterResource(R.drawable.google_icon),
                 contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(20.dp)
+                tint = Color.Unspecified,
+                modifier = Modifier.size(18.dp)
             )
             Text(
-                "Sign in with Google",
-                color = Color.DarkGray,
-                fontSize = 14.sp
+                text = "Continue with Google",
+                color = if (isDark) Color.White else Color(0xFF374151),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
             )
         }
     }

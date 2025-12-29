@@ -10,7 +10,9 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.smartcourse.ui.theme.screens.NavBarColors
+import com.smartcourse.ui.theme.NavBarColors
+
+
 
 @Composable
 fun AppBottomNavBar(

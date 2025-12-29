@@ -18,7 +18,8 @@ import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.components.CustomText
-import com.smartcourse.ui.theme.screens.NavBarColors
+import com.smartcourse.ui.theme.NavBarColors
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,16 +60,17 @@ fun MenuTopAppBar(
                 textAlign = TextAlign.Center,
             )
         },
-        // later move to setting
-        actions = {
-            IconButton(onClick = {
-                authVM.logout()
-            }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = "Logout",
-                )
-            }
-        }
+//        // later move to setting
+        // todo move it to setting
+//        actions = {
+//            IconButton(onClick = {
+//                authVM.logout()
+//            }) {
+//                Icon(
+//                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+//                    contentDescription = "Logout",
+//                )
+//            }
+//        }
     )
 }

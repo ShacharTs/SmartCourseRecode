@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 
 
@@ -82,12 +83,17 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun SmartCourseTheme(content: @Composable () -> Unit) {
+    val systemInDark = isSystemInDarkTheme()
 
-    val useDark = isSystemInDarkTheme()
+    // IF YOU HATE LIGHT MODE: Change this to 'val palette = DarkAppPalette'
+    // to force dark mode everywhere regardless of phone settings.
+    val palette = if (systemInDark) DarkAppPalette else LightAppPalette
 
-    MaterialTheme(
-        colorScheme = if (useDark) DarkColors else LightColors,
-        typography = AppTypography,
-        content = content
-    )
+    CompositionLocalProvider(LocalAppPalette provides palette) {
+        MaterialTheme(
+            colorScheme = if (systemInDark) DarkColors else LightColors,
+            typography = AppTypography,
+            content = content
+        )
+    }
 }

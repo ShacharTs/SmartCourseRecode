@@ -2,31 +2,16 @@ package com.smartcourse.ui.screens.register
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -35,13 +20,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.smartcourse.R
-import com.smartcourse.ui.screens.components.CustomBox
-import com.smartcourse.ui.screens.components.CustomButton
-import com.smartcourse.ui.screens.components.CustomColumn
-import com.smartcourse.ui.screens.components.CustomRow
-import com.smartcourse.ui.screens.components.CustomSpacer
-import com.smartcourse.ui.screens.components.CustomText
-import com.smartcourse.ui.screens.register.RegisterViewModel
+import com.smartcourse.ui.screens.components.*
+import com.smartcourse.ui.theme.AppGradients
+import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
 fun RegisterScreen(
@@ -49,13 +30,22 @@ fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onRegisterSuccess: () -> Unit
 ) {
+    // 1. Access the unified register palette
+    val palette = LocalAppPalette.current
+    val registerColors = palette.register
+    val isDark = palette.isDark
+
+    // 2. Use the unified brand gradient
+    val backgroundBrush = Brush.verticalGradient(
+        if (isDark) AppGradients.Dark else AppGradients.Light
+    )
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
     val uiState by registerVM.uiState.collectAsState()
 
-    // Navigate on successful registration
     LaunchedEffect(uiState.success) {
         if (uiState.success) {
             onRegisterSuccess()
@@ -65,19 +55,19 @@ fun RegisterScreen(
     CustomColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(backgroundBrush)
             .statusBarsPadding()
             .padding(24.dp)
     ) {
-
-        registerUpperArea()
+        // Pass registerColors down to the title area
+        RegisterUpperArea(registerColors.text)
 
         CustomSpacer(height = 20)
 
-        registerMidArea(
+        RegisterMidArea(
             email = email,
             password = password,
-            confrimPassword = confirmPassword,
+            confirmPassword = confirmPassword,
             onEmailChange = { email = it },
             onPasswordChange = { password = it },
             onConfirmPasswordChange = { confirmPassword = it }
@@ -85,44 +75,35 @@ fun RegisterScreen(
 
         CustomSpacer(height = 20)
 
-        registerForm(
+        RegisterForm(
             isLoading = uiState.isLoading,
             error = uiState.error,
             onNavigateBack = onNavigateBack,
             onRegister = {
-                val error = registerVM.validate(
-                    email = email,
-                    password = password,
-                    confirmPassword = confirmPassword
-                )
-
-                if (error != null) {
-                    registerVM.setError(error)
-                } else {
-                    registerVM.register(email, password)
-                }
+                val error = registerVM.validate(email, password, confirmPassword)
+                if (error != null) registerVM.setError(error) else registerVM.register(email, password)
             }
         )
     }
 }
 
-
-
 @Composable
-private fun registerForm(
+private fun RegisterForm(
     isLoading: Boolean,
     error: String?,
     onRegister: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val registerColors = LocalAppPalette.current.register
+
     CustomRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
         CustomBox(onClick = onNavigateBack) {
             CustomText(
-                text = "Already have account ?",
-                color = if (isSystemInDarkTheme()) Color.Yellow else Color.Blue
+                text = "Already have account?",
+                color = registerColors.fieldFocused // Using brand color for the link
             )
         }
     }
@@ -135,199 +116,147 @@ private fun registerForm(
         onClick = onRegister
     )
 
-
     if (error != null) {
         CustomSpacer(height = 12)
         CustomText(
             text = error,
-            color = Color.Red,
+            color = registerColors.errorText, // Use palette error color
             fontSize = 14.sp
         )
     }
 }
 
-
-
 @Composable
-private fun registerMidArea(
+private fun RegisterMidArea(
     email: String,
     password: String,
-    confrimPassword: String,
+    confirmPassword: String,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit
 ) {
-
     var passwordVisible by remember { mutableStateOf(false) }
-
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    CustomRow(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        CustomColumn{
-            emailField(email, onEmailChange)
-
-            CustomSpacer(height = 20)
-
-            PasswordField(
-                password = password,
-                onPasswordChange = onPasswordChange,
-                passwordVisible = passwordVisible,
-                onPasswordVisibleChange = { passwordVisible = it }
-            )
-
-
-            CustomSpacer(height = 20)
-
-            ConfirmPasswordField(
-                confirmPassword = confrimPassword,
-                onConfirmPasswordChange = onConfirmPasswordChange,
-                confirmPasswordVisible = confirmPasswordVisible,
-                onConfirmPasswordVisibleChange = { confirmPasswordVisible = it }
-            )
-
-        }
+    CustomColumn {
+        EmailField(email, onEmailChange)
+        CustomSpacer(height = 20)
+        PasswordField(password, onPasswordChange, passwordVisible) { passwordVisible = it }
+        CustomSpacer(height = 20)
+        ConfirmPasswordField(confirmPassword, onConfirmPasswordChange, confirmPasswordVisible) { confirmPasswordVisible = it }
     }
 }
 
 @Composable
-private fun emailField(
-    email: String,
-    onEmailChange: (String) -> Unit
-) {
-    CustomText(
-        text = "Email",
-        modifier = Modifier.padding(bottom = 10.dp),
-        fontWeight = FontWeight.Bold
-    )
-    CustomSpacer(height = 4)
+private fun EmailField(email: String, onEmailChange: (String) -> Unit) {
+    val colors = LocalAppPalette.current.register
+
+    CustomText(text = "Email", color = colors.text, fontWeight = FontWeight.Bold)
+    CustomSpacer(height = 8)
 
     OutlinedTextField(
         value = email,
         onValueChange = onEmailChange,
         singleLine = true,
-        placeholder = {
-            CustomText(
-                text = "email@example.com",
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
-        },
+        placeholder = { Text("email@example.com", color = colors.placeholder) },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colors.fieldFocused,
+            unfocusedBorderColor = colors.fieldBorder,
+            focusedTextColor = colors.text,
+            unfocusedTextColor = colors.text
+        )
     )
 }
-
 
 @Composable
 private fun PasswordField(
     password: String,
     onPasswordChange: (String) -> Unit,
-    passwordVisible: Boolean,
-    onPasswordVisibleChange: (Boolean) -> Unit
+    visible: Boolean,
+    onVisibleChange: (Boolean) -> Unit
 ) {
-    CustomText(
-        text = "Password",
-        modifier = Modifier.padding(bottom = 10.dp),
-        fontWeight = FontWeight.Bold
-    )
-    CustomSpacer(height = 4)
+    val colors = LocalAppPalette.current.register
+
+    CustomText(text = "Password", color = colors.text, fontWeight = FontWeight.Bold)
+    CustomSpacer(height = 8)
 
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
         singleLine = true,
-        placeholder = {
-            CustomText(
-                text = "Enter password",
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
-        },
+        placeholder = { Text("Enter password", color = colors.placeholder) },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
-        visualTransformation =
-            if (passwordVisible) VisualTransformation.None
-            else PasswordVisualTransformation(),
+        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
-            IconButton(onClick = {
-                onPasswordVisibleChange(!passwordVisible)
-            }) {
+            IconButton(onClick = { onVisibleChange(!visible) }) {
                 Icon(
-                    imageVector = if (passwordVisible)
-                        Icons.Default.Visibility
-                    else
-                        Icons.Default.VisibilityOff,
-                    contentDescription = null
+                    imageVector = if (visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    contentDescription = null,
+                    tint = colors.fieldFocused
                 )
             }
-        }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colors.fieldFocused,
+            unfocusedBorderColor = colors.fieldBorder,
+            focusedTextColor = colors.text,
+            unfocusedTextColor = colors.text
+        )
     )
 }
-
 
 @Composable
 private fun ConfirmPasswordField(
-    confirmPassword: String,
-    onConfirmPasswordChange: (String) -> Unit,
-    confirmPasswordVisible: Boolean,
-    onConfirmPasswordVisibleChange: (Boolean) -> Unit
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    visible: Boolean,
+    onVisibleChange: (Boolean) -> Unit
 ) {
-    CustomText(
-        text = "Confirm Password",
-        modifier = Modifier.padding(bottom = 10.dp),
-        fontWeight = FontWeight.Bold
-    )
-    CustomSpacer(height = 4)
+    val colors = LocalAppPalette.current.register
+
+    CustomText(text = "Confirm Password", color = colors.text, fontWeight = FontWeight.Bold)
+    CustomSpacer(height = 8)
 
     OutlinedTextField(
-        value = confirmPassword,
-        onValueChange = onConfirmPasswordChange,
+        value = password,
+        onValueChange = onPasswordChange,
         singleLine = true,
-        placeholder = {
-            CustomText(
-                text = "Re-enter password",
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
-        },
+        placeholder = { Text("Re-enter password", color = colors.placeholder) },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
-        visualTransformation =
-            if (confirmPasswordVisible) VisualTransformation.None
-            else PasswordVisualTransformation(),
+        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
-            IconButton(onClick = {
-                onConfirmPasswordVisibleChange(!confirmPasswordVisible)
-            }) {
+            IconButton(onClick = { onVisibleChange(!visible) }) {
                 Icon(
-                    imageVector = if (confirmPasswordVisible)
-                        Icons.Default.Visibility
-                    else
-                        Icons.Default.VisibilityOff,
-                    contentDescription = null
+                    imageVector = if (visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                    contentDescription = null,
+                    tint = colors.fieldFocused
                 )
             }
-        }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colors.fieldFocused,
+            unfocusedBorderColor = colors.fieldBorder,
+            focusedTextColor = colors.text,
+            unfocusedTextColor = colors.text
+        )
     )
 }
 
-
-
-
 @Composable
-private fun registerUpperArea() {
+private fun RegisterUpperArea(textColor: androidx.compose.ui.graphics.Color) {
     CustomText(
         text = "Register",
+        color = textColor,
         fontSize = 32.sp,
         textAlign = TextAlign.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp)
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        fontWeight = FontWeight.Bold
     )
-    CustomBox(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
+    CustomBox(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Image(
             painter = painterResource(R.drawable.smartcourselogo),
             contentDescription = null,
@@ -335,4 +264,3 @@ private fun registerUpperArea() {
         )
     }
 }
-
