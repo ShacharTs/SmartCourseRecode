@@ -58,7 +58,6 @@ fun UserRootScreen(
         Screen.Home.route,
         Screen.ChatList.route,
         Screen.SearchRouter.route,
-        Screen.Profile.route
     )
 
     Scaffold(
@@ -128,9 +127,10 @@ fun UserRootScreen(
             }
 
             composable(Screen.Profile.route) {
-                MenuScreen(padding) {
-                    Text("Profile Screen Content")
-                }
+                UserProfileScreen(
+                    navController = navController,
+                    authVM = authVM
+                )
             }
 
 

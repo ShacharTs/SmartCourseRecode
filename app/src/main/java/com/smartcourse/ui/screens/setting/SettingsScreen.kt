@@ -3,24 +3,33 @@ package com.smartcourse.ui.screens.setting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
 
@@ -28,16 +37,14 @@ import com.smartcourse.ui.theme.LocalAppPalette
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    authVM: AuthViewModel
+    authVM: AuthViewModel,
+    settingVM: SettingViewModel = hiltViewModel()
 ) {
     // 1. Get the palette once at the top level
     val palette = LocalAppPalette.current
     val isDark = isSystemInDarkTheme()
     val gradientColors = if (isDark) AppGradients.Dark else AppGradients.Light
 
-
-    var isChatEnabled by remember { mutableStateOf(true) }
-    var isAppNotificationsEnabled by remember { mutableStateOf(true) }
 
     Box(
         modifier = Modifier
@@ -47,7 +54,15 @@ fun SettingsScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             SettingsHeader()
 
-            SettingColumn(isChatEnabled, isAppNotificationsEnabled, authVM, navController)
+            SettingColumn(
+                // Use state from ViewModel
+                isChatEnabled = settingVM.isChatEnabled,
+                isAppNotificationsEnabled = settingVM.isAppNotificationsEnabled,
+                onChatToggle = { settingVM.toggleChat(it) },
+                onNotificationToggle = { settingVM.toggleNotifications(it) },
+                authVM = authVM,
+                navController = navController
+            )
         }
     }
 }
@@ -56,11 +71,11 @@ fun SettingsScreen(
 private fun SettingColumn(
     isChatEnabled: Boolean,
     isAppNotificationsEnabled: Boolean,
+    onChatToggle: (Boolean) -> Unit, // New parameter
+    onNotificationToggle: (Boolean) -> Unit, // New parameter
     authVM: AuthViewModel,
     navController: NavController
 ) {
-    var isChatEnabled1 = isChatEnabled
-    var isAppNotificationsEnabled1 = isAppNotificationsEnabled
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +87,7 @@ private fun SettingColumn(
             SettingsRow(
                 label = "Edit Profile", onClick = {
                     /* TODO Navigate */
-
+                    navController.navigate(Screen.Profile.route)
                 }
             )
             SettingsRow(
@@ -88,18 +103,16 @@ private fun SettingColumn(
         SettingsSection(title = "Notifications") {
             SettingsToggleRow(
                 label = "Chat Notifications",
-                isActive = isChatEnabled1,
-                onToggle = { newValue ->
-                    isChatEnabled1 = newValue
-                }
-            )
+                isActive = isChatEnabled,
+                onToggle = onChatToggle,
+
+                )
             SettingsToggleRow(
                 label = "App Notifications",
-                isActive = isAppNotificationsEnabled1,
-                onToggle = {
-                    isAppNotificationsEnabled1 = it
-                }
-            )
+                isActive = isAppNotificationsEnabled,
+                onToggle = onNotificationToggle,
+
+                )
         }
 
         SettingsSection(title = "Preferences") {

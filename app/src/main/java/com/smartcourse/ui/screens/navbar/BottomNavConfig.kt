@@ -16,13 +16,11 @@ fun bottomNavItemsForRole(role: UserRole): List<BottomNavItem> {
             BottomNavItem(Screen.Home.route, "Home", Icons.Default.Home),
             BottomNavItem(Screen.ChatList.route, "Chats", Icons.AutoMirrored.Filled.Chat),
             BottomNavItem(Screen.SearchRouter.route, "Search\nTutors", Icons.Default.Search),
-            BottomNavItem(Screen.Profile.route, "Profile", Icons.Default.Person),
         )
         UserRole.TUTOR -> listOf(
             BottomNavItem(Screen.Home.route, "Home", Icons.Default.Home),
             BottomNavItem(Screen.ChatList.route, "Chats", Icons.AutoMirrored.Filled.Chat),
             BottomNavItem(Screen.SearchRouter.route, "Search\nStudents", Icons.Default.Search),
-            BottomNavItem(Screen.Profile.route, "Profile", Icons.Default.Person),
         )
         UserRole.ADMIN -> listOf(
             BottomNavItem(Screen.Home.route, "Admin", Icons.Default.Dashboard)
