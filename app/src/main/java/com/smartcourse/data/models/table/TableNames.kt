@@ -1,4 +1,4 @@
-package com.smartcourse.data.models.usermodel
+package com.smartcourse.data.models.table
 
 object TableNames {
 

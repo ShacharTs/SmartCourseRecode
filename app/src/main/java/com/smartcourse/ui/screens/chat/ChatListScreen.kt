@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.smartcourse.data.models.chat.ChatItem
-import com.smartcourse.data.models.usermodel.UserTable
+import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.components.CustomBox
 import com.smartcourse.ui.screens.components.CustomCard
@@ -30,7 +30,6 @@ import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
-import com.smartcourse.ui.screens.chat.ChatListViewModel
 
 /**
  * ChatListScreen is a composable function that displays a list of chats.

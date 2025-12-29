@@ -11,4 +11,3 @@ data class Course(
     @SerialName("course_name")
     val name: String
 )
-

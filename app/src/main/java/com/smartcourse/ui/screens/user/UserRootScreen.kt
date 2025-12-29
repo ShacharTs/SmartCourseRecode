@@ -41,7 +41,8 @@ fun UserRootScreen(
 
 
     val currentUser by authVM.currentUser.collectAsState()
-    val role = currentUser?.getUserRole() ?: UserRole.TEMP
+
+    val role = currentUser?.role ?: UserRole.TEMP
 
     val items = bottomNavItemsForRole(role)
 
@@ -153,62 +154,6 @@ fun MenuScreen(
     }
 }
 
-//@Composable
-//private fun ShowUserMenuScreen(
-//    navController: NavController,
-//    authVM: AuthViewModel
-//) {
-//    val currentUser by authVM.currentUser.collectAsState()
-//    val role = currentUser?.getUserRole()
-//
-//    when (role) {
-//
-//        UserRole.STUDENT,
-//        UserRole.TUTOR -> {
-//            UserHomeLayout(
-//                navController = navController,
-//                authVM = authVM
-//            )
-//        }
-//
-//        UserRole.ADMIN -> {
-//            CustomText("AdminHomeScreen")
-//        }
-//
-//        null, UserRole.TEMP -> {
-//            // This should NEVER happen if navigation is correct
-//            CustomText("Invalid user state")
-//        }
-//    }
-//}
-
-//@Composable
-//private fun ShowUserMenuScreen(
-//    navController: NavController,
-//    authVM: AuthViewModel
-//) {
-//    val domainUser = authVM.domainUser
-//
-//    when (domainUser) {
-//        null -> {
-//            CustomText("Loading user...")
-//        }
-//
-//        is Student -> {
-//            StudentHomeLayout(
-//                navController = navController,
-//                authVM = authVM
-//            )
-//        }
-//
-//        is Tutor -> {
-//            TutorHomeLayout(
-//                navController = navController,
-//                authVM = authVM
-//            )
-//        }
-//    }
-//}
 
 @Composable
 fun ShowUserMenuScreen(
@@ -229,9 +174,3 @@ fun ShowUserMenuScreen(
         )
     }
 }
-
-
-
-
-
-

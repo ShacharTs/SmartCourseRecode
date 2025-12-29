@@ -1,15 +1,10 @@
 package com.smartcourse.data.models.usermodel
 
-import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
-import com.smartcourse.auth.AuthViewModel
-import com.smartcourse.ui.screens.user.student.StudentHomeLayout
+import com.smartcourse.data.models.usermodel.Course
 
 
 data class Student(
     override val user: User,
-    val coursesSeekingHelp: List<Course>,
+    val coursesSeekingHelp: List<Course> = emptyList(),
     val savedTutorIds: Set<String> = emptySet()
-) : DomainUser() {
-
-}
+) : DomainUser by user
