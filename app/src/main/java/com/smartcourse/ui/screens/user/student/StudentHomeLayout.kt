@@ -200,7 +200,10 @@ fun MyTutorsSection(
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(30.dp)) {
         items(tutors.size) {
-            TutorAvatar(tutor = tutors[it], colors = colors ){}
+            TutorAvatar(tutor = tutors[it], colors = colors ){
+                // todo send to chat
+                Log.d("My Tutors","Tutor: ${tutors[it]}")
+            }
         }
     }
 }
