@@ -55,6 +55,9 @@ data class ChatUiData(val name: String, val message: String)
 fun tempMyTutors() = listOf(
     TutorUiData("Dana", "Math", "4.9"),
     TutorUiData("Ron", "Physics", "4.6"),
+    TutorUiData("Alex", "Chem", "4.8"),
+    TutorUiData("Dana", "Math", "4.9"),
+    TutorUiData("Ron", "Physics", "4.6"),
     TutorUiData("Alex", "Chem", "4.8")
 )
 
@@ -62,13 +65,13 @@ fun tempDiscoverTutors() = listOf(
     TutorUiData("Dana", "Linear Algebra", "4.9"),
     TutorUiData("Alex", "Organic Chem", "4.8"),
     TutorUiData("Ron", "Quantum Physics", "4.6"),
-    TutorUiData("Ben", "Biology", "4.7")
+    TutorUiData("Ben", "Biology", "4.7"),
 )
 
 fun tempLatestChats() = listOf(
     ChatUiData("Dana", "Tomorrow works"),
     ChatUiData("Ron", "Sent the exercises"),
-    ChatUiData("Alex", "See you at 5")
+    ChatUiData("Alex", "See you at 5"),
 )
 
 /* =========================================================
@@ -195,8 +198,10 @@ fun MyTutorsSection(
     Spacer(modifier = Modifier.height(10.dp))
 
 
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-        items(tutors.size) { TutorAvatar(tutors[it], colors) {} }
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(30.dp)) {
+        items(tutors.size) {
+            TutorAvatar(tutor = tutors[it], colors = colors ){}
+        }
     }
 }
 
@@ -222,10 +227,10 @@ fun DiscoverTutorsSection(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         userScrollEnabled = false
     ) {
-        items(tutors) {
-            TutorDiscoverCard(it, colors) {
-                //todo add way to go to profile
-                Log.d("Click on card","Go to ${it.name} profile")
+        items(tutors.takeLast(4)) { tutor ->
+            TutorDiscoverCard(tutor = tutor, colors = colors) {
+                // Handle navigation to profile
+                Log.d("Click on card", "Go to ${tutor.name} profile")
             }
         }
     }
@@ -244,7 +249,7 @@ fun LatestChatsSection(
         modifier = Modifier.padding(bottom = 8.dp)
     )
 
-    chats.forEach {
+    chats.takeLast(3).forEach {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -252,9 +257,9 @@ fun LatestChatsSection(
                 .clip(RoundedCornerShape(10.dp))
                 .background(colors.card)
                 .padding(horizontal = 16.dp)
-                .clickable{
+                .clickable {
                     //todo go to chat
-                    Log.d("Load Last Chat", "${it}")
+                    Log.d("Load Last Chat", "$it")
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
