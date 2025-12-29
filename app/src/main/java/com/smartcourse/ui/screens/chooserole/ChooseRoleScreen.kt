@@ -46,7 +46,7 @@ fun ChooseRoleScreen(
             .padding(top = 40.dp, bottom = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        title()
+        Title()
 
         CustomSpacer(height = 40)
 
@@ -66,12 +66,12 @@ fun ChooseRoleScreen(
 
         CustomSpacer(height = 80)
 
-        buttonsLowerPart(chooseRoleViewModel, authVM, role)
+        ButtonsLowerPart(chooseRoleViewModel, authVM, role)
     }
 }
 
 @Composable
-private fun buttonsLowerPart(
+private fun ButtonsLowerPart(
     chooseRoleViewModel: ChooseRoleViewModel,
     authVM: AuthViewModel,
     role: String,
@@ -97,7 +97,7 @@ private fun buttonsLowerPart(
 }
 
 @Composable
-private fun title() {
+private fun Title() {
     // Title
     CustomText(
         text = "Choose Your Role",
