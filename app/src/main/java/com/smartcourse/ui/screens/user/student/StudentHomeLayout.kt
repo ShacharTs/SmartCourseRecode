@@ -42,14 +42,14 @@ import com.smartcourse.ui.theme.StudentHomeColorPalette
 
 
 /* =========================================================
-   DATA
+   todo DATA TEMP  REMOVE LATER
    ========================================================= */
 
 data class TutorUiData(val name: String, val subject: String, val rating: String)
 data class ChatUiData(val name: String, val message: String)
 
 /* =========================================================
-   TEMP DATA (SWAP WITH VM)
+   todo TEMP DATA (SWAP WITH VM)
    ========================================================= */
 
 fun tempMyTutors() = listOf(
