@@ -1,5 +1,6 @@
 package com.smartcourse.ui.screens.user.student
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -91,7 +92,12 @@ fun TutorAvatar(
                 .background(colors.accent)
         )
         Spacer(modifier = Modifier.height(6.dp))
-        Text(tutor.name, color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(
+            tutor.name,
+            color = colors.textPrimary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         Text(tutor.subject, color = colors.subtext, fontSize = 14.sp)
     }
 }
@@ -149,7 +155,12 @@ fun TutorDiscoverCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
-                        Text(tutor.name, color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            tutor.name,
+                            color = colors.textPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                         Text(tutor.subject, color = colors.subtext, fontSize = 12.sp)
                     }
                 }
@@ -158,8 +169,14 @@ fun TutorDiscoverCard(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ActionButton("Chat", true, colors) {}
-                ActionButton("Save", false, colors) {}
+                ActionButton("Chat", true, colors) {
+                    // todo option go open chat / create chat
+                    Log.d("Chat", "Cicked Chat ${tutor.name}")
+                }
+                ActionButton("Save", false, colors) {
+                    // todo option to save user to list
+                    Log.d("Save", "Cicked Save ${tutor.name}")
+                }
             }
         }
     }
@@ -205,7 +222,12 @@ fun DiscoverTutorsSection(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         userScrollEnabled = false
     ) {
-        items(tutors) { TutorDiscoverCard(it, colors) {} }
+        items(tutors) {
+            TutorDiscoverCard(it, colors) {
+                //todo add way to go to profile
+                Log.d("Click on card","Go to ${it.name} profile")
+            }
+        }
     }
 }
 
