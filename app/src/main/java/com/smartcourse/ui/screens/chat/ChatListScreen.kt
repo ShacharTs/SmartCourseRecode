@@ -4,11 +4,11 @@ package com.smartcourse.ui.screens.chat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -31,6 +32,7 @@ import com.smartcourse.ui.screens.components.CustomColumn
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
+import com.smartcourse.ui.theme.LocalAppPalette
 
 /**
  * ChatListScreen is a composable function that displays a list of chats.
@@ -47,6 +49,8 @@ fun ChatListScreen(
         chatListVM.refresh()
     }
 
+
+
     ChatListContent(
         chats = chats,
         navController = navController
@@ -61,15 +65,20 @@ fun ChatListContent(
     navController: NavController,
 ) {
     CustomColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
     ) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
             items(chats) { chat ->
                 ChatListItem(
                     chat = chat,
                     imageUrl = chat.otherUser?.image,
                     onClick = {
-                        navController.navigate(Screen.ChatRoom.createRoute(chat.chatId))
+                        navController.navigate(
+                            Screen.ChatRoom.createRoute(chat.chatId)
+                        )
                     }
                 )
             }
@@ -77,28 +86,43 @@ fun ChatListContent(
     }
 }
 
+
+
+
 @Composable
 fun ChatListItem(
     chat: ChatItem,
     imageUrl: String?,
     onClick: () -> Unit
 ) {
+    val palette = LocalAppPalette.current
+
     CustomCard(
         onClick = onClick
     ) {
         CustomRow(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ChatAvatar(imageUrl)
 
-            CustomSpacer(width = 12)
+            ChatAvatar(
+                imageUrl = imageUrl,
+                backgroundColor = palette.chat.accent
+            )
 
-            CustomColumn(modifier = Modifier.weight(1f)) {
+            CustomSpacer(width = 14)
 
+            CustomColumn(
+                modifier = Modifier.weight(1f)
+            ) {
                 CustomText(
-                    text = chat.otherUser?.name ?: "",
+                    text = chat.otherUser?.name.orEmpty(),
                     fontSize = 16.sp,
+                    color = palette.chat.textPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 CustomSpacer(height = 4)
@@ -106,7 +130,7 @@ fun ChatListItem(
                 CustomText(
                     text = chat.lastMessage,
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = palette.chat.subtext,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -116,12 +140,18 @@ fun ChatListItem(
 }
 
 
+
+
 @Composable
-fun ChatAvatar(imageUrl: String?) {
+fun ChatAvatar(
+    imageUrl: String?,
+    backgroundColor: Color
+) {
     CustomBox(
         modifier = Modifier
             .size(48.dp)
-            .background(MaterialTheme.colorScheme.primary, CircleShape),
+            .clip(CircleShape)
+            .background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(
@@ -134,6 +164,7 @@ fun ChatAvatar(imageUrl: String?) {
         )
     }
 }
+
 
 
 

@@ -305,9 +305,9 @@ fun StudentHomeLayout(
     val homeColors = palette.home
     val isDark = palette.isDark
 
-    val backgroundBrush = Brush.verticalGradient(
-        colors = if (isDark) AppGradients.Dark else AppGradients.Light
-    )
+//    val backgroundBrush = Brush.verticalGradient(
+//        colors = if (isDark) AppGradients.Dark else AppGradients.Light
+//    )
 
     LaunchedEffect(student.user.getUID()) {
         vm.load(student)
@@ -315,8 +315,7 @@ fun StudentHomeLayout(
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush),
+            .fillMaxSize(),
         contentPadding = PaddingValues(16.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

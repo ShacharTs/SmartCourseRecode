@@ -54,7 +54,6 @@ import com.smartcourse.ui.screens.components.CustomImage
 import com.smartcourse.ui.screens.components.CustomRow
 import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
-import com.smartcourse.ui.screens.chat.ChatViewModel
 
 
 @Composable
@@ -64,8 +63,6 @@ fun ChatScreen(
     myId: String
 ) {
     val chatId = chatVM.chatId
-    //val myId = authRepo.currentUser.value?.getUID() ?: return
-
     var input by rememberSaveable { mutableStateOf("") }
     var otherId by remember { mutableStateOf<String?>(null) }
 
