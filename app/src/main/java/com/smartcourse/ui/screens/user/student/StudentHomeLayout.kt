@@ -18,11 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.data.models.usermodel.Tutor
@@ -44,9 +47,15 @@ fun TutorAvatar(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable(onClick = onClick)
     ) {
-        Box(
+
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(tutor.user.image)
+                .crossfade(true)
+                .build(),
+            contentDescription = "Tutor avatar",
             modifier = Modifier
-                .size(52.dp)
+                .size(32.dp)
                 .clip(CircleShape)
                 .background(colors.accent)
         )
@@ -56,11 +65,6 @@ fun TutorAvatar(
             color = colors.textPrimary,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            tutor.teachingCourses.firstOrNull()?.name ?: "",
-            color = colors.subtext,
-            fontSize = 14.sp
         )
     }
 }
@@ -110,13 +114,20 @@ fun TutorDiscoverCard(
         ) {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(tutor.user.image)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Tutor avatar",
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
                             .background(colors.accent)
                     )
+
                     Spacer(modifier = Modifier.width(8.dp))
+
                     Column {
                         Text(
                             tutor.user.getUserName(),
@@ -145,6 +156,7 @@ fun TutorDiscoverCard(
         }
     }
 }
+
 
 /* =========================================================
    SECTIONS
@@ -223,12 +235,18 @@ fun LatestChatsSection(
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(chat.otherUser?.image)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "User avatar",
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(colors.accent)
+                    .background(colors.accent),
             )
+
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 "${chat.otherUser?.getUserName() ?: "Chat"} — ${chat.lastMessage}",

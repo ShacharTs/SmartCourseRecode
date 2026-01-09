@@ -176,6 +176,8 @@ class ChatRepository @Inject constructor (
 
         return firestore.collection(DbTable.CHATS)
             .whereArrayContains(DbTable.PARTICIPANTS, userId)
+            .orderBy(DbTable.UPDATED_AT, com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(3)
             .addSnapshotListener { snapshot, error ->
 
                 if (error != null || snapshot == null) {
@@ -184,12 +186,11 @@ class ChatRepository @Inject constructor (
                 }
 
                 val items = snapshot.documents.mapNotNull { doc ->
-
                     val participants =
                         doc.get(DbTable.PARTICIPANTS) as? List<String> ?: return@mapNotNull null
 
                     val other = participants.firstOrNull { it != userId }
-                        ?: return@mapNotNull null // Safety
+                        ?: return@mapNotNull null
 
                     ChatItem(
                         chatId = doc.id,
@@ -203,6 +204,7 @@ class ChatRepository @Inject constructor (
                 onChats(items)
             }
     }
+
 
 
 
