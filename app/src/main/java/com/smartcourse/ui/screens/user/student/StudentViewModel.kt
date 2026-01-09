@@ -4,12 +4,16 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import com.google.firebase.firestore.ListenerRegistration
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.ChatRepository
 import com.smartcourse.data.repositories.UserRepository
+import com.smartcourse.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -18,7 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StudentHomeViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     /* ==============================
@@ -36,6 +41,8 @@ class StudentHomeViewModel @Inject constructor(
 
     private var student: Student? = null
 
+    private var chatsListener: ListenerRegistration? = null
+
     /* ==============================
        ENTRY POINT
        ============================== */
@@ -43,11 +50,11 @@ class StudentHomeViewModel @Inject constructor(
     fun load(student: Student) {
         this.student = student
         loadTutors()
-        loadChats()
+        subscribeToChats()
     }
 
     /* ==============================
-       TUTORS LOGIC
+       TUTORS
        ============================== */
 
     private fun loadTutors() {
@@ -56,27 +63,23 @@ class StudentHomeViewModel @Inject constructor(
         viewModelScope.launch {
             val myId = s.user.getUID()
 
-            // Courses the student needs help with
-            val myCourseIds: Set<String> =
+            val myCourseIds =
                 s.coursesSeekingHelp.map { it.id }.toSet()
 
-            // Tutors the student already saved (favorites)
-            val savedTutorIds: Set<String> = userRepository.getFavoriteTutorIds(myId)
+            val savedTutorIds =
+                userRepository.getFavoriteTutorIds(myId)
 
-
-            // Load all users except me, filter only tutors
-            val tutorUsers: List<User> =
+            val tutorUsers =
                 userRepository
                     .getAllUsersExcept(myId)
                     .filter { it.role == UserRole.TUTOR }
 
-            // Build Tutor domain objects in parallel
-            val allTutors: List<Tutor> =
+            val allTutors =
                 tutorUsers.map { user ->
                     async {
                         val links = userRepository.getUserCourses(user.userId)
-                        val courses = links.mapNotNull { link ->
-                            userRepository.getCourseById(link.course_id)
+                        val courses = links.mapNotNull {
+                            userRepository.getCourseById(it.course_id)
                         }
 
                         Tutor(
@@ -87,42 +90,98 @@ class StudentHomeViewModel @Inject constructor(
                     }
                 }.awaitAll()
 
-            /* ==============================
-               MY TUTORS
-               ============================== */
-            // Only tutors the student already saved
             _myTutors.value =
-                allTutors.filter { tutor ->
-                    tutor.user.getUID() in savedTutorIds
-                }
+                allTutors.filter { it.user.getUID() in savedTutorIds }
 
-            /* ==============================
-               DISCOVER TUTORS
-               ============================== */
-            // Tutors that:
-            // 1. Teach at least one needed course
-            // 2. Are NOT already saved
             _discoverTutors.value =
-                allTutors.filter { tutor ->
-                    tutor.teachingCourses.any { it.id in myCourseIds } &&
-                            tutor.user.getUID() !in savedTutorIds
+                allTutors.filter {
+                    it.teachingCourses.any { c -> c.id in myCourseIds } &&
+                            it.user.getUID() !in savedTutorIds
                 }
         }
     }
 
     /* ==============================
-       CHATS
+       CHATS (FIXED)
        ============================== */
 
-    private fun loadChats() {
+    private fun subscribeToChats() {
+        val s = student ?: return
+
+        chatsListener?.remove()
+
+        chatsListener =
+            chatRepository.listenToUserChats(s.user.getUID()) { chats ->
+                viewModelScope.launch {
+                    val enriched = chats.map { chat ->
+                        val otherUser = runCatching {
+                            userRepository.loadUser(chat.otherUserId)
+                        }.getOrNull()
+
+                        chat.copy(otherUser = otherUser)
+                    }
+
+                    _latestChats.value = enriched
+                }
+            }
+    }
+
+
+    override fun onCleared() {
+        chatsListener?.remove()
+        chatsListener = null
+    }
+
+    /* ==============================
+       CHAT NAVIGATION
+       ============================== */
+
+    fun openChatWithTutor(
+        tutorId: String,
+        navController: NavController
+    ) {
         val s = student ?: return
 
         viewModelScope.launch {
-            _latestChats.value =
-                userRepository
-                    .loadRecentChats(s.user.getUID())
-                    .sortedByDescending { it.lastTimestamp ?: 0L }
-                    .take(3)
+            val chatId =
+                chatRepository.ensureChatExists(
+                    s.user.getUID(),
+                    tutorId
+                )
+
+            navController.navigate(
+                Screen.ChatRoom.createRoute(chatId)
+            )
+        }
+    }
+
+    /* ==============================
+       SAVE USER (FAVORITE)
+       ============================== */
+
+    fun saveUser(user: User) {
+        val s = student ?: return
+        val userA = s.user.getUID()
+        val userB = user.getUID()
+
+        viewModelScope.launch {
+            userRepository.saveUser(userA, userB)
+
+            val tutorToAdd =
+                _discoverTutors.value.firstOrNull {
+                    it.user.getUID() == userB
+                }
+
+            _discoverTutors.value =
+                _discoverTutors.value.filter {
+                    it.user.getUID() != userB
+                }
+
+            tutorToAdd?.let {
+                if (_myTutors.value.none { t -> t.user.getUID() == userB }) {
+                    _myTutors.value += it
+                }
+            }
         }
     }
 }

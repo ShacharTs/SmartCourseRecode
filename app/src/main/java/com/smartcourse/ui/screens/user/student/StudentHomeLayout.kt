@@ -3,7 +3,19 @@ package com.smartcourse.ui.screens.user.student
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -13,7 +25,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +43,7 @@ import coil.request.ImageRequest
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.data.models.usermodel.Tutor
+import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.StudentHomeColorPalette
@@ -97,7 +112,9 @@ fun ActionButton(
 fun TutorDiscoverCard(
     tutor: Tutor,
     colors: StudentHomeColorPalette,
-    onClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onChatClick: () -> Unit,
+    onSaveClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -105,7 +122,7 @@ fun TutorDiscoverCard(
             .height(120.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(colors.card)
-            .clickable(onClick = onClick)
+            .clickable { onProfileClick() } // ✅ CARD → PROFILE
             .padding(12.dp)
     ) {
         Column(
@@ -146,16 +163,17 @@ fun TutorDiscoverCard(
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ActionButton("Chat", true, colors) {
-                    Log.d("Chat", "Chat with tutorId=${tutor.user.getUID()}")
-                    onClick()
+                    onChatClick()   // ✅ CHAT ONLY
                 }
                 ActionButton("Save", false, colors) {
-                    Log.d("Save", "Save tutorId=${tutor.user.getUID()}")
+                    onSaveClick()   // ✅ SAVE ONLY
                 }
             }
         }
     }
 }
+
+
 
 
 /* =========================================================
@@ -179,10 +197,14 @@ fun MyTutorsSection(
     }
 }
 
+
 @Composable
 fun DiscoverTutorsSection(
     tutors: List<Tutor>,
-    colors: StudentHomeColorPalette
+    colors: StudentHomeColorPalette,
+    onProfileClick: (Tutor) -> Unit,
+    onChatClick: (Tutor) -> Unit,
+    onSaveClick: (Tutor) -> Unit
 ) {
     Text(
         "Discover Tutors",
@@ -202,12 +224,18 @@ fun DiscoverTutorsSection(
         userScrollEnabled = false
     ) {
         items(tutors.take(4)) { tutor ->
-            TutorDiscoverCard(tutor = tutor, colors = colors) {
-                Log.d("Discover", "Tutor card clicked: ${tutor.user.getUID()}")
-            }
+            TutorDiscoverCard(
+                tutor = tutor,
+                colors = colors,
+
+                onProfileClick = { onProfileClick(tutor) },
+                onChatClick = { onChatClick(tutor) },
+                onSaveClick = { onSaveClick(tutor) }
+            )
         }
     }
 }
+
 
 @Composable
 fun LatestChatsSection(
@@ -293,7 +321,32 @@ fun StudentHomeLayout(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item { MyTutorsSection(myTutors, homeColors) }
-        item { DiscoverTutorsSection(discoverTutors, homeColors) }
+
+        item {
+            DiscoverTutorsSection(
+                tutors = discoverTutors,
+                colors = homeColors,
+
+                onProfileClick = { tutor ->
+                    navController.navigate(
+                        Screen.Profile.route
+                    )
+                },
+
+                onChatClick = { tutor ->
+                    vm.openChatWithTutor(
+                        tutorId = tutor.user.getUID(),
+                        navController = navController
+                    )
+                },
+
+                onSaveClick = { tutor ->
+                    vm.saveUser(tutor.user)
+                }
+            )
+        }
+
+
         item { LatestChatsSection(chats, homeColors) }
     }
 }

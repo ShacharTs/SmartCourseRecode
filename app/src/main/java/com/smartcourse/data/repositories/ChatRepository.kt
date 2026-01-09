@@ -19,6 +19,7 @@ class ChatRepository @Inject constructor (
 
     //private val firestore: FirebaseFirestore = FirebaseClientProvider.firestore
 
+
     /**
      * Deterministic chat ID for any two users.
      * Sorting ensures chatId(userA, userB) == chatId(userB, userA)

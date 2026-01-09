@@ -47,6 +47,10 @@ class ChatListViewModel @Inject constructor(
             startListening()
         }
     }
+    fun refresh() {
+        startListening()
+    }
+
 
     /**
      * Firebase readiness is INTERNAL.

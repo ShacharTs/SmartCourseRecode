@@ -137,48 +137,15 @@ class UserRepository @Inject constructor(
         return rows.map { it.userB }.toSet()
     }
 
-
-
-
-
-
-
-
-//    suspend fun matchUserByRole(
-//        myId: String,
-//        targetRole: UserRole
-//    ): List<User> {
-//
-//        // 1. Load all users except me
-//        val allOthers = getAllUsersExcept(myId)
-//
-//        // 2. Filter by target role
-//        val usersWithRole = allOthers.filter {
-//            it.role == targetRole
-//        }
-//
-//        // 3. Load my courses
-//        val myCourses = getUserCourses(myId)
-//            .map { it.course_id }
-//            .toSet()
-//
-//        val matching = mutableListOf<User>()
-//
-//        // 4. Compare courses
-//        for (other in usersWithRole) {
-//
-//            val theirCourses = getUserCourses(other.getUID())
-//                .map { it.course_id }
-//                .toSet()
-//
-//            if (myCourses.intersect(theirCourses).isNotEmpty()) {
-//                matching.add(other)
-//            }
-//        }
-//
-//        return matching
-//    }
-
+    suspend fun saveUser(userA: String, userB: String) {
+        client.postgrest[UserFavoriteTable.TABLE]
+            .insert(
+                mapOf(
+                    UserFavoriteTable.USER_A to userA,
+                    UserFavoriteTable.USER_B to userB
+                )
+            )
+    }
 
 
     suspend fun syncGoogleAvatar() {
@@ -194,13 +161,6 @@ class UserRepository @Inject constructor(
             updateUserImage(id = u.id, image = avatar)
         }
     }
-
-
-
-
-
-
-
 
 
 
