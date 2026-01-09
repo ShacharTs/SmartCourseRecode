@@ -31,9 +31,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -44,7 +44,6 @@ import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.navigation.Screen
-import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.StudentHomeColorPalette
 
@@ -111,6 +110,7 @@ fun ActionButton(
 @Composable
 fun TutorDiscoverCard(
     tutor: Tutor,
+
     colors: StudentHomeColorPalette,
     onProfileClick: () -> Unit,
     onChatClick: () -> Unit,
@@ -122,7 +122,7 @@ fun TutorDiscoverCard(
             .height(120.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(colors.card)
-            .clickable { onProfileClick() } // ✅ CARD → PROFILE
+            .clickable { onProfileClick() }
             .padding(12.dp)
     ) {
         Column(
@@ -146,27 +146,34 @@ fun TutorDiscoverCard(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Column {
-                        Text(
-                            tutor.user.getUserName(),
-                            color = colors.textPrimary,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            tutor.teachingCourses.firstOrNull()?.name ?: "",
-                            color = colors.subtext,
-                            fontSize = 12.sp
-                        )
+                        tutor.teachingCourses.take(2).forEach { course ->
+                            Text(
+                                text = course.name,
+                                color = colors.subtext,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        if (tutor.teachingCourses.size > 2) {
+                            Text(
+                                text = "+${tutor.teachingCourses.size - 2} more",
+                                color = colors.subtext,
+                                fontSize = 11.sp
+                            )
+                        }
                     }
+
                 }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ActionButton("Chat", true, colors) {
-                    onChatClick()   // ✅ CHAT ONLY
+                    onChatClick()
                 }
                 ActionButton("Save", false, colors) {
-                    onSaveClick()   // ✅ SAVE ONLY
+                    onSaveClick()
                 }
             }
         }
@@ -304,10 +311,6 @@ fun StudentHomeLayout(
     val palette = LocalAppPalette.current
     val homeColors = palette.home
     val isDark = palette.isDark
-
-//    val backgroundBrush = Brush.verticalGradient(
-//        colors = if (isDark) AppGradients.Dark else AppGradients.Light
-//    )
 
     LaunchedEffect(student.user.getUID()) {
         vm.load(student)
