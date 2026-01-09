@@ -2,29 +2,27 @@
 
 package com.smartcourse.ui.screens.chat
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +44,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -114,39 +114,69 @@ private fun ChatScaffold(
 ) {
     var input by rememberSaveable { mutableStateOf("") }
 
-    Scaffold(
-        containerColor = LocalAppPalette.current.chatRoom.background,
-        topBar = {
-            ChatTopBar(
-                navController = navController,
-                otherUser = otherUser,
+    val palette = LocalAppPalette.current
+    val chat = palette.chatRoom
+    val isDark = palette.isDark
+
+    val bgBrush = if (isDark) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF140724),
+                Color(0xFF1C0934),
+                Color(0xFF260B40),
+                Color(0xFF300D4A),
             )
-        },
-        bottomBar = {
-            ChatInputBar(
-                input = input,
-                onInputChange = { input = it },
-                onSend = {
-                    val receiver = otherId ?: return@ChatInputBar
-                    if (input.isBlank()) return@ChatInputBar
-                    chatVM.sendMessage(chatId, input, myId, receiver)
-                    input = ""
-                },
-            )
-        },
-    ) { paddingValues ->
-        ChatMessageList(
-            messages = messages,
-            myId = myId,
-            listState = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    start = paddingValues.calculateStartPadding(LayoutDirection.Ltr),
-                    end = paddingValues.calculateEndPadding(LayoutDirection.Ltr),
-                    bottom = paddingValues.calculateBottomPadding(),
-                ),
         )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF9333EA),
+                Color(0xFFEC4899),
+                Color(0xFFF97316),
+            )
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgBrush)
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                ChatTopBar(
+                    navController = navController,
+                    otherUser = otherUser,
+                )
+            },
+            bottomBar = {
+                ChatInputBar(
+                    input = input,
+                    onInputChange = { input = it },
+                    onSend = {
+                        val receiver = otherId ?: return@ChatInputBar
+                        if (input.isBlank()) return@ChatInputBar
+                        chatVM.sendMessage(chatId, input, myId, receiver)
+                        input = ""
+                    },
+                )
+            },
+        ) { paddingValues ->
+            ChatMessageList(
+                messages = messages,
+                myId = myId,
+                listState = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = paddingValues.calculateStartPadding(LayoutDirection.Ltr),
+                        end = paddingValues.calculateEndPadding(LayoutDirection.Ltr),
+                        bottom = paddingValues.calculateBottomPadding(),
+                    )
+                    .padding(top = 6.dp),
+            )
+        }
     }
 }
 
@@ -155,7 +185,14 @@ fun ChatTopBar(
     navController: NavController,
     otherUser: User?,
 ) {
+    val palette = LocalAppPalette.current
+    val isDark = palette.isDark
+
     TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent
+        ),
         title = {
             CustomRow(verticalAlignment = Alignment.CenterVertically) {
                 CustomImage(imageUrl = otherUser?.image, size = 40.dp)
@@ -163,15 +200,21 @@ fun ChatTopBar(
                 CustomText(
                     text = otherUser?.name ?: "Loading…",
                     style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
                 )
             }
         },
         navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = null,
+                    tint = Color.White
+                )
             }
-        },
+        }
     )
+
 }
 
 @Composable
@@ -201,26 +244,17 @@ private fun MessageBubble(
 ) {
     if (text.isBlank()) return
 
-    val colors = LocalAppPalette.current.chatRoom
+    val palette = LocalAppPalette.current
+    val isDark = palette.isDark
+    val chat = palette.chatRoom
 
-    val bg = if (isMine) colors.accent else colors.card
-    val fg = colors.textPrimary
+    val incomingBg = if (isDark) chat.card else Color.White
+    val outgoingBg = if (isDark) Color(0xFFEC4899) else Color(0xFF7C3AED)
 
-    val shape = if (isMine) {
-        RoundedCornerShape(
-            topStart = 18.dp,
-            topEnd = 18.dp,
-            bottomEnd = 4.dp,
-            bottomStart = 18.dp
-        )
-    } else {
-        RoundedCornerShape(
-            topStart = 18.dp,
-            topEnd = 18.dp,
-            bottomEnd = 18.dp,
-            bottomStart = 4.dp
-        )
-    }
+    val bg = if (isMine) outgoingBg else incomingBg
+    val fg = if (isMine) Color.White else (if (isDark) Color.White else Color(0xFF1F2937))
+
+    val shape = RoundedCornerShape(18.dp)
 
     Row(
         modifier = Modifier
@@ -228,30 +262,26 @@ private fun MessageBubble(
             .padding(
                 start = if (isMine) 96.dp else 12.dp,
                 end = if (isMine) 12.dp else 96.dp,
-                top = 4.dp,
-                bottom = 4.dp
+                top = 6.dp,
+                bottom = 6.dp,
             ),
-        horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start
+        horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start,
     ) {
         Surface(
             color = bg,
             shape = shape,
-            modifier = Modifier.widthIn(max = 220.dp)
+            modifier = Modifier.widthIn(max = 260.dp),
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp,
         ) {
             CustomText(
                 text = text.trim(),
                 color = fg,
-                modifier = Modifier.padding(
-                    horizontal = 14.dp,
-                    vertical = 10.dp
-                )
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             )
         }
     }
 }
-
-
-
 
 @Composable
 fun ChatInputBar(
@@ -259,72 +289,73 @@ fun ChatInputBar(
     onInputChange: (String) -> Unit,
     onSend: () -> Unit,
 ) {
-    var showMenu by remember { mutableStateOf(false) }
-    val colors = MaterialTheme.colorScheme
+    val palette = LocalAppPalette.current
+    val isDark = palette.isDark
 
-    Surface(color = colors.surface) {
-        CustomRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    val pillBg = if (isDark) Color(0xFF241636) else Color(0xFFF3E8FF)
+    val attachBg = if (isDark) Color(0xFF241636) else Color(0xFFEDE9FE)
+    val sendBg = if (isDark) Color(0xFFEC4899) else Color(0xFF7C3AED)
+
+    val textColor = if (isDark) Color.White else Color(0xFF1F2937)
+    val placeholderColor = if (isDark) Color(0xFFA9A9B3) else Color(0xFF6B7280)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Surface(
+            color = attachBg.copy(alpha = 0.9f),
+            shape = CircleShape,
+            modifier = Modifier.size(44.dp),
         ) {
-            CustomBox {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(Icons.Default.AttachFile, null)
-                }
-
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Camera") },
-                        leadingIcon = { Icon(Icons.Default.PhotoCamera, null) },
-                        onClick = { showMenu = false },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Gallery") },
-                        leadingIcon = { Icon(Icons.Default.Image, null) },
-                        onClick = { showMenu = false },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Location") },
-                        leadingIcon = { Icon(Icons.Default.LocationOn, null) },
-                        onClick = { showMenu = false },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("File") },
-                        leadingIcon = {
-                            Icon(Icons.AutoMirrored.Filled.InsertDriveFile, null)
-                        },
-                        onClick = { showMenu = false },
-                    )
-                }
-            }
-
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.weight(1f),
-            ) {
-                TextField(
-                    value = input,
-                    onValueChange = onInputChange,
-                    placeholder = { Text("Message") },
-                    maxLines = 4,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = colors.surfaceVariant,
-                        unfocusedContainerColor = colors.surfaceVariant,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                    ),
+            CustomBox(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.AttachFile,
+                    contentDescription = null,
+                    tint = if (isDark) Color(0xFFB388FF) else Color(0xFF7C3AED),
                 )
             }
+        }
 
-            CustomSpacer(width = 8)
+        CustomSpacer(width = 12)
 
+        Surface(
+            color = pillBg.copy(alpha = if (isDark) 0.75f else 0.85f),
+            shape = RoundedCornerShape(28.dp),
+            modifier = Modifier.weight(1f),
+        ) {
+            TextField(
+                value = input,
+                onValueChange = onInputChange,
+                placeholder = { Text("Message", color = placeholderColor) },
+                maxLines = 4,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = textColor,
+                    unfocusedTextColor = textColor,
+                    cursorColor = if (isDark) Color(0xFFEC4899) else Color(0xFF7C3AED),
+                ),
+            )
+        }
+
+        CustomSpacer(width = 12)
+
+        Surface(
+            color = sendBg,
+            shape = CircleShape,
+            modifier = Modifier.size(44.dp),
+        ) {
             IconButton(onClick = onSend) {
-                Icon(Icons.AutoMirrored.Filled.Send, null)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = null,
+                    tint = Color.White,
+                )
             }
         }
     }
@@ -337,9 +368,3 @@ fun resolveUsers(myId: String, users: List<User?>): Pair<User?, User?> {
     val other = if (u1?.getUID() == myId) u2 else u1
     return me to other
 }
-
-fun isRtlText(text: String): Boolean =
-    text.any {
-        Character.getDirectionality(it) ==
-                Character.DIRECTIONALITY_RIGHT_TO_LEFT
-    }
