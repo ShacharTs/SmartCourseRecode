@@ -7,4 +7,6 @@ object TableNames {
     const val COURSE_LIST = "course_list"
 
     const val USER_COURSES = "user_courses"
+
+    const val USER_FAVORITE ="user_favorite"
 }

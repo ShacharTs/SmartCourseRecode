@@ -21,6 +21,10 @@ class StudentHomeViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    /* ==============================
+       UI STATE
+       ============================== */
+
     private val _myTutors = mutableStateOf<List<Tutor>>(emptyList())
     val myTutors: State<List<Tutor>> = _myTutors
 
@@ -32,11 +36,19 @@ class StudentHomeViewModel @Inject constructor(
 
     private var student: Student? = null
 
+    /* ==============================
+       ENTRY POINT
+       ============================== */
+
     fun load(student: Student) {
         this.student = student
         loadTutors()
         loadChats()
     }
+
+    /* ==============================
+       TUTORS LOGIC
+       ============================== */
 
     private fun loadTutors() {
         val s = student ?: return
@@ -44,44 +56,73 @@ class StudentHomeViewModel @Inject constructor(
         viewModelScope.launch {
             val myId = s.user.getUID()
 
-            // Student requested course IDs
-            val myCourseIds = s.coursesSeekingHelp.map { it.id }.toSet()
+            // Courses the student needs help with
+            val myCourseIds: Set<String> =
+                s.coursesSeekingHelp.map { it.id }.toSet()
 
-            // Load all users except me, filter tutors (role is nullable)
-            val tutorUsers: List<User> = userRepository
-                .getAllUsersExcept(myId)
-                .filter { it.role == UserRole.TUTOR }
+            // Tutors the student already saved (favorites)
+            val savedTutorIds: Set<String> = userRepository.getFavoriteTutorIds(myId)
 
-            // Build Tutor domain objects properly (no casts)
-            val allTutors: List<Tutor> = tutorUsers.map { u ->
-                async {
-                    val links = userRepository.getUserCourses(u.userId)
-                    val courses = links.mapNotNull { link ->
-                        userRepository.getCourseById(link.course_id)
+
+            // Load all users except me, filter only tutors
+            val tutorUsers: List<User> =
+                userRepository
+                    .getAllUsersExcept(myId)
+                    .filter { it.role == UserRole.TUTOR }
+
+            // Build Tutor domain objects in parallel
+            val allTutors: List<Tutor> =
+                tutorUsers.map { user ->
+                    async {
+                        val links = userRepository.getUserCourses(user.userId)
+                        val courses = links.mapNotNull { link ->
+                            userRepository.getCourseById(link.course_id)
+                        }
+
+                        Tutor(
+                            user = user,
+                            teachingCourses = courses,
+                            savedStudentIds = emptySet()
+                        )
                     }
-                    Tutor(
-                        user = u,
-                        teachingCourses = courses,
-                        savedStudentIds = emptySet()
-                    )
+                }.awaitAll()
+
+            /* ==============================
+               MY TUTORS
+               ============================== */
+            // Only tutors the student already saved
+            _myTutors.value =
+                allTutors.filter { tutor ->
+                    tutor.user.getUID() in savedTutorIds
                 }
-            }.awaitAll()
 
-            // My tutors = intersection with my courses
-            _myTutors.value = allTutors.filter { tutor ->
-                tutor.teachingCourses.any { it.id in myCourseIds }
-            }
-
-            // Discover = all tutors (you can rank later)
-            _discoverTutors.value = allTutors
+            /* ==============================
+               DISCOVER TUTORS
+               ============================== */
+            // Tutors that:
+            // 1. Teach at least one needed course
+            // 2. Are NOT already saved
+            _discoverTutors.value =
+                allTutors.filter { tutor ->
+                    tutor.teachingCourses.any { it.id in myCourseIds } &&
+                            tutor.user.getUID() !in savedTutorIds
+                }
         }
     }
+
+    /* ==============================
+       CHATS
+       ============================== */
 
     private fun loadChats() {
         val s = student ?: return
 
         viewModelScope.launch {
-            _latestChats.value = userRepository.loadRecentChats(s.user.getUID())
+            _latestChats.value =
+                userRepository
+                    .loadRecentChats(s.user.getUID())
+                    .sortedByDescending { it.lastTimestamp ?: 0L }
+                    .take(3)
         }
     }
 }

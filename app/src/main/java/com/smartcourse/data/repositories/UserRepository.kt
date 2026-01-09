@@ -3,15 +3,17 @@
 package com.smartcourse.data.repositories
 
 import com.smartcourse.data.models.chat.ChatItem
+import com.smartcourse.data.models.table.TableNames
+import com.smartcourse.data.models.table.UserCourseTable
+import com.smartcourse.data.models.table.UserFavoriteRow
+import com.smartcourse.data.models.table.UserFavoriteTable
+import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.DomainUser
 import com.smartcourse.data.models.usermodel.Student
-import com.smartcourse.data.models.table.TableNames
 import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.User
-import com.smartcourse.data.models.table.UserCourseTable
 import com.smartcourse.data.models.usermodel.UserRole
-import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.data.models.usermodel.serialName
 import com.smartcourse.data.remote.firebase.FirebaseClientProvider.firestore
 import io.github.jan.supabase.SupabaseClient
@@ -121,6 +123,21 @@ class UserRepository @Inject constructor(
             }
             .decodeSingleOrNull<Course>()
     }
+
+    suspend fun getFavoriteTutorIds(userId: String): Set<String> {
+        val rows = client
+            .postgrest[UserFavoriteTable.TABLE]
+            .select {
+                filter {
+                    eq(UserFavoriteTable.USER_A, userId)
+                }
+            }
+            .decodeList<UserFavoriteRow>()
+
+        return rows.map { it.userB }.toSet()
+    }
+
+
 
 
 
