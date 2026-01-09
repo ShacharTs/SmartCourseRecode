@@ -47,7 +47,15 @@ data class StudentHomeColorPalette(
     val textPrimary: Color
 )
 
-data class ChatColorPalette(
+data class ChatListPalette(
+    val background: Color,
+    val card: Color,
+    val accent: Color,
+    val subtext: Color,
+    val textPrimary: Color
+)
+
+data class ChatRoomPalette(
     val background: Color,
     val card: Color,
     val accent: Color,
@@ -162,9 +170,9 @@ object StudentHomeLayoutColors {
     )
 }
 
-object ChatScreenColors {
+object ChatListLayoutColors {
 
-    val Dark = ChatColorPalette(
+    val Dark = ChatListPalette(
         background = Color(0xFF0B0514),
         card = Color(0xFF16112A),
         accent = Color(0xFF3A0F54),
@@ -172,7 +180,7 @@ object ChatScreenColors {
         textPrimary = Color.White
     )
 
-    val Light = ChatColorPalette(
+    val Light = ChatListPalette(
         background = Color(0xFFF5F3FF),
         card = Color.White,
         accent = Color(0xFF8B5CF6),
@@ -180,6 +188,28 @@ object ChatScreenColors {
         textPrimary = Color(0xFF1F2937)
     )
 }
+
+
+object ChatRoomLayoutColors {
+
+    val Dark = ChatRoomPalette(
+        background = Color(0xFF0B0514),
+        card = Color(0xFF16112A),
+        accent = Color(0xFF3A0F54),
+        subtext = Color(0xFFA9A9B3),
+        textPrimary = Color.White,
+    )
+
+    val Light = ChatRoomPalette(
+        background = Color(0xFFF5F3FF),
+        card = Color.White,
+        accent = Color(0xFF8B5CF6),
+        subtext = Color(0xFF6B7280),
+        textPrimary = Color(0xFF1F2937),
+    )
+}
+
+
 
 
 

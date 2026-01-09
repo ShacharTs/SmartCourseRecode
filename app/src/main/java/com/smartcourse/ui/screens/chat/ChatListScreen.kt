@@ -109,7 +109,7 @@ fun ChatListItem(
 
             ChatAvatar(
                 imageUrl = imageUrl,
-                backgroundColor = palette.chat.accent
+                backgroundColor = palette.chatList.accent
             )
 
             CustomSpacer(width = 14)
@@ -120,7 +120,7 @@ fun ChatListItem(
                 CustomText(
                     text = chat.otherUser?.name.orEmpty(),
                     fontSize = 16.sp,
-                    color = palette.chat.textPrimary,
+                    color = palette.chatList.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -130,7 +130,7 @@ fun ChatListItem(
                 CustomText(
                     text = chat.lastMessage,
                     fontSize = 14.sp,
-                    color = palette.chat.subtext,
+                    color = palette.chatList.subtext,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

@@ -11,7 +11,8 @@ data class AppPalette(
     val login: LoginColorPalette,
     val register: RegisterColorPalette,
     val home: StudentHomeColorPalette,
-    val chat: ChatColorPalette,
+    val chatList: ChatListPalette,
+    val chatRoom: ChatRoomPalette,
     val nav: NavBarColorPalette,
     val isDark: Boolean
 )
@@ -22,7 +23,8 @@ val DarkAppPalette = AppPalette(
     login = LoginScreenColors.Dark,
     register = RegisterScreenColors.Dark,
     home = StudentHomeLayoutColors.Dark,
-    chat = ChatScreenColors.Dark,
+    chatList = ChatListLayoutColors.Dark,
+    chatRoom = ChatRoomLayoutColors.Dark,
     nav = NavBarColors.Dark
 )
 
@@ -32,7 +34,8 @@ val LightAppPalette = AppPalette(
     login = LoginScreenColors.Light,
     register = RegisterScreenColors.Light,
     home = StudentHomeLayoutColors.Light,
-    chat = ChatScreenColors.Light,
+    chatList = ChatListLayoutColors.Light,
+    chatRoom = ChatRoomLayoutColors.Light,
     nav = NavBarColors.Light
 )
 
