@@ -2,12 +2,11 @@
 
 package com.smartcourse.ui.screens.chat
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -46,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.smartcourse.data.models.chat.Message
@@ -114,33 +112,14 @@ private fun ChatScaffold(
 ) {
     var input by rememberSaveable { mutableStateOf("") }
 
-    val palette = LocalAppPalette.current
-    val chat = palette.chatRoom
-    val isDark = palette.isDark
-
-    val bgBrush = if (isDark) {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFF140724),
-                Color(0xFF1C0934),
-                Color(0xFF260B40),
-                Color(0xFF300D4A),
-            )
-        )
-    } else {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFF9333EA),
-                Color(0xFFEC4899),
-                Color(0xFFF97316),
-            )
-        )
-    }
+    val chat = LocalAppPalette.current.chatRoom
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgBrush)
+            .background(
+                Brush.verticalGradient(chat.backgroundGradient)
+            )
     ) {
         Scaffold(
             containerColor = Color.Transparent,
@@ -163,22 +142,34 @@ private fun ChatScaffold(
                 )
             },
         ) { paddingValues ->
-            ChatMessageList(
-                messages = messages,
-                myId = myId,
-                listState = listState,
+
+            Surface(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(
-                        start = paddingValues.calculateStartPadding(LayoutDirection.Ltr),
-                        end = paddingValues.calculateEndPadding(LayoutDirection.Ltr),
-                        bottom = paddingValues.calculateBottomPadding(),
-                    )
-                    .padding(top = 6.dp),
-            )
+                        top = paddingValues.calculateTopPadding() + 8.dp,
+                        bottom = paddingValues.calculateBottomPadding() + 8.dp,
+                        start = 12.dp,
+                        end = 12.dp
+                    ),
+                shape = RoundedCornerShape(24.dp),
+                color = chat.card.copy(alpha = 0.92f),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp,
+            ) {
+                ChatMessageList(
+                    messages = messages,
+                    myId = myId,
+                    listState = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 6.dp, vertical = 10.dp)
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun ChatTopBar(
@@ -244,15 +235,10 @@ private fun MessageBubble(
 ) {
     if (text.isBlank()) return
 
-    val palette = LocalAppPalette.current
-    val isDark = palette.isDark
-    val chat = palette.chatRoom
+    val chat = LocalAppPalette.current.chatRoom
 
-    val incomingBg = if (isDark) chat.card else Color.White
-    val outgoingBg = if (isDark) Color(0xFFEC4899) else Color(0xFF7C3AED)
-
-    val bg = if (isMine) outgoingBg else incomingBg
-    val fg = if (isMine) Color.White else (if (isDark) Color.White else Color(0xFF1F2937))
+    val bg = if (isMine) chat.outgoingBubble else chat.incomingBubble
+    val fg = chat.textPrimary
 
     val shape = RoundedCornerShape(18.dp)
 
@@ -271,17 +257,24 @@ private fun MessageBubble(
             color = bg,
             shape = shape,
             modifier = Modifier.widthIn(max = 260.dp),
+            border = if (!isMine)
+                BorderStroke(1.dp, chat.incomingBorder)
+            else null,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
         ) {
             CustomText(
                 text = text.trim(),
                 color = fg,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.padding(
+                    horizontal = 16.dp,
+                    vertical = 12.dp
+                )
             )
         }
     }
 }
+
 
 @Composable
 fun ChatInputBar(

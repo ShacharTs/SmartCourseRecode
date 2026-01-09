@@ -60,8 +60,16 @@ data class ChatRoomPalette(
     val card: Color,
     val accent: Color,
     val subtext: Color,
-    val textPrimary: Color
+    val textPrimary: Color,
+
+    // 🔽 MESSAGE COLORS
+    val incomingBubble: Color,
+    val outgoingBubble: Color,
+    val incomingBorder: Color,
+
+    val backgroundGradient: List<Color>
 )
+
 
 
 
@@ -198,15 +206,41 @@ object ChatRoomLayoutColors {
         accent = Color(0xFF3A0F54),
         subtext = Color(0xFFA9A9B3),
         textPrimary = Color.White,
+
+        incomingBubble = Color(0xFF241A38),
+        outgoingBubble = Color(0xFF3A0F54),
+        incomingBorder = Color.White.copy(alpha = 0.08f),
+
+        backgroundGradient = listOf(
+            Color(0xFF140724),
+            Color(0xFF1C0934),
+            Color(0xFF260B40),
+            Color(0xFF300D4A),
+        )
     )
+
 
     val Light = ChatRoomPalette(
         background = Color(0xFFF5F3FF),
         card = Color.White,
         accent = Color(0xFF8B5CF6),
         subtext = Color(0xFF6B7280),
-        textPrimary = Color(0xFF1F2937),
+        textPrimary = Color(0xFF000000),
+
+        incomingBubble = Color(0xFFF3E8FF),
+        outgoingBubble = Color(0xFF8B5CF6),
+        incomingBorder = Color(0xFF000000).copy(alpha = 0.05f),
+
+        backgroundGradient = listOf(
+            Color(0xFFF5F3FF),
+            Color(0xFFEDE9FE),
+            Color(0xFFDDD6FE),
+        )
+
+
+
     )
+
 }
 
 
