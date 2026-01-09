@@ -3,29 +3,17 @@ package com.smartcourse.ui.screens.user.student
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,44 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.Student
+import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.StudentHomeColorPalette
-
-
-/* =========================================================
-   todo DATA TEMP  REMOVE LATER
-   ========================================================= */
-
-data class TutorUiData(val name: String, val subject: String, val rating: String)
-data class ChatUiData(val name: String, val message: String)
-
-/* =========================================================
-   todo TEMP DATA (SWAP WITH VM)
-   ========================================================= */
-
-fun tempMyTutors() = listOf(
-    TutorUiData("Dana", "Math", "4.9"),
-    TutorUiData("Ron", "Physics", "4.6"),
-    TutorUiData("Alex", "Chem", "4.8"),
-    TutorUiData("Dana", "Math", "4.9"),
-    TutorUiData("Ron", "Physics", "4.6"),
-    TutorUiData("Alex", "Chem", "4.8")
-)
-
-fun tempDiscoverTutors() = listOf(
-    TutorUiData("Dana", "Linear Algebra", "4.9"),
-    TutorUiData("Alex", "Organic Chem", "4.8"),
-    TutorUiData("Ron", "Quantum Physics", "4.6"),
-    TutorUiData("Ben", "Biology", "4.7"),
-)
-
-fun tempLatestChats() = listOf(
-    ChatUiData("Dana", "Tomorrow works"),
-    ChatUiData("Ron", "Sent the exercises"),
-    ChatUiData("Alex", "See you at 5"),
-)
 
 /* =========================================================
    BASIC COMPONENTS
@@ -80,7 +36,7 @@ fun tempLatestChats() = listOf(
 
 @Composable
 fun TutorAvatar(
-    tutor: TutorUiData,
+    tutor: Tutor,
     colors: StudentHomeColorPalette,
     onClick: () -> Unit
 ) {
@@ -96,12 +52,16 @@ fun TutorAvatar(
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            tutor.name,
+            tutor.user.getUserName(), // name is nullable -> use safe getter
             color = colors.textPrimary,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold
         )
-        Text(tutor.subject, color = colors.subtext, fontSize = 14.sp)
+        Text(
+            tutor.teachingCourses.firstOrNull()?.name ?: "",
+            color = colors.subtext,
+            fontSize = 14.sp
+        )
     }
 }
 
@@ -131,7 +91,7 @@ fun ActionButton(
 
 @Composable
 fun TutorDiscoverCard(
-    tutor: TutorUiData,
+    tutor: Tutor,
     colors: StudentHomeColorPalette,
     onClick: () -> Unit
 ) {
@@ -159,26 +119,27 @@ fun TutorDiscoverCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            tutor.name,
+                            tutor.user.getUserName(),
                             color = colors.textPrimary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold
                         )
-                        Text(tutor.subject, color = colors.subtext, fontSize = 12.sp)
+                        Text(
+                            tutor.teachingCourses.firstOrNull()?.name ?: "",
+                            color = colors.subtext,
+                            fontSize = 12.sp
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("★ ${tutor.rating}", color = colors.star, fontSize = 12.sp)
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ActionButton("Chat", true, colors) {
-                    // todo option go open chat / create chat
-                    Log.d("Chat", "Cicked Chat ${tutor.name}")
+                    Log.d("Chat", "Chat with tutorId=${tutor.user.getUID()}")
+                    onClick()
                 }
                 ActionButton("Save", false, colors) {
-                    // todo option to save user to list
-                    Log.d("Save", "Cicked Save ${tutor.name}")
+                    Log.d("Save", "Save tutorId=${tutor.user.getUID()}")
                 }
             }
         }
@@ -191,18 +152,16 @@ fun TutorDiscoverCard(
 
 @Composable
 fun MyTutorsSection(
-    tutors: List<TutorUiData>,
+    tutors: List<Tutor>,
     colors: StudentHomeColorPalette
 ) {
     Text("My Tutors", color = colors.textPrimary, fontSize = 26.sp, fontWeight = FontWeight.Bold)
     Spacer(modifier = Modifier.height(10.dp))
 
-
     LazyRow(horizontalArrangement = Arrangement.spacedBy(30.dp)) {
-        items(tutors.size) {
-            TutorAvatar(tutor = tutors[it], colors = colors ){
-                // todo send to chat
-                Log.d("My Tutors","Tutor: ${tutors[it]}")
+        items(tutors) { tutor ->
+            TutorAvatar(tutor = tutor, colors = colors) {
+                Log.d("MyTutors", "Tutor clicked: ${tutor.user.getUID()}")
             }
         }
     }
@@ -210,7 +169,7 @@ fun MyTutorsSection(
 
 @Composable
 fun DiscoverTutorsSection(
-    tutors: List<TutorUiData>,
+    tutors: List<Tutor>,
     colors: StudentHomeColorPalette
 ) {
     Text(
@@ -230,10 +189,9 @@ fun DiscoverTutorsSection(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         userScrollEnabled = false
     ) {
-        items(tutors.takeLast(4)) { tutor ->
+        items(tutors.take(4)) { tutor ->
             TutorDiscoverCard(tutor = tutor, colors = colors) {
-                // Handle navigation to profile
-                Log.d("Click on card", "Go to ${tutor.name} profile")
+                Log.d("Discover", "Tutor card clicked: ${tutor.user.getUID()}")
             }
         }
     }
@@ -241,7 +199,7 @@ fun DiscoverTutorsSection(
 
 @Composable
 fun LatestChatsSection(
-    chats: List<ChatUiData>,
+    chats: List<ChatItem>,
     colors: StudentHomeColorPalette
 ) {
     Text(
@@ -252,7 +210,7 @@ fun LatestChatsSection(
         modifier = Modifier.padding(bottom = 8.dp)
     )
 
-    chats.takeLast(3).forEach {
+    chats.take(3).forEach { chat ->
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -261,8 +219,7 @@ fun LatestChatsSection(
                 .background(colors.card)
                 .padding(horizontal = 16.dp)
                 .clickable {
-                    //todo go to chat
-                    Log.d("Load Last Chat", "$it")
+                    Log.d("Chat", "Open chatId=${chat.chatId}")
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -273,8 +230,11 @@ fun LatestChatsSection(
                     .background(colors.accent)
             )
             Spacer(modifier = Modifier.width(10.dp))
-            //todo need to change later to load the lastest msg
-            Text("${it.name} — ${it.message}", color = colors.textPrimary, fontSize = 15.sp)
+            Text(
+                "${chat.otherUser?.getUserName() ?: "Chat"} — ${chat.lastMessage}",
+                color = colors.textPrimary,
+                fontSize = 15.sp
+            )
         }
         Spacer(modifier = Modifier.height(10.dp))
     }
@@ -287,22 +247,24 @@ fun LatestChatsSection(
 @Composable
 fun StudentHomeLayout(
     navController: NavController,
-    student: Student,
+    student: Student
 ) {
-    val studentHomeViewModel: StudentHomeViewModel = hiltViewModel()
+    val vm: StudentHomeViewModel = hiltViewModel()
 
-    // 1. Pull the centralized palette and gradients
+    val myTutors by vm.myTutors
+    val discoverTutors by vm.discoverTutors
+    val chats by vm.latestChats
+
     val palette = LocalAppPalette.current
     val homeColors = palette.home
     val isDark = palette.isDark
 
-    // 2. Use the centralized gradients (Matches Settings and Login)
     val backgroundBrush = Brush.verticalGradient(
         colors = if (isDark) AppGradients.Dark else AppGradients.Light
     )
 
     LaunchedEffect(student.user.getUID()) {
-        studentHomeViewModel.load(student)
+        vm.load(student)
     }
 
     LazyColumn(
@@ -312,10 +274,8 @@ fun StudentHomeLayout(
         contentPadding = PaddingValues(16.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // 3. Pass the clean homeColors palette to your sections
-        item { MyTutorsSection(tempMyTutors(), homeColors) }
-        item { DiscoverTutorsSection(tempDiscoverTutors(), homeColors) }
-        item { LatestChatsSection(tempLatestChats(), homeColors) }
+        item { MyTutorsSection(myTutors, homeColors) }
+        item { DiscoverTutorsSection(discoverTutors, homeColors) }
+        item { LatestChatsSection(chats, homeColors) }
     }
 }
-

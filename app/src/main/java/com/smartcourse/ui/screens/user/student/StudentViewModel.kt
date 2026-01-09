@@ -1,188 +1,87 @@
-//package com.smartcourse.viewmodels
-//
-//import androidx.compose.runtime.State
-//import androidx.compose.runtime.mutableStateOf
-//import androidx.lifecycle.ViewModel
-//import androidx.lifecycle.viewModelScope
-//import androidx.navigation.NavController
-//import com.smartcourse.data.models.chat.ChatItem
-//import com.smartcourse.data.models.usermodel.User
-//import com.smartcourse.data.models.usermodel.UserRole
-//import com.smartcourse.data.repositories.ChatRepository
-//import com.smartcourse.data.repositories.UserRepository
-//import com.smartcourse.navigation.Screen
-//import dagger.hilt.android.lifecycle.HiltViewModel
-//import kotlinx.coroutines.launch
-//import javax.inject.Inject
-//
-//@HiltViewModel
-//class StudentViewModel @Inject constructor(
-//    private val userRepository: UserRepository,
-//    private val chatRepository: ChatRepository
-//) : ViewModel() {
-//
-//    private lateinit var currentUser: User
-//
-//    fun setUser(user: User) {
-//        currentUser = user
-//    }
-//
-//
-//
-//
-//
-//    private val _matches = mutableStateOf<List<User>>(emptyList())
-//    val matches: State<List<User>> = _matches
-//
-//    val recommendedTutors: State<List<User>> = matches
-//
-//
-//    private val _recentChats = mutableStateOf<List<ChatItem>>(emptyList())
-//    val recentChats: State<List<ChatItem>> = _recentChats
-//
-//    fun loadMatchingTutors() {
-//        viewModelScope.launch {
-//            val myId = currentUser.getUID()
-//
-//            val candidates = userRepository.matchUserByRole(myId, UserRole.TUTOR)
-//            val myCourseIds = loadCoursesForUser(myId).toSet()
-//            val filtered = enrichUsersWithSharedCourses(candidates, myCourseIds)
-//
-//            _matches.value = filtered
-//        }
-//    }
-//
-//    fun loadRecentChats() {
-//        viewModelScope.launch {
-//            _recentChats.value = userRepository.loadRecentChats(currentUser.getUID())
-//        }
-//    }
-//
-//    private suspend fun loadCoursesForUser(userId: String): List<String> {
-//        return userRepository.getUserCourses(userId).map { it.course_id }
-//    }
-//
-//    private suspend fun enrichUsersWithSharedCourses(
-//        users: List<User>,
-//        myCourseIds: Set<String>
-//    ): List<User> {
-//
-//        val result = mutableListOf<User>()
-//
-//        for (user in users) {
-//            val theirCourseIds = loadCoursesForUser(user.getUID()).toSet()
-//
-//            val sharedIds = myCourseIds.intersect(theirCourseIds)
-//            if (sharedIds.isNotEmpty()) {
-//                val sharedCourses = sharedIds.mapNotNull { id ->
-//                    userRepository.getCourseById(id)
-//                }
-//
-//                user.courses = sharedCourses
-//                result.add(user)
-//            }
-//        }
-//
-//        return result
-//    }
-//
-//    fun openChatWith(otherUserId: String, navController: NavController) {
-//        viewModelScope.launch {
-//            val chatId = chatRepository.ensureChatExists(currentUser.getUID(), otherUserId)
-//            navController.navigate(Screen.ChatRoom.createRoute(chatId))
-//        }
-//    }
-//
-//    fun loadMatchingTutors(myId: String) {
-//        viewModelScope.launch {
-//
-//            // STEP 1: load ALL tutors
-//            val candidates = userRepository.matchUserByRole(myId, UserRole.TUTOR)
-//
-//            // STEP 2: load MY course IDs ONCE
-//            val myCourseIds = loadCoursesForUser(myId).toSet()
-//
-//            // STEP 3: enrich + filter by shared courses
-//            val filteredMatches = enrichUsersWithSharedCourses(candidates, myCourseIds)
-//
-//            _matches.value = filteredMatches
-//        }
-//    }
-//}
-
 package com.smartcourse.ui.screens.user.student
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.Student
+import com.smartcourse.data.models.usermodel.Tutor
+import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
-import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-
-//@HiltViewModel
-//class StudentHomeViewModel @Inject constructor(
-//    authRepository: AuthRepository,
-//    private val userRepository: UserRepository
-//) : ViewModel() {
-//
-//    val user = authRepository.currentUser.value
-//
-//
-//    init {
-//        require(user?.role == UserRole.STUDENT)
-//        loadTutors()
-//    }
-//
-//    private fun loadTutors() {
-//        // discovery logic
-//    }
-//}
-
-//@HiltViewModel
-//class StudentHomeViewModel @Inject constructor(
-//    private val userRepository: UserRepository
-//) : ViewModel() {
-//
-//    private lateinit var student: Student
-//
-//    fun setStudent(student: Student) {
-//        this.student = student
-//        loadTutors()
-//    }
-//
-//    fun getNamer(): String {
-//        return student.name
-//    }
-//
-//
-//    private fun loadTutors() {
-//        // use student.user.userId
-//        // use student.coursesSeekingHelp
-//    }
-//}
-
 
 @HiltViewModel
 class StudentHomeViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    private val _myTutors = mutableStateOf<List<Tutor>>(emptyList())
+    val myTutors: State<List<Tutor>> = _myTutors
+
+    private val _discoverTutors = mutableStateOf<List<Tutor>>(emptyList())
+    val discoverTutors: State<List<Tutor>> = _discoverTutors
+
+    private val _latestChats = mutableStateOf<List<ChatItem>>(emptyList())
+    val latestChats: State<List<ChatItem>> = _latestChats
+
     private var student: Student? = null
 
     fun load(student: Student) {
         this.student = student
         loadTutors()
+        loadChats()
     }
 
     private fun loadTutors() {
         val s = student ?: return
-        val courses = s.coursesSeekingHelp
-        // SQL / repo logic here
+
+        viewModelScope.launch {
+            val myId = s.user.getUID()
+
+            // Student requested course IDs
+            val myCourseIds = s.coursesSeekingHelp.map { it.id }.toSet()
+
+            // Load all users except me, filter tutors (role is nullable)
+            val tutorUsers: List<User> = userRepository
+                .getAllUsersExcept(myId)
+                .filter { it.role == UserRole.TUTOR }
+
+            // Build Tutor domain objects properly (no casts)
+            val allTutors: List<Tutor> = tutorUsers.map { u ->
+                async {
+                    val links = userRepository.getUserCourses(u.userId)
+                    val courses = links.mapNotNull { link ->
+                        userRepository.getCourseById(link.course_id)
+                    }
+                    Tutor(
+                        user = u,
+                        teachingCourses = courses,
+                        savedStudentIds = emptySet()
+                    )
+                }
+            }.awaitAll()
+
+            // My tutors = intersection with my courses
+            _myTutors.value = allTutors.filter { tutor ->
+                tutor.teachingCourses.any { it.id in myCourseIds }
+            }
+
+            // Discover = all tutors (you can rank later)
+            _discoverTutors.value = allTutors
+        }
+    }
+
+    private fun loadChats() {
+        val s = student ?: return
+
+        viewModelScope.launch {
+            _latestChats.value = userRepository.loadRecentChats(s.user.getUID())
+        }
     }
 }
-
-
-
-
