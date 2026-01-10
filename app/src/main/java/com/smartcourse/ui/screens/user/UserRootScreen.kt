@@ -142,9 +142,12 @@ fun UserRootScreen(
 
                 composable(Screen.Profile.route) {
                     UserProfileScreen(
-                        navController = navController, authVM = authVM
+                        navController = navController,
+                        authVM = authVM
+
                     )
                 }
+
 
                 composable(Screen.Settings.route) {
                     SettingsScreen(
