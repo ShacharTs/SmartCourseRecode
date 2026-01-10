@@ -1,23 +1,20 @@
 package com.smartcourse.ui.screens.user.profile.showother
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,97 +23,165 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.smartcourse.ui.theme.LocalAppPalette
-
+import com.smartcourse.ui.theme.ShowOtherProfileColorPalette
 
 @Composable
 fun ShowOtherProfileScreen(
     navController: NavController,
     viewModel: ShowOtherProfileViewModel = hiltViewModel()
 ) {
-    val palette = LocalAppPalette.current
-    val colors = palette.home
+    val colors = LocalAppPalette.current.otherProfile
     val user by viewModel.user.collectAsState(initial = null)
+    val favorites by viewModel.favoritesCount.collectAsState(initial = 0)
+
+    if (user == null) return
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.background)
+            .background(Brush.verticalGradient(colors.backgroundGradient))
             .statusBarsPadding()
-            .padding(24.dp)
     ) {
-        if (user == null) {
-            Text(
-                text = "Loading...",
-                color = colors.subtext,
-                fontSize = 16.sp
-            )
-            return@Box
-        }
-
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(40.dp))
 
-            // ===== Avatar =====
-            Box(
+            // Profile Image
+            AsyncImage(
+                model = user!!.image,
+                contentDescription = "Profile Picture",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(96.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(colors.card),
-                contentAlignment = Alignment.Center
+                    .size(110.dp)
+                    .clip(CircleShape)
+                    .background(colors.avatarBackground)
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // Name & Role
+            Text(
+                text = user!!.getUserName(),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.textPrimary
+            )
+            Text(
+                text = user!!.role?.name?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "",
+                fontSize = 14.sp,
+                color = colors.subtext
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            // Stats Card
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(colors.card)
+                    .padding(vertical = 20.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                if (!user!!.image.isNullOrBlank()) {
-                    AsyncImage(
-                        model = user!!.image,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                StatItem(favorites.toString(), "Favorites", colors)
+                StatItem(user!!.courses.size.toString(), "Courses", colors)
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // Action Buttons Row (Favorite & Chat)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Favorite Button
+                OutlinedButton(
+                    onClick = { /* Toggle Favorite */ },
+                    modifier = Modifier.size(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(colors.accent.copy(alpha = 0.5f))
                     )
-                } else {
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = Color.White
+                    )
+                }
+
+                // Chat Button
+                Button(
+                    onClick = { /* Open Chat */ },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ChatBubbleOutline,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        text = user!!.getUserName()
-                            .split(" ")
-                            .take(2)
-                            .joinToString("") { it.first().uppercase() },
-                        fontSize = 28.sp,
+                        text = "Chat",
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = colors.textPrimary
+                        color = Color.White
                     )
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(32.dp))
 
-            // ===== Name =====
-            Text(
-                text = user!!.getUserName(),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = colors.textPrimary
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            // ===== Role =====
-            user!!.role?.name?.lowercase()?.replaceFirstChar { it.uppercase() }?.let {
+            // About Section (Clean SVG Style)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
-                    text = it,
+                    text = "About",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textPrimary
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = user!!.bio ?: "No description available yet.",
                     fontSize = 14.sp,
-                    color = colors.subtext
+                    color = colors.subtext,
+                    lineHeight = 20.sp
                 )
             }
-
-            Spacer(Modifier.height(12.dp))
-
-            // ===== Email =====
-            Text(
-                text = user!!.getUserEmail(),
-                fontSize = 14.sp,
-                color = colors.subtext
-            )
         }
     }
 }
 
-
+@Composable
+private fun StatItem(
+    value: String,
+    label: String,
+    colors: ShowOtherProfileColorPalette
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.textPrimary
+        )
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = colors.subtext
+        )
+    }
+}

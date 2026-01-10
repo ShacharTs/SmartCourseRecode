@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="390" height="780" viewBox="0 0 390 780" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect width="390" height="780" fill="#0B0514"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="390" height="200" fill="#16112A"/>
+
+  <!-- Avatar -->
+  <circle cx="195" cy="110" r="44" fill="#3A0F54"/>
+  <circle cx="195" cy="104" r="16" fill="#FFFFFF"/>
+  <rect x="171" y="124" width="48" height="28" rx="14" fill="#FFFFFF"/>
+
+  <!-- Name -->
+  <text x="195" y="176" text-anchor="middle" font-size="20" fill="#FFFFFF" font-family="Arial">
+    Tutor Name
+  </text>
+
+  <!-- Bio -->
+  <text x="195" y="198" text-anchor="middle" font-size="14" fill="#A9A9B3" font-family="Arial">
+    Computer Science • Algorithms
+  </text>
+
+  <!-- Stats -->
+  <rect x="24" y="228" width="342" height="84" rx="16" fill="#16112A"/>
+  <text x="85" y="270" text-anchor="middle" font-size="16" fill="#FFFFFF">120</text>
+  <text x="85" y="292" text-anchor="middle" font-size="12" fill="#A9A9B3">Hours</text>
+
+  <text x="195" y="270" text-anchor="middle" font-size="16" fill="#FFFFFF">4.9</text>
+  <text x="195" y="292" text-anchor="middle" font-size="12" fill="#A9A9B3">Rating</text>
+
+  <text x="305" y="270" text-anchor="middle" font-size="16" fill="#FFFFFF">85</text>
+  <text x="305" y="292" text-anchor="middle" font-size="12" fill="#A9A9B3">Students</text>
+
+  <!-- About -->
+  <text x="24" y="352" font-size="18" fill="#FFFFFF">About</text>
+  <rect x="24" y="364" width="342" height="120" rx="16" fill="#16112A"/>
+  <text x="36" y="392" font-size="14" fill="#A9A9B3" font-family="Arial">
+    Experienced tutor focused on data structures,
+  </text>
+  <text x="36" y="412" font-size="14" fill="#A9A9B3" font-family="Arial">
+    algorithms, and system design interviews.
+  </text>
+
+  <!-- Actions -->
+  <rect x="24" y="520" width="160" height="56" rx="14" fill="#8B5CF6"/>
+  <text x="104" y="556" text-anchor="middle" font-size="18" fill="#FFFFFF">Chat</text>
+
+  <rect x="206" y="520" width="160" height="56" rx="14" fill="#16112A"/>
+  <path d="M286 562c-6-6-18-14-18-26a10 10 0 0 1 18-6 10 10 0 0 1 18 6c0 12-12 20-18 26z"
+        fill="none" stroke="#9CA3AF" stroke-width="2"/>
+
+</svg>

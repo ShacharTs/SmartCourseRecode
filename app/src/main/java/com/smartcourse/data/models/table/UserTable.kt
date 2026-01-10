@@ -12,4 +12,6 @@ object UserTable {
     const val ROLE = "user_role"
 
     const val IMAGE = "user_image"
+
+    const val BIO ="user_bio"
 }

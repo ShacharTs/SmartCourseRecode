@@ -62,7 +62,7 @@ data class ChatRoomPalette(
     val subtext: Color,
     val textPrimary: Color,
 
-    // 🔽 MESSAGE COLORS
+
     val incomingBubble: Color,
     val outgoingBubble: Color,
     val incomingBorder: Color,
@@ -79,6 +79,17 @@ data class SearchColorPalette(
     val textPrimary: Color,
     val subtext: Color
 )
+
+data class ShowOtherProfileColorPalette(
+    val backgroundGradient: List<Color>,
+    val card: Color,
+    val avatarBackground: Color,
+    val accent: Color,
+    val textPrimary: Color,
+    val subtext: Color
+)
+
+
 
 
 
@@ -285,6 +296,37 @@ object SearchScreenLayoutColors {
         subtext = Color(0xFF6B7280)
     )
 }
+
+object ShowOtherProfileLayoutColors {
+
+    val Dark = ShowOtherProfileColorPalette(
+        backgroundGradient = listOf(
+            Color(0xFF0B0514),
+            Color(0xFF1E0938),
+            Color(0xFF3A0F54)
+        ),
+        card = Color(0xFF16112A),
+        avatarBackground = Color(0xFF241636),
+        accent = Color(0xFFEC4899),
+        textPrimary = Color.White,
+        subtext = Color(0xFFA9A9B3)
+    )
+
+    val Light = ShowOtherProfileColorPalette(
+        backgroundGradient = listOf(
+            Color(0xFFF5F3FF),
+            Color(0xFFEDE9FE),
+            Color(0xFFDDD6FE)
+        ),
+        card = Color.White,
+        avatarBackground = Color(0xFFEDE9FE),
+        accent = Color(0xFF9333EA),
+        textPrimary = Color(0xFF1F2937),
+        subtext = Color(0xFF6B7280)
+    )
+}
+
+
 
 
 

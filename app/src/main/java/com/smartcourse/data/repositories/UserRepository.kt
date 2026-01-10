@@ -34,14 +34,15 @@ class UserRepository @Inject constructor(
     /**
      * create user in user_table
      */
-    suspend fun createUser(id: String, email: String, name: String, image: String, role: String) {
+    suspend fun createUser(id: String, email: String, name: String, image: String, role: String, bio: String) {
         client.postgrest[TableNames.USERTABLE].insert(
             mapOf(
                 UserTable.ID to id,
                 UserTable.NAME to name,
                 UserTable.EMAIL to email,
                 UserTable.IMAGE to image,
-                UserTable.ROLE to role
+                UserTable.ROLE to role,
+                UserTable.BIO to bio,
             )
         )
     }
@@ -263,6 +264,20 @@ class UserRepository @Inject constructor(
             }
             .decodeList<User>()
     }
+
+    suspend fun countUserFavorites(userId: String): Int {
+        return client.postgrest[UserFavoriteTable.TABLE]
+            .select {
+                filter {
+                    eq(UserFavoriteTable.USER_B, userId)
+                }
+            }
+            .decodeList<UserFavoriteRow>()
+            .size
+    }
+
+
+
 
 
 

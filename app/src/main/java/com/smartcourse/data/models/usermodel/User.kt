@@ -1,6 +1,5 @@
 package com.smartcourse.data.models.usermodel
 
-import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.table.UserTable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -22,6 +21,9 @@ data class User(
 
     @SerialName(UserTable.ROLE)
     var role: UserRole? = null,
+
+    @SerialName(UserTable.BIO)
+    var bio: String? = null,
 
     @Transient
     var courses: List<Course> = emptyList()

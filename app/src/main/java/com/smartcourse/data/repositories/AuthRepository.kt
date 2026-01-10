@@ -56,6 +56,7 @@ class AuthRepository @Inject constructor(
                 email = u?.email ?: "",
                 name = u?.userMetadata?.get("full_name")?.toString() ?: "",
                 image = u?.userMetadata?.get("avatar_url")?.toString() ?: "",
+                bio = u?.userMetadata?.get("user_bio")?.toString() ?: "",
                 role = UserRole.TEMP.name
             )
 

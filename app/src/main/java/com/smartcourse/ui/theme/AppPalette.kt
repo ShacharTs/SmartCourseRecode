@@ -14,6 +14,7 @@ data class AppPalette(
     val chatList: ChatListPalette,
     val chatRoom: ChatRoomPalette,
     val search: SearchColorPalette,
+    val otherProfile : ShowOtherProfileColorPalette,
     val nav: NavBarColorPalette,
     val isDark: Boolean
 )
@@ -27,6 +28,7 @@ val DarkAppPalette = AppPalette(
     chatList = ChatListLayoutColors.Dark,
     chatRoom = ChatRoomLayoutColors.Dark,
     search = SearchScreenLayoutColors.Dark,
+    otherProfile = ShowOtherProfileLayoutColors.Dark,
     nav = NavBarColors.Dark
 )
 
@@ -39,6 +41,7 @@ val LightAppPalette = AppPalette(
     chatList = ChatListLayoutColors.Light,
     chatRoom = ChatRoomLayoutColors.Light,
     search = SearchScreenLayoutColors.Light,
+    otherProfile = ShowOtherProfileLayoutColors.Light,
     nav = NavBarColors.Light
 )
 
