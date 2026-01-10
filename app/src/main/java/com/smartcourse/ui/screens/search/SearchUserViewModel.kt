@@ -48,7 +48,7 @@ class SearchUserViewModel @Inject constructor(
             myUserId = authUser.id
             myRole = userRepository.loadUser(authUser.id)?.role
 
-            // 🔽 LOAD MY COURSES ONCE
+
             val myLinks = userRepository.getUserCourses(authUser.id)
             myCourses = myLinks
                 .mapNotNull { link ->

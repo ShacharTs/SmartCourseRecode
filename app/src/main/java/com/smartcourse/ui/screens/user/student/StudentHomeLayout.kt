@@ -53,9 +53,7 @@ import com.smartcourse.ui.theme.StudentHomeColorPalette
 
 @Composable
 fun TutorAvatar(
-    tutor: Tutor,
-    colors: StudentHomeColorPalette,
-    onClick: () -> Unit
+    tutor: Tutor, colors: StudentHomeColorPalette, onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -63,10 +61,8 @@ fun TutorAvatar(
     ) {
 
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(tutor.user.image)
-                .crossfade(true)
-                .build(),
+            model = ImageRequest.Builder(LocalContext.current).data(tutor.user.image)
+                .crossfade(true).build(),
             contentDescription = "Tutor avatar",
             modifier = Modifier
                 .size(32.dp)
@@ -76,19 +72,14 @@ fun TutorAvatar(
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             tutor.user.getUserName(), // name is nullable -> use safe getter
-            color = colors.textPrimary,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
+            color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold
         )
     }
 }
 
 @Composable
 fun ActionButton(
-    text: String,
-    isPrimary: Boolean,
-    colors: StudentHomeColorPalette,
-    onClick: () -> Unit
+    text: String, isPrimary: Boolean, colors: StudentHomeColorPalette, onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -123,19 +114,15 @@ fun TutorDiscoverCard(
             .clip(RoundedCornerShape(14.dp))
             .background(colors.card)
             .clickable { onProfileClick() }
-            .padding(12.dp)
-    ) {
+            .padding(12.dp)) {
         Column(
-            modifier = Modifier.fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(tutor.user.image)
-                            .crossfade(true)
-                            .build(),
+                        model = ImageRequest.Builder(LocalContext.current).data(tutor.user.image)
+                            .crossfade(true).build(),
                         contentDescription = "Tutor avatar",
                         modifier = Modifier
                             .size(32.dp)
@@ -181,16 +168,13 @@ fun TutorDiscoverCard(
 }
 
 
-
-
 /* =========================================================
    SECTIONS
    ========================================================= */
 
 @Composable
 fun MyTutorsSection(
-    tutors: List<Tutor>,
-    colors: StudentHomeColorPalette
+    tutors: List<Tutor>, colors: StudentHomeColorPalette
 ) {
     Text("My Tutors", color = colors.textPrimary, fontSize = 26.sp, fontWeight = FontWeight.Bold)
     Spacer(modifier = Modifier.height(10.dp))
@@ -237,8 +221,7 @@ fun DiscoverTutorsSection(
 
                 onProfileClick = { onProfileClick(tutor) },
                 onChatClick = { onChatClick(tutor) },
-                onSaveClick = { onSaveClick(tutor) }
-            )
+                onSaveClick = { onSaveClick(tutor) })
         }
     }
 }
@@ -246,8 +229,7 @@ fun DiscoverTutorsSection(
 
 @Composable
 fun LatestChatsSection(
-    chats: List<ChatItem>,
-    colors: StudentHomeColorPalette
+    chats: List<ChatItem>, colors: StudentHomeColorPalette
 ) {
     Text(
         "Latest Chats",
@@ -267,14 +249,11 @@ fun LatestChatsSection(
                 .padding(horizontal = 16.dp)
                 .clickable {
                     Log.d("Chat", "Open chatId=${chat.chatId}")
-                },
-            verticalAlignment = Alignment.CenterVertically
+                }, verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(chat.otherUser?.image)
-                    .crossfade(true)
-                    .build(),
+                model = ImageRequest.Builder(LocalContext.current).data(chat.otherUser?.image)
+                    .crossfade(true).build(),
                 contentDescription = "User avatar",
                 modifier = Modifier
                     .size(28.dp)
@@ -299,8 +278,7 @@ fun LatestChatsSection(
 
 @Composable
 fun StudentHomeLayout(
-    navController: NavController,
-    student: Student
+    navController: NavController, student: Student
 ) {
     val vm: StudentHomeViewModel = hiltViewModel()
 
@@ -317,8 +295,7 @@ fun StudentHomeLayout(
     }
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -326,26 +303,24 @@ fun StudentHomeLayout(
 
         item {
             DiscoverTutorsSection(
-                tutors = discoverTutors,
-                colors = homeColors,
+                tutors = discoverTutors, colors = homeColors,
 
                 onProfileClick = { tutor ->
                     navController.navigate(
-                        Screen.Profile.route
+                        Screen.ShowOtherProfile.createRoute(tutor.id)
                     )
                 },
 
+
                 onChatClick = { tutor ->
                     vm.openChatWithTutor(
-                        tutorId = tutor.user.getUID(),
-                        navController = navController
+                        tutorId = tutor.user.getUID(), navController = navController
                     )
                 },
 
                 onSaveClick = { tutor ->
                     vm.saveUser(tutor.user)
-                }
-            )
+                })
         }
 
 
