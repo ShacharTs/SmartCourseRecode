@@ -16,6 +16,8 @@ import com.smartcourse.ui.screens.register.RegisterScreen
 import com.smartcourse.ui.screens.user.UserRootScreen
 import com.smartcourse.ui.screens.chooserole.ChooseRoleViewModel
 import com.smartcourse.ui.screens.register.RegisterViewModel
+import com.smartcourse.ui.screens.search.SearchUserScreen
+import com.smartcourse.ui.screens.search.SearchUserViewModel
 
 @Composable
 fun RootNavHost(
@@ -128,19 +130,12 @@ private fun NavHostGraph(
 
         composable(Screen.UserScreen.route) {
             UserRootScreen(
-                navController = navController,
                 authVM = authVM
             )
         }
 
+
+
+
     }
 }
-
-
-
-
-
-
-
-
-

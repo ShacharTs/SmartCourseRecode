@@ -250,6 +250,23 @@ class UserRepository @Inject constructor(
 
         }
 
+    suspend fun searchUsers(query: String): List<User> {
+        val q = query.trim()
+
+        if (q.isBlank()) return emptyList()
+
+        return client.postgrest[TableNames.USERTABLE]
+            .select {
+                filter {
+                    ilike(UserTable.NAME, "$q%")
+                }
+            }
+            .decodeList<User>()
+    }
+
+
+
+
 
 
 

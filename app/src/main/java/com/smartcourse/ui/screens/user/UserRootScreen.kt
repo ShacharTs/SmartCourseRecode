@@ -37,6 +37,8 @@ import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
+import com.smartcourse.ui.screens.search.SearchUserScreen
+import com.smartcourse.ui.screens.search.SearchUserViewModel
 import com.smartcourse.ui.screens.setting.SettingsScreen
 import com.smartcourse.ui.screens.user.student.StudentHomeLayout
 import com.smartcourse.ui.screens.user.tutor.TutorHomeLayout
@@ -45,9 +47,10 @@ import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
 fun UserRootScreen(
-    navController: NavHostController, authVM: AuthViewModel
+    authVM: AuthViewModel
 ) {
     val navController = rememberNavController()
+
     val palette = LocalAppPalette.current
     val isDark = palette.isDark
 
@@ -130,19 +133,12 @@ fun UserRootScreen(
                 }
 
                 composable(Screen.SearchRouter.route) {
-                    MenuScreen(padding) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val textColor = if (isDark) Color.White else Color.Black
+                    val searchUserVM: SearchUserViewModel = hiltViewModel()
 
-                            Text(
-                                text = currentRoute.toString(),
-                                color = textColor
-                            )
-                        }
-                    }
+                    SearchUserScreen(
+                        navController = navController,
+                        viewModel = searchUserVM
+                    )
                 }
 
 
@@ -175,7 +171,8 @@ fun MenuScreen(
 
 @Composable
 fun ShowUserMenuScreen(
-    navController: NavController, authVM: AuthViewModel
+    navController: NavController,
+    authVM: AuthViewModel
 ) {
     when (val user = authVM.domainUser) {
         null -> CustomText("Loading...")

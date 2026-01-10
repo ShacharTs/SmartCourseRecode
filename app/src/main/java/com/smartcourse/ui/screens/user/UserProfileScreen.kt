@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.ui.theme.LocalAppPalette
 
 
 @Composable
@@ -14,8 +15,13 @@ fun UserProfileScreen(
     authVM: AuthViewModel
 ) {
 
+    val palette = LocalAppPalette.current
+
     Text(
+        modifier = Modifier.statusBarsPadding(),
         text = "Profile Screen Content",
-        Modifier.statusBarsPadding()
+        color = palette.home.textPrimary
     )
+
+
 }
