@@ -174,19 +174,30 @@ fun TutorDiscoverCard(
 
 @Composable
 fun MyTutorsSection(
-    tutors: List<Tutor>, colors: StudentHomeColorPalette
+    tutors: List<Tutor>,
+    colors: StudentHomeColorPalette,
+    onChatClick: (Tutor) -> Unit
 ) {
-    Text("My Tutors", color = colors.textPrimary, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+    Text(
+        "My Tutors",
+        color = colors.textPrimary,
+        fontSize = 26.sp,
+        fontWeight = FontWeight.Bold
+    )
+
     Spacer(modifier = Modifier.height(10.dp))
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(30.dp)) {
         items(tutors) { tutor ->
-            TutorAvatar(tutor = tutor, colors = colors) {
-                Log.d("MyTutors", "Tutor clicked: ${tutor.user.getUID()}")
-            }
+            TutorAvatar(
+                tutor = tutor,
+                colors = colors,
+                onClick = { onChatClick(tutor) }
+            )
         }
     }
 }
+
 
 
 @Composable
@@ -299,7 +310,19 @@ fun StudentHomeLayout(
         contentPadding = PaddingValues(16.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { MyTutorsSection(myTutors, homeColors) }
+        item {
+            MyTutorsSection(
+                tutors = myTutors,
+                colors = homeColors,
+                onChatClick = { tutor ->
+                    vm.openChatWithTutor(
+                        tutorId = tutor.user.getUID(),
+                        navController = navController
+                    )
+                }
+            )
+        }
+
 
         item {
             DiscoverTutorsSection(
