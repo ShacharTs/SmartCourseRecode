@@ -1,6 +1,5 @@
 package com.smartcourse.navigation
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -9,15 +8,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
-import com.smartcourse.ui.screens.login.LoginViewModel
 import com.smartcourse.ui.screens.chooserole.ChooseRoleScreen
-import com.smartcourse.ui.screens.login.LoginScreen
-import com.smartcourse.ui.screens.register.RegisterScreen
-import com.smartcourse.ui.screens.user.UserRootScreen
 import com.smartcourse.ui.screens.chooserole.ChooseRoleViewModel
+import com.smartcourse.ui.screens.loading.LoadingScreen
+import com.smartcourse.ui.screens.login.LoginScreen
+import com.smartcourse.ui.screens.login.LoginViewModel
+import com.smartcourse.ui.screens.register.RegisterScreen
 import com.smartcourse.ui.screens.register.RegisterViewModel
-import com.smartcourse.ui.screens.search.SearchUserScreen
-import com.smartcourse.ui.screens.search.SearchUserViewModel
+import com.smartcourse.ui.screens.user.UserRootScreen
 
 @Composable
 fun RootNavHost(
@@ -75,7 +73,15 @@ private fun LaunchedEffectStates(
                 }
             }
 
-            AuthState.LOADING -> Unit
+            AuthState.LOADING -> {
+                navController.navigate(Screen.Loading.route) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = false
+                    }
+                    launchSingleTop = true
+                }
+            }
+
         }
     }
 }
@@ -93,8 +99,9 @@ private fun NavHostGraph(
     ) {
 
         composable(Screen.Loading.route) {
-            Text("Loading...")
+            LoadingScreen()
         }
+
 
         composable(Screen.Login.route) {
             val loginVM = hiltViewModel<LoginViewModel>()

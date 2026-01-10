@@ -29,7 +29,7 @@ import com.smartcourse.ui.screens.chat.ChatListScreen
 import com.smartcourse.ui.screens.chat.ChatListViewModel
 import com.smartcourse.ui.screens.chat.ChatScreen
 import com.smartcourse.ui.screens.chat.ChatViewModel
-import com.smartcourse.ui.screens.components.CustomText
+import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
@@ -185,7 +185,7 @@ fun ShowUserMenuScreen(
     authVM: AuthViewModel
 ) {
     when (val user = authVM.domainUser) {
-        null -> CustomText("Loading...")
+        null -> LoadingScreen()
 
         is Student -> StudentHomeLayout(
             navController = navController, student = user

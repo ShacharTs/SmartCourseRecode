@@ -258,7 +258,7 @@ private fun RegisterUpperArea(textColor: androidx.compose.ui.graphics.Color) {
     )
     CustomBox(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Image(
-            painter = painterResource(R.drawable.smartcourselogo),
+            painter = painterResource(R.drawable.smartcourse_logo),
             contentDescription = null,
             modifier = Modifier.size(180.dp)
         )

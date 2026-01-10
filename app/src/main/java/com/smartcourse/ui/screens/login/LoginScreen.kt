@@ -234,7 +234,7 @@ private fun LoginHeader(
         Spacer(modifier = Modifier.height(20.dp))
 
         Image(
-            painter = painterResource(R.drawable.smartcourselogo),
+            painter = painterResource(R.drawable.smartcourse_logo),
             contentDescription = "Smart Course Logo",
             modifier = Modifier
                 .size(180.dp)
