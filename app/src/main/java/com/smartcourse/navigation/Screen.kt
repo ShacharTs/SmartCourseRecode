@@ -27,6 +27,12 @@ sealed class Screen(val route: String) {
 
     object Profile : Screen("profile")
 
+    object ShowOtherProfile : Screen("show_other_profile/{userId}") {
+        fun createRoute(userId: String): String =
+            "show_other_profile/$userId"
+    }
+
+
 
     // Chat
     object ChatList : Screen("chat_list")

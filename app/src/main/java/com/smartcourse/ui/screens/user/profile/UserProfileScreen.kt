@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.user
+package com.smartcourse.ui.screens.user.profile
 
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Text
@@ -25,3 +25,5 @@ fun UserProfileScreen(
 
 
 }
+
+

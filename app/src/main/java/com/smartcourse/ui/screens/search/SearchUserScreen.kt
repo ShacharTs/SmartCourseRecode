@@ -84,8 +84,9 @@ fun SearchUserScreen(
                     row = row,
                     onClick = {
                         navController.navigate(
-                            Screen.ChatRoom.createRoute(row.user.userId)
+                            Screen.ShowOtherProfile.createRoute(row.user.userId)
                         )
+
                     }
                 )
             }
