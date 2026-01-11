@@ -37,6 +37,8 @@ sealed class Screen(val route: String) {
 
     object Language : Screen("language")
 
+    object TermsFirstTime : Screen("terms_first_time")
+
     object Terms : Screen("terms")
 
 

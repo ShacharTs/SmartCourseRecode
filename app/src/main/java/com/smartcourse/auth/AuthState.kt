@@ -5,5 +5,7 @@ enum class AuthState {
     LOGGED_OUT,
     REGISTERING,
     CHOOSING_ROLE,
-    LOGGED_IN
+    LOGGED_IN,
+
+    TERMS,
 }

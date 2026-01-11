@@ -2,6 +2,8 @@ package com.smartcourse.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -15,6 +17,8 @@ import com.smartcourse.ui.screens.login.LoginScreen
 import com.smartcourse.ui.screens.login.LoginViewModel
 import com.smartcourse.ui.screens.register.RegisterScreen
 import com.smartcourse.ui.screens.register.RegisterViewModel
+import com.smartcourse.ui.screens.setting.AppStartViewModel
+import com.smartcourse.ui.screens.setting.terms.TermsAndServiceScreen
 import com.smartcourse.ui.screens.user.UserRootScreen
 
 @Composable
@@ -44,6 +48,14 @@ private fun LaunchedEffectStates(
 
     LaunchedEffect(state) {
         when (state) {
+
+            AuthState.TERMS -> {
+                navController.navigate(Screen.TermsFirstTime.route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+
 
             AuthState.LOGGED_OUT -> {
                 navController.navigate(Screen.Login.route) {
@@ -82,6 +94,8 @@ private fun LaunchedEffectStates(
                 }
             }
 
+
+
         }
     }
 }
@@ -91,12 +105,40 @@ private fun LaunchedEffectStates(
 @Composable
 private fun NavHostGraph(
     navController: NavHostController,
-    authVM: AuthViewModel
+    authVM: AuthViewModel,
+    appStartViewModel: AppStartViewModel = hiltViewModel()
 ) {
+    val termsAccepted by appStartViewModel.termsAccepted.collectAsState()
+
+    val startDestination = when {
+        !termsAccepted -> Screen.TermsFirstTime.route
+        else -> Screen.Loading.route
+    }
+
+
     NavHost(
         navController = navController,
         startDestination = Screen.Loading.route
     ) {
+
+
+        composable(Screen.TermsFirstTime.route) {
+            TermsAndServiceScreen(
+                showBackButton = false,
+                requireAcceptance = true,
+                onAccepted = {
+                    appStartViewModel.acceptTerms()
+
+                    navController.navigate(Screen.Loading.route) {
+                        popUpTo(Screen.TermsFirstTime.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+
+
 
         composable(Screen.Loading.route) {
             LoadingScreen()

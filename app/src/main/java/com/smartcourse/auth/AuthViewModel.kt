@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartcourse.data.models.usermodel.DomainUser
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.AppLaunchRepository
 import com.smartcourse.data.repositories.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepo: AuthRepository
+    private val authRepo: AuthRepository,
+    private val appLaunchRepository: AppLaunchRepository
 ) : ViewModel() {
 
     val currentUser = authRepo.currentUser
@@ -27,23 +29,59 @@ class AuthViewModel @Inject constructor(
         private set
 
     init {
+        //  FIRST: decide if we must show TERMS
         viewModelScope.launch {
-            authRepo.currentUser.collect { user ->
-
-                authState = when (user?.role) {
-                    null -> AuthState.LOGGED_OUT
-                    UserRole.TEMP -> AuthState.CHOOSING_ROLE
-                    else -> AuthState.LOGGED_IN
-                }
-
-                domainUser = user?.let {
-                    authRepo.toDomainUser(it)
+            appLaunchRepository.termsAccepted.collect { accepted ->
+                if (!accepted) {
+                    authState = AuthState.TERMS
+                } else {
+                    authState = AuthState.LOADING
                 }
             }
         }
 
+        //  SECOND: normal auth flow (runs only after TERMS accepted)
         viewModelScope.launch {
-            authRepo.restoreValidSession()
+            appLaunchRepository.termsAccepted.collect { accepted ->
+                if (!accepted) return@collect
+
+                authRepo.currentUser.collect { user ->
+                    authState = when (user?.role) {
+                        null -> AuthState.LOGGED_OUT
+                        UserRole.TEMP -> AuthState.CHOOSING_ROLE
+                        else -> AuthState.LOGGED_IN
+                    }
+
+                    domainUser = user?.let {
+                        authRepo.toDomainUser(it)
+                    }
+                }
+            }
+        }
+
+        // Restore session only after TERMS
+        viewModelScope.launch {
+            appLaunchRepository.termsAccepted.collect { accepted ->
+                if (accepted) {
+                    authRepo.restoreValidSession()
+                }
+            }
+        }
+    }
+
+    //  Called ONLY from Terms screen
+    fun onTermsAccepted() {
+        viewModelScope.launch {
+            appLaunchRepository.setTermsAccepted()
+
+            // Force auth resolution after terms
+            val user = authRepo.restoreValidSession()
+
+            authState = when (user?.role) {
+                null -> AuthState.LOGGED_OUT
+                UserRole.TEMP -> AuthState.CHOOSING_ROLE
+                else -> AuthState.LOGGED_IN
+            }
         }
     }
 
@@ -60,20 +98,19 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-
-
     fun logout() {
         viewModelScope.launch {
             authRepo.logout()
             domainUser = null
+            authState = AuthState.LOGGED_OUT
         }
     }
 
     fun onUserLoaded(user: DomainUser) {
         domainUser = user
     }
-
 }
+
 
 
 

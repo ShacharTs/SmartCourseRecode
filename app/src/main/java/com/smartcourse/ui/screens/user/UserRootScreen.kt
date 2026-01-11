@@ -35,6 +35,7 @@ import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
 import com.smartcourse.ui.screens.search.SearchUserScreen
 import com.smartcourse.ui.screens.search.SearchUserViewModel
+import com.smartcourse.ui.screens.setting.AppStartViewModel
 import com.smartcourse.ui.screens.setting.SettingsScreen
 import com.smartcourse.ui.screens.setting.terms.TermsAndServiceScreen
 import com.smartcourse.ui.screens.setting.theme.ThemeScreen
@@ -176,9 +177,21 @@ fun UserRootScreen(
                     // todo add screen
                 }
 
-                composable(Screen.Terms.route){
-                    TermsAndServiceScreen(navController = navController)
+
+                composable(Screen.Terms.route) {
+                    TermsAndServiceScreen(
+                        showBackButton = true,
+                        requireAcceptance = false,
+                        onBack = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
+
+
+
+
+
             }
         }
     }
