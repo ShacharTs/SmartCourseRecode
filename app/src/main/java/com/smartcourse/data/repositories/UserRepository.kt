@@ -29,6 +29,7 @@ import kotlinx.serialization.json.contentOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Suppress("USELESS_IS_CHECK")
 @Singleton
 class UserRepository @Inject constructor(
     private val client: SupabaseClient
@@ -154,7 +155,11 @@ class UserRepository @Inject constructor(
         val data = response.data
 
 
-        return data is JsonArray && data.isNotEmpty()
+        if (data !is JsonArray) {
+            return false
+        }
+        return data.isNotEmpty()
+
     }
 
 
