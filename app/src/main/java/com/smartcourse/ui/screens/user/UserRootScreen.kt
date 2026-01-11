@@ -36,6 +36,7 @@ import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
 import com.smartcourse.ui.screens.search.SearchUserScreen
 import com.smartcourse.ui.screens.search.SearchUserViewModel
 import com.smartcourse.ui.screens.setting.SettingsScreen
+import com.smartcourse.ui.screens.setting.terms.TermsAndServiceScreen
 import com.smartcourse.ui.screens.setting.theme.ThemeScreen
 import com.smartcourse.ui.screens.user.profile.UserProfileScreen
 import com.smartcourse.ui.screens.user.profile.showother.ShowOtherProfileScreen
@@ -170,8 +171,13 @@ fun UserRootScreen(
                 composable(Screen.Theme.route){
                     ThemeScreen(navController = navController)
                 }
+
                 composable(Screen.Language.route){
-                    // todo add screen nav
+                    // todo add screen
+                }
+
+                composable(Screen.Terms.route){
+                    TermsAndServiceScreen(navController = navController)
                 }
             }
         }
