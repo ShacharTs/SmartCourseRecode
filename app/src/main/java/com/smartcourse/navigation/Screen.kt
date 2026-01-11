@@ -33,6 +33,11 @@ sealed class Screen(val route: String) {
     }
 
 
+    object Theme : Screen("theme")
+
+    object Language : Screen("language")
+
+
 
     // Chat
     object ChatList : Screen("chat_list")

@@ -82,16 +82,22 @@ private val DarkColors = darkColorScheme(
 
 
 @Composable
-fun SmartCourseTheme(content: @Composable () -> Unit) {
-    val systemInDark = isSystemInDarkTheme()
+fun SmartCourseTheme(
+    themeMode: ThemeMode,
+    content: @Composable () -> Unit
+) {
+    val darkTheme = when (themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.DARK -> true
+        ThemeMode.LIGHT -> false
+    }
 
-    // IF YOU HATE LIGHT MODE: Change this to 'val palette = DarkAppPalette'
-    // to force dark mode everywhere regardless of phone settings.
-    val palette = if (systemInDark) DarkAppPalette else LightAppPalette
+    val palette = if (darkTheme) DarkAppPalette else LightAppPalette
+    val colors = if (darkTheme) DarkColors else LightColors
 
     CompositionLocalProvider(LocalAppPalette provides palette) {
         MaterialTheme(
-            colorScheme = if (systemInDark) DarkColors else LightColors,
+            colorScheme = colors,
             typography = AppTypography,
             content = content
         )

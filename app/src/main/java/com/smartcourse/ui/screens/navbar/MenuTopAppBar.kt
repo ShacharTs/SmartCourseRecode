@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.components.CustomText
+import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.NavBarColors
 
 
@@ -28,8 +29,9 @@ fun MenuTopAppBar(
     navController: NavController,
     authVM: AuthViewModel
 ) {
-    // Use the same NavBar color contract
-    val colors = if (isSystemInDarkTheme()) {
+
+    val palette = LocalAppPalette.current
+    val colors = if (palette.isDark) {
         NavBarColors.Dark
     } else {
         NavBarColors.Light

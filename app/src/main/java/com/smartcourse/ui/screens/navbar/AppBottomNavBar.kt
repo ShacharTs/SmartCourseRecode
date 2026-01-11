@@ -1,6 +1,5 @@
 package com.smartcourse.ui.screens.navbar
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -10,8 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.NavBarColors
-
 
 
 @Composable
@@ -22,10 +21,8 @@ fun AppBottomNavBar(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    if (items.isEmpty()) return
-
-    // Screen-specific nav bar colors
-    val colors = if (isSystemInDarkTheme()) {
+    val palette = LocalAppPalette.current
+    val colors = if (palette.isDark) {
         NavBarColors.Dark
     } else {
         NavBarColors.Light

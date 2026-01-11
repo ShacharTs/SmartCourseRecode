@@ -2,7 +2,6 @@ package com.smartcourse.ui.screens.setting
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,10 +39,11 @@ fun SettingsScreen(
     authVM: AuthViewModel,
     settingVM: SettingViewModel = hiltViewModel()
 ) {
-    // 1. Get the palette once at the top level
+
     val palette = LocalAppPalette.current
-    val isDark = isSystemInDarkTheme()
+    val isDark = palette.isDark
     val gradientColors = if (isDark) AppGradients.Dark else AppGradients.Light
+
 
 
     Box(
@@ -120,12 +120,14 @@ private fun SettingColumn(
                 label = "Theme",
                 onClick = {
                     // todo add force dark mode or system
+                    navController.navigate(Screen.Theme.route)
                 }
             )
             SettingsRow(
                 label = "Language",
                 onClick = {
                     // Todo add screen for hebrew english
+                    navController.navigate(Screen.Language.route)
                 }
             )
         }
@@ -135,6 +137,7 @@ private fun SettingColumn(
                 label = "Terms & Privacy",
                 onClick = {
                     //TODO make something because why not
+
                 }
             )
             SettingsRow(label = "App Version", value = "1.0.0")
