@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,21 +39,23 @@ import com.smartcourse.ui.theme.ThemeMode
 import com.smartcourse.ui.theme.ThemeScreenColorPalette
 import com.smartcourse.ui.theme.ThemeScreenColors
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ThemeScreen(
-    navController: NavController
-) {
-    val viewModel: ThemeViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
-    val themeMode by viewModel.themeMode.collectAsState()
+fun ThemeScreen(navController: NavController) {
+    // IMPORTANT:
+    // Use the *Activity-scoped* ThemeViewModel so ThemeScreen + MainActivity share ONE instance.
+    val activity = LocalContext.current as ComponentActivity
+    val viewModel: ThemeViewModel = hiltViewModel(activity)
 
-    // Determine palette based on current selection or system setting
+    val themeMode by viewModel.themeMode.collectAsState()
     val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val colors = when (themeMode) {
-        ThemeMode.LIGHT -> ThemeScreenColors.Light
-        ThemeMode.DARK -> ThemeScreenColors.Dark
-        ThemeMode.SYSTEM -> if (isSystemDark) ThemeScreenColors.Dark else ThemeScreenColors.Light
+
+    val colors = remember(themeMode, isSystemDark) {
+        when (themeMode) {
+            ThemeMode.LIGHT -> ThemeScreenColors.Light
+            ThemeMode.DARK -> ThemeScreenColors.Dark
+            ThemeMode.SYSTEM -> if (isSystemDark) ThemeScreenColors.Dark else ThemeScreenColors.Light
+        }
     }
 
     Scaffold(
@@ -154,5 +157,3 @@ fun ThemeOptionItem(
         }
     }
 }
-
-

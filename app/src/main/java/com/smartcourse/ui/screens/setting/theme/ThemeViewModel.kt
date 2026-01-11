@@ -20,14 +20,18 @@ class ThemeViewModel @Inject constructor(
         repository.themeModeFlow
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
+                // Theme is app-wide state; keep it hot and stable.
+                // WhileSubscribed can cause re-subscription loops during navigation/recomposition.
+                started = SharingStarted.Eagerly,
                 initialValue = ThemeMode.SYSTEM
             )
 
     fun setTheme(mode: ThemeMode) {
+        // Avoid redundant writes + unnecessary recompositions.
+        if (themeMode.value == mode) return
+
         viewModelScope.launch {
             repository.saveTheme(mode)
         }
     }
 }
-

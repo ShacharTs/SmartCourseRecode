@@ -29,42 +29,33 @@ class AuthViewModel @Inject constructor(
         private set
 
     init {
-        //  FIRST: decide if we must show TERMS
         viewModelScope.launch {
+            // We use combine or flatMapLatest to ensure we only have ONE source of truth
             appLaunchRepository.termsAccepted.collect { accepted ->
                 if (!accepted) {
                     authState = AuthState.TERMS
-                } else {
-                    authState = AuthState.LOADING
+                    return@collect
                 }
-            }
-        }
 
-        //  SECOND: normal auth flow (runs only after TERMS accepted)
-        viewModelScope.launch {
-            appLaunchRepository.termsAccepted.collect { accepted ->
-                if (!accepted) return@collect
-
+                // If terms are accepted, now we listen to the user session
                 authRepo.currentUser.collect { user ->
+                    // Update the domain user first
+                    domainUser = user?.let { authRepo.toDomainUser(it) }
+
+                    // Then update the state (this triggers the UI change)
                     authState = when (user?.role) {
                         null -> AuthState.LOGGED_OUT
                         UserRole.TEMP -> AuthState.CHOOSING_ROLE
                         else -> AuthState.LOGGED_IN
                     }
-
-                    domainUser = user?.let {
-                        authRepo.toDomainUser(it)
-                    }
                 }
             }
         }
 
-        // Restore session only after TERMS
+        // Restore session once
         viewModelScope.launch {
             appLaunchRepository.termsAccepted.collect { accepted ->
-                if (accepted) {
-                    authRepo.restoreValidSession()
-                }
+                if (accepted) authRepo.restoreValidSession()
             }
         }
     }
