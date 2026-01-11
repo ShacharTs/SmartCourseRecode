@@ -23,7 +23,6 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonDefaults.outlinedButtonBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -42,6 +41,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.smartcourse.data.models.usermodel.Student
+import com.smartcourse.data.models.usermodel.Tutor
+import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.ShowOtherProfileColorPalette
 
@@ -50,139 +52,213 @@ fun ShowOtherProfileScreen(
     navController: NavController,
     viewModel: ShowOtherProfileViewModel = hiltViewModel()
 ) {
-    val colors = LocalAppPalette.current.otherProfile
+    val palette = LocalAppPalette.current
+    val colors = palette.otherProfile
     val user by viewModel.user.collectAsState(initial = null)
     val favorites by viewModel.favoritesCount.collectAsState(initial = 0)
+    val courses by viewModel.courses.collectAsState(initial = emptyList())
+
+
 
     if (user == null) return
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(colors.backgroundGradient))
+            .background(
+                Brush.verticalGradient(colors.backgroundGradient)
+            )
             .statusBarsPadding()
+            .padding(bottom = 24.dp)
     ) {
-        Column(
+
+        /* ======================
+           PROFILE CARD + AVATAR
+           ====================== */
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 16.dp)
         ) {
-            Spacer(Modifier.height(40.dp))
 
-            // Profile Image
-            AsyncImage(
-                model = user!!.image,
-                contentDescription = "Profile Picture",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(110.dp)
-                    .clip(CircleShape)
-                    .background(colors.avatarBackground)
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // Name & Role
-            Text(
-                text = user!!.getUserName(),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = colors.textPrimary
-            )
-            Text(
-                text = user!!.role?.name?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "",
-                fontSize = 14.sp,
-                color = colors.subtext
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            // Stats Card
-            Row(
+            // Profile card
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
+                    .padding(top = 48.dp)
+                    .clip(RoundedCornerShape(18.dp))
                     .background(colors.card)
-                    .padding(vertical = 20.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .padding(top = 64.dp, bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                StatItem(favorites.toString(), "Favorites", colors)
-                StatItem(user!!.courses.size.toString(), "Courses", colors)
-            }
 
-            Spacer(Modifier.height(24.dp))
-
-            // Action Buttons Row (Favorite & Chat)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Favorite Button
-                OutlinedButton(
-                    onClick = { /* Toggle Favorite */ },
-                    modifier = Modifier.size(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    border = outlinedButtonBorder.copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(colors.accent.copy(alpha = 0.5f))
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = Color.White
-                    )
-                }
-
-                // Chat Button
-                Button(
-                    onClick = { /* Open Chat */ },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ChatBubbleOutline,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "Chat",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(32.dp))
-
-            // About Section (Clean SVG Style)
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start
-            ) {
                 Text(
-                    text = "About",
-                    fontSize = 18.sp,
+                    text = user!!.getUserName(),
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.textPrimary
                 )
-                Spacer(Modifier.height(8.dp))
+
+                Spacer(Modifier.height(4.dp))
+
                 Text(
-                    text = user!!.bio ?: "No description available yet.",
+                    text = user!!.role?.name
+                        ?.lowercase()
+                        ?.replaceFirstChar { it.uppercase() }
+                        ?: "",
                     fontSize = 14.sp,
-                    color = colors.subtext,
-                    lineHeight = 20.sp
+                    color = colors.subtext
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                // Stats
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    StatItem(favorites.toString(), "Favorites", colors)
+                    StatItem(user!!.courses.size.toString(), "Courses", colors)
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                // Actions
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    OutlinedButton(
+                        onClick = { /* toggle favorite */ },
+                        modifier = Modifier.size(48.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                            brush = Brush.horizontalGradient(
+                                listOf(
+                                    colors.accent.copy(alpha = 0.5f),
+                                    colors.accent
+                                )
+                            )
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FavoriteBorder,
+                            contentDescription = null,
+                            tint = colors.accent
+                        )
+                    }
+
+                    Button(
+                        onClick = { /* open chat */ },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colors.accent
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ChatBubbleOutline,
+                            contentDescription = null
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "Chat",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+
+            // Avatar (cutting the card)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .size(76.dp)
+                    .clip(CircleShape)
+                    .background(colors.card),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = user!!.image,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(68.dp)
+                        .clip(CircleShape)
                 )
             }
         }
-    }
+
+        Spacer(Modifier.height(32.dp))
+
+        /* ======================
+           ABOUT
+           ====================== */
+        Text(
+            text = "About",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.textPrimary,
+            modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(colors.card)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = user!!.bio ?: "No description available yet.",
+                fontSize = 14.sp,
+                color = colors.subtext,
+                lineHeight = 20.sp
+            )
+
+
+
+            Spacer(Modifier.height(24.dp))
+
+        }
+        /* ======================
+   COURSES
+   ====================== */
+        if (courses.isNotEmpty()) {
+
+            Spacer(Modifier.height(24.dp))
+
+            SectionTitle("Courses", colors)
+
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(colors.card)
+                    .padding(16.dp)
+            ) {
+                courses.forEach { course ->
+                    Text(
+                        text = "• ${course.name}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.textPrimary,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                }
+            }
+
+            }
+        }
+
 }
 
 @Composable
@@ -194,7 +270,7 @@ private fun StatItem(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
-            fontSize = 20.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = colors.textPrimary
         )
@@ -205,3 +281,19 @@ private fun StatItem(
         )
     }
 }
+
+
+@Composable
+private fun SectionTitle(
+    text: String,
+    colors: ShowOtherProfileColorPalette
+) {
+    Text(
+        text = text,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold,
+        color = colors.textPrimary,
+        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
+    )
+}
+

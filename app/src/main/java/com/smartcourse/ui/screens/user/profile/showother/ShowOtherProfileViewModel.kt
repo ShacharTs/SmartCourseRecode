@@ -36,6 +36,19 @@ class ShowOtherProfileViewModel @Inject constructor(
             emit(null)
         }
     }
+
+    val courses = flow {
+        val userCourses = userRepository.getUserCourses(userId)
+
+        val resolvedCourses = userCourses.mapNotNull { uc ->
+            userRepository.getCourseById(uc.course_id)
+        }
+
+        emit(resolvedCourses)
+    }
+
+
+
 }
 
 
