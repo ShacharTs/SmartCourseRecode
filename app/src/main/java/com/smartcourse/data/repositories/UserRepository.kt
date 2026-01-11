@@ -90,12 +90,6 @@ class UserRepository @Inject constructor(
     }
 
 
-
-
-
-
-
-
     /**
      * Get all users except the user with the given ID
      */
@@ -163,8 +157,6 @@ class UserRepository @Inject constructor(
     }
 
 
-
-
     suspend fun saveUser(userA: String, userB: String) {
         client.postgrest[UserFavoriteTable.TABLE]
             .insert(
@@ -186,7 +178,6 @@ class UserRepository @Inject constructor(
     }
 
 
-
     suspend fun syncGoogleAvatar() {
         val u = client.auth.currentUserOrNull() ?: return
         val metadata = u.userMetadata ?: return
@@ -200,7 +191,6 @@ class UserRepository @Inject constructor(
             updateUserImage(id = u.id, image = avatar)
         }
     }
-
 
 
     /**
@@ -222,7 +212,7 @@ class UserRepository @Inject constructor(
         return listOfNotNull(user1, user2)
     }
 
-
+    // todo remove later when app done
     suspend fun loadRecentChats(userId: String): List<ChatItem> {
         val chatDocs = firestore
             .collection("chats")

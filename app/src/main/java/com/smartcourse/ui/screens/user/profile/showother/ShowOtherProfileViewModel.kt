@@ -67,16 +67,11 @@ class ShowOtherProfileViewModel @Inject constructor(
         loadInitialData()
     }
 
-    // ------------------------------------------------------------
-    // Load
-    // ------------------------------------------------------------
-
     private fun loadInitialData() {
         viewModelScope.launch {
-            Log.d(TAG, "loadInitialData → START")
             _isLoading.value = true
 
-            // 🔴 RESET leaked state (CRITICAL)
+            // Reset state
             _user.value = null
             _courses.value = emptyList()
             _favoritesCount.value = 0
@@ -84,74 +79,28 @@ class ShowOtherProfileViewModel @Inject constructor(
             _isTogglingFavorite.value = false
 
             try {
-                // 1. Load user
-                Log.d(TAG, "Loading user…")
-                val fetchedUser = userRepository.loadUser(userId)
+                val user = userRepository.loadUser(userId) ?: return@launch
+                _user.value = user
 
-                if (fetchedUser == null) {
-                    Log.e(TAG, "User not found → userId=$userId")
-                    return@launch
-                }
+                _favoritesCount.value =
+                    if (user.role == UserRole.TUTOR)
+                        userRepository.countUserFavorites(userId)
+                    else 0
 
-                Log.d(
-                    TAG,
-                    "User loaded → id=${fetchedUser.id}, role=${fetchedUser.role}"
-                )
-                _user.value = fetchedUser
+                _courses.value =
+                    userRepository.getUserCourses(userId)
+                        .mapNotNull { userRepository.getCourseById(it.course_id) }
 
-                // 2. Favorites count (only for tutors)
-                val favoritesCount =
-                    if (fetchedUser.role == UserRole.TUTOR) {
-                        val count = userRepository.countUserFavorites(userId)
-                        Log.d(TAG, "Favorites count loaded → $count")
-                        count
-                    } else {
-                        Log.d(TAG, "User is not TUTOR → favoritesCount=0")
-                        0
-                    }
-
-                _favoritesCount.value = favoritesCount
-
-                // 3. Courses
-                val courseIds = userRepository.getUserCourses(userId)
-                Log.d(TAG, "Course relations loaded → size=${courseIds.size}")
-
-                val courses = courseIds.mapNotNull {
-                    userRepository.getCourseById(it.course_id)
-                }
-
-                Log.d(TAG, "Courses resolved → size=${courses.size}")
-                _courses.value = courses
-
-                // 4. isFavorite (ONE-WAY, DB is source of truth)
                 val me = authRepository.currentUser.value?.userId
-                Log.d(TAG, "Current user → me=$me")
+                _isFavorite.value =
+                    me?.let { userRepository.isUserFavorite(it, userId) } ?: false
 
-                val isFav =
-                    if (me != null) {
-                        userRepository.isUserFavorite(me, userId)
-                    } else false
-
-                Log.d(TAG, "isFavorite loaded → $isFav")
-                _isFavorite.value = isFav
-
-                Log.d(
-                    TAG,
-                    "State READY → isFavorite=$isFav favoritesCount=$favoritesCount"
-                )
-
-            } catch (t: Throwable) {
-                Log.e(TAG, "loadInitialData CRASH", t)
             } finally {
                 _isLoading.value = false
-                Log.d(TAG, "loadInitialData → END (isLoading=false)")
             }
         }
     }
 
-    // ------------------------------------------------------------
-    // Actions
-    // ------------------------------------------------------------
 
     fun toggleFavorite() {
         val target = _user.value ?: return
