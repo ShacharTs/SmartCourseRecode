@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,9 +44,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.smartcourse.data.models.usermodel.Student
-import com.smartcourse.data.models.usermodel.Tutor
-import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.ShowOtherProfileColorPalette
 
@@ -229,35 +229,36 @@ fun ShowOtherProfileScreen(
             Spacer(Modifier.height(24.dp))
 
         }
-        /* ======================
-   COURSES
-   ====================== */
+
         if (courses.isNotEmpty()) {
 
             Spacer(Modifier.height(24.dp))
 
             SectionTitle("Courses", colors)
 
-            Column(
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(colors.card)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                userScrollEnabled = false
             ) {
-                courses.forEach { course ->
+                items(courses) { course ->
                     Text(
-                        text = "• ${course.name}",
+                        text = course.name,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = colors.textPrimary,
-                        modifier = Modifier.padding(bottom = 12.dp)
+                        color = colors.textPrimary
                     )
                 }
             }
-
-            }
         }
+
+    }
 
 }
 
