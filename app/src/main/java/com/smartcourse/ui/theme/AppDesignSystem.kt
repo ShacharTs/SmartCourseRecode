@@ -89,7 +89,17 @@ data class ShowOtherProfileColorPalette(
     val subtext: Color
 )
 
-
+data class ThemeScreenColorPalette(
+    val background: Color,
+    val cardBackground: Color,
+    val cardSelectedBackground: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val iconTint: Color,
+    val accent: Color,
+    val topBarBackground: Color,
+    val topBarContent: Color
+)
 
 
 
@@ -326,7 +336,31 @@ object ShowOtherProfileLayoutColors {
     )
 }
 
+object ThemeScreenColors {
+    val Dark = ThemeScreenColorPalette(
+        background = Color(0xFF0B0514),
+        cardBackground = Color(0xFF16112A),
+        cardSelectedBackground = Color(0xFF241636),
+        textPrimary = Color.White,
+        textSecondary = Color(0xFFA9A9B3),
+        iconTint = Color(0xFFA9A9B3),
+        accent = Color(0xFFEC4899), // Pink accent for Dark Mode
+        topBarBackground = Color(0xFF1E0938),
+        topBarContent = Color.White
+    )
 
+    val Light = ThemeScreenColorPalette(
+        background = Color(0xFFF5F3FF),
+        cardBackground = Color.White,
+        cardSelectedBackground = Color(0xFFF3E8FF),
+        textPrimary = Color(0xFF1F2937),
+        textSecondary = Color(0xFF6B7280),
+        iconTint = Color(0xFF8B5CF6),
+        accent = Color(0xFF9333EA), // Purple accent for Light Mode
+        topBarBackground = Color(0xFFF3E8FF),
+        topBarContent = Color(0xFF2D1B4E)
+    )
+}
 
 
 
