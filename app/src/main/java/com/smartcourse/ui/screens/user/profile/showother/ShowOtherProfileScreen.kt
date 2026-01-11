@@ -47,6 +47,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.navigation.Screen
+import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.ShowOtherProfileColorPalette
 
@@ -58,13 +59,22 @@ fun ShowOtherProfileScreen(
     val palette = LocalAppPalette.current
     val colors = palette.otherProfile
 
+    // Collecting all states from the ViewModel
+    val isLoading by viewModel.isLoading.collectAsState()
     val user by viewModel.user.collectAsState()
     val favorites by viewModel.favoritesCount.collectAsState()
     val courses by viewModel.courses.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    val isToggling by viewModel.isTogglingFavorite.collectAsState()
 
 
-    if (user == null) return
+    if (isLoading || user == null) {
+        LoadingScreen()
+        return
+    }
+
+    // Use a local variable for smart casting (avoids user!!)
+    val currentUser = user!!
 
     Column(
         modifier = Modifier
@@ -74,20 +84,18 @@ fun ShowOtherProfileScreen(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 24.dp)
     ) {
-
         ProfileHeader(
             colors = colors,
-            userName = user!!.getUserName(),
-            role = user!!.role?.name,
-            image = user!!.image,
+            userName = currentUser.getUserName(),
+            role = currentUser.role?.name,
+            image = currentUser.image,
             favorites = favorites,
             coursesCount = courses.size,
             isFavorite = isFavorite,
+            isToggling = isToggling,
             onChatClick = {
                 viewModel.openChat { chatId ->
-                    navController.navigate(
-                        Screen.ChatRoom.createRoute(chatId)
-                    )
+                    navController.navigate(Screen.ChatRoom.createRoute(chatId))
                 }
             },
             onFavoriteClick = {
@@ -95,14 +103,8 @@ fun ShowOtherProfileScreen(
             }
         )
 
-
-
         Spacer(Modifier.height(32.dp))
-
-        AboutSection(
-            colors = colors,
-            bio = user!!.bio
-        )
+        AboutSection(colors = colors, bio = currentUser.bio)
 
         if (courses.isNotEmpty()) {
             Spacer(Modifier.height(24.dp))
@@ -110,6 +112,8 @@ fun ShowOtherProfileScreen(
         }
     }
 }
+
+
 
 @Composable
 private fun ProfileHeader(
@@ -120,16 +124,14 @@ private fun ProfileHeader(
     favorites: Int,
     coursesCount: Int,
     isFavorite: Boolean,
+    isToggling: Boolean,
     onChatClick: () -> Unit,
     onFavoriteClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         contentAlignment = Alignment.TopCenter
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -144,12 +146,11 @@ private fun ProfileHeader(
             ActionButtons(
                 colors = colors,
                 isFavorite = isFavorite,
+                isToggling = isToggling,
                 onChatClick = onChatClick,
                 onFavoriteClick = onFavoriteClick
             )
-
         }
-
         Avatar(image, colors)
     }
 }
@@ -179,20 +180,21 @@ private fun StatsRow(favorites: Int, courses: Int, colors: ShowOtherProfileColor
 private fun ActionButtons(
     colors: ShowOtherProfileColorPalette,
     isFavorite: Boolean,
+    isToggling: Boolean, // Added
     onChatClick: () -> Unit,
     onFavoriteClick: () -> Unit
 ) {
     Spacer(Modifier.height(20.dp))
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedButton(
             onClick = onFavoriteClick,
+            // Physically disable the button while a request is pending
+            enabled = !isToggling,
             modifier = Modifier.size(48.dp),
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(
@@ -201,27 +203,22 @@ private fun ActionButtons(
             ),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = colors.card,
-                contentColor = if (isFavorite) Color.Red else colors.accent
+                contentColor = if (isFavorite) Color.Red else colors.accent,
+                disabledContentColor = (if (isFavorite) Color.Red else colors.accent).copy(alpha = 0.4f)
             ),
             contentPadding = PaddingValues(0.dp)
         ) {
             Icon(
-                imageVector =
-                    if (isFavorite)
-                        Icons.Filled.Favorite
-                    else
-                        Icons.Outlined.FavoriteBorder,
+                imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = "Favorite",
-                tint = Color.Red.takeIf { isFavorite } ?: colors.accent,
+                tint = if (isFavorite) Color.Red else colors.accent,
                 modifier = Modifier.size(22.dp)
             )
         }
 
         Button(
             onClick = onChatClick,
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp),
+            modifier = Modifier.weight(1f).height(48.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = colors.accent)
         ) {

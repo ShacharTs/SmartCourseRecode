@@ -7,6 +7,8 @@ import com.smartcourse.data.models.table.TableNames
 import com.smartcourse.data.models.table.UserCourseTable
 import com.smartcourse.data.models.table.UserFavoriteRow
 import com.smartcourse.data.models.table.UserFavoriteTable
+import com.smartcourse.data.models.table.UserFavoriteTable.USER_A
+import com.smartcourse.data.models.table.UserFavoriteTable.USER_B
 import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.DomainUser
@@ -21,6 +23,7 @@ import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.tasks.await
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import javax.inject.Inject
@@ -130,7 +133,7 @@ class UserRepository @Inject constructor(
             .postgrest[UserFavoriteTable.TABLE]
             .select {
                 filter {
-                    eq(UserFavoriteTable.USER_A, userId)
+                    eq(USER_A, userId)
                 }
             }
             .decodeList<UserFavoriteRow>()
@@ -139,16 +142,21 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun isUserFavorite(userA: String, userB: String): Boolean {
-        val response = client.postgrest[UserFavoriteTable.TABLE]
+        val response = client.postgrest[TableNames.USER_FAVORITE]
             .select {
                 filter {
-                    eq(UserFavoriteTable.USER_A, userA)
-                    eq(UserFavoriteTable.USER_B, userB)
+                    eq(USER_A, userA)
+                    eq(USER_B, userB)
                 }
+                limit(1)
             }
 
-        return response.data.isNotEmpty()
+        val data = response.data
+
+
+        return data is JsonArray && data.isNotEmpty()
     }
+
 
 
 
@@ -156,8 +164,8 @@ class UserRepository @Inject constructor(
         client.postgrest[UserFavoriteTable.TABLE]
             .insert(
                 mapOf(
-                    UserFavoriteTable.USER_A to userA,
-                    UserFavoriteTable.USER_B to userB
+                    USER_A to userA,
+                    USER_B to userB
                 )
             )
     }
@@ -166,8 +174,8 @@ class UserRepository @Inject constructor(
         client.postgrest[UserFavoriteTable.TABLE]
             .delete {
                 filter {
-                    eq(UserFavoriteTable.USER_A, userA)
-                    eq(UserFavoriteTable.USER_B, userB)
+                    eq(USER_A, userA)
+                    eq(USER_B, userB)
                 }
             }
     }
@@ -294,7 +302,7 @@ class UserRepository @Inject constructor(
         return client.postgrest[UserFavoriteTable.TABLE]
             .select {
                 filter {
-                    eq(UserFavoriteTable.USER_B, userId)
+                    eq(USER_B, userId)
                 }
             }
             .decodeList<UserFavoriteRow>()
