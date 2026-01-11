@@ -138,6 +138,20 @@ class UserRepository @Inject constructor(
         return rows.map { it.userB }.toSet()
     }
 
+    suspend fun isUserFavorite(userA: String, userB: String): Boolean {
+        val response = client.postgrest[UserFavoriteTable.TABLE]
+            .select {
+                filter {
+                    eq(UserFavoriteTable.USER_A, userA)
+                    eq(UserFavoriteTable.USER_B, userB)
+                }
+            }
+
+        return response.data.isNotEmpty()
+    }
+
+
+
     suspend fun saveUser(userA: String, userB: String) {
         client.postgrest[UserFavoriteTable.TABLE]
             .insert(
@@ -147,6 +161,17 @@ class UserRepository @Inject constructor(
                 )
             )
     }
+
+    suspend fun unsaveUser(userA: String, userB: String) {
+        client.postgrest[UserFavoriteTable.TABLE]
+            .delete {
+                filter {
+                    eq(UserFavoriteTable.USER_A, userA)
+                    eq(UserFavoriteTable.USER_B, userB)
+                }
+            }
+    }
+
 
 
     suspend fun syncGoogleAvatar() {
