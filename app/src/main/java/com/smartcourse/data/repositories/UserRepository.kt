@@ -177,8 +177,8 @@ class UserRepository @Inject constructor(
                     USER_B to userB
                 )
             )
-        } catch (_: Exception) {
-            // duplicate key → ignore
+        } catch (e: Exception) {
+            throw e
         }
     }
 
@@ -190,55 +190,80 @@ class UserRepository @Inject constructor(
                     eq(USER_B, userB)
                 }
             }
-        } catch (_: Exception) {
-            // ignore: not critical if delete fails
+        } catch (e: Exception) {
+            throw e
         }
     }
 
 
     suspend fun updateUserName(userId: String, name: String) {
-        client.from(TableNames.USERTABLE)
-            .update(mapOf(UserTable.NAME to name)) {
-                filter { eq(UserTable.ID, userId) }
-            }
+        try {
+            client
+                .from(TableNames.USERTABLE)
+                .update(mapOf(UserTable.NAME to name)) {
+                    filter { eq(UserTable.ID, userId) }
+                }
+        } catch (e: Exception) {
+            throw e
+        }
     }
+
 
     suspend fun updateUserBio(userId: String, bio: String) {
-        client.from(TableNames.USERTABLE)
-            .update(mapOf(UserTable.BIO to bio)) {
-                filter { eq(UserTable.ID, userId) }
-            }
+        try {
+            client
+                .from(TableNames.USERTABLE)
+                .update(mapOf(UserTable.BIO to bio)) {
+                    filter { eq(UserTable.ID, userId) }
+                }
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
+
     suspend fun removeUserCourse(userId: String, courseId: String) {
-        client.from(TableNames.USER_COURSES)
-            .delete {
-                filter {
-                    eq(UserTable.ID, userId)
-                    eq("course_id", courseId)
+        try {
+            client
+                .from(TableNames.USER_COURSES)
+                .delete {
+                    filter {
+                        eq(UserTable.ID, userId)
+                        eq("course_id", courseId)
+                    }
                 }
-            }
+        } catch (e: Exception) {
+            throw e
+        }
     }
+
 
 
     suspend fun getAllCourses(): List<Course> {
-        return client
-            .from(TableNames.COURSE_LIST)
-            .select()
-            .decodeList()
+        return try {
+            client
+                .from(TableNames.COURSE_LIST)
+                .select()
+                .decodeList()
+        } catch (e: Exception) {
+            throw e
+        }
     }
+
 
 
     suspend fun addUserCourse(userId: String, courseId: String) {
         client
             .from(TableNames.USER_COURSES)
-            .insert(
-                mapOf(
-                    UserTable.ID to userId,
+            .upsert(
+                value = mapOf(
+                    "user_id" to userId,
                     "course_id" to courseId
-                )
+                ),
+                onConflict = "user_id,course_id"
             )
     }
+
 
 
     suspend fun syncGoogleAvatar() {
