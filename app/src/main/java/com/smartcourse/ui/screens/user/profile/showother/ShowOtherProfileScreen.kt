@@ -31,7 +31,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.smartcourse.data.models.usermodel.Course
@@ -53,27 +53,33 @@ import com.smartcourse.ui.theme.ShowOtherProfileColorPalette
 
 @Composable
 fun ShowOtherProfileScreen(
-    navController: NavController,
-    viewModel: ShowOtherProfileViewModel = hiltViewModel()
+    navController: NavController
 ) {
+    val backStackEntry = navController.currentBackStackEntry
+        ?: return
+
+    val userId = backStackEntry.arguments
+        ?.getString("userId")
+        ?: return
+
+    val viewModel: ShowOtherProfileViewModel =
+        hiltViewModel(key = "ShowOtherProfile-$userId")
+
     val palette = LocalAppPalette.current
     val colors = palette.otherProfile
 
-    // Collecting all states from the ViewModel
-    val isLoading by viewModel.isLoading.collectAsState()
-    val user by viewModel.user.collectAsState()
-    val favorites by viewModel.favoritesCount.collectAsState()
-    val courses by viewModel.courses.collectAsState()
-    val isFavorite by viewModel.isFavorite.collectAsState()
-    val isToggling by viewModel.isTogglingFavorite.collectAsState()
-
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val user by viewModel.user.collectAsStateWithLifecycle()
+    val favorites by viewModel.favoritesCount.collectAsStateWithLifecycle()
+    val courses by viewModel.courses.collectAsStateWithLifecycle()
+    val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
+    val isToggling by viewModel.isTogglingFavorite.collectAsStateWithLifecycle()
 
     if (isLoading || user == null) {
         LoadingScreen()
         return
     }
 
-    // Use a local variable for smart casting (avoids user!!)
     val currentUser = user!!
 
     Column(
@@ -112,6 +118,8 @@ fun ShowOtherProfileScreen(
         }
     }
 }
+
+
 
 
 
@@ -191,24 +199,27 @@ private fun ActionButtons(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Location: ShowOtherProfileScreen.kt -> ActionButtons function
+
         OutlinedButton(
             onClick = onFavoriteClick,
-            // Physically disable the button while a request is pending
             enabled = !isToggling,
             modifier = Modifier.size(48.dp),
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(
                 1.dp,
+                // הלב יהיה אדום רק אם isFavorite הוא true
                 if (isFavorite) Color.Red else colors.accent.copy(alpha = 0.55f)
             ),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = colors.card,
-                contentColor = if (isFavorite) Color.Red else colors.accent,
-                disabledContentColor = (if (isFavorite) Color.Red else colors.accent).copy(alpha = 0.4f)
+
+                contentColor = if (isFavorite) Color.Red else colors.accent
             ),
             contentPadding = PaddingValues(0.dp)
         ) {
             Icon(
+
                 imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = "Favorite",
                 tint = if (isFavorite) Color.Red else colors.accent,

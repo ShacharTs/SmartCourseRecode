@@ -1,18 +1,18 @@
 package com.smartcourse.ui.screens.user.profile.showother
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.User
-import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.ChatRepository
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,21 +24,9 @@ class ShowOtherProfileViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    companion object {
-        private const val TAG = "ShowOtherProfileVM"
-    }
-
-    // ------------------------------------------------------------
-    // Args
-    // ------------------------------------------------------------
-
     private val userId: String =
         savedStateHandle["userId"]
             ?: error("ShowOtherProfile requires userId")
-
-    // ------------------------------------------------------------
-    // State
-    // ------------------------------------------------------------
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -58,90 +46,102 @@ class ShowOtherProfileViewModel @Inject constructor(
     private val _isTogglingFavorite = MutableStateFlow(false)
     val isTogglingFavorite: StateFlow<Boolean> = _isTogglingFavorite
 
-    // ------------------------------------------------------------
-    // Init
-    // ------------------------------------------------------------
 
     init {
-        Log.d(TAG, "init → userId=$userId")
         loadInitialData()
     }
+
+    /* ============================================================
+       INITIAL LOAD
+       ============================================================ */
 
     private fun loadInitialData() {
         viewModelScope.launch {
             _isLoading.value = true
-
-            // Reset state
-            _user.value = null
-            _courses.value = emptyList()
-            _favoritesCount.value = 0
-            _isFavorite.value = false
-            _isTogglingFavorite.value = false
-
             try {
-                val user = userRepository.loadUser(userId) ?: return@launch
-                _user.value = user
-
-                _favoritesCount.value =
-                    if (user.role == UserRole.TUTOR)
-                        userRepository.countUserFavorites(userId)
-                    else 0
-
-                _courses.value =
-                    userRepository.getUserCourses(userId)
-                        .mapNotNull { userRepository.getCourseById(it.course_id) }
-
-                val me = authRepository.currentUser.value?.userId
-                _isFavorite.value =
-                    me?.let { userRepository.isUserFavorite(it, userId) } ?: false
-
+                loadUser()
+                loadCourses()
+                loadFavoriteState()
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+    private suspend fun loadUser() {
+        val targetUser = userRepository.loadUser(userId)
+            ?: error("User not found")
+        _user.value = targetUser
+    }
+
+    private suspend fun loadCourses() {
+        _courses.value = userRepository
+            .getUserCourses(userId)
+            .mapNotNull { userRepository.getCourseById(it.course_id) }
+    }
+
+    private suspend fun loadFavoriteState() {
+        val me = requireMe()
+        _isFavorite.value = userRepository.isUserFavorite(me, userId)
+        _favoritesCount.value =
+            userRepository.countUserFavorites(userId)
+    }
+
+    /* ============================================================
+       TOGGLE FAVORITE
+       ============================================================ */
 
     fun toggleFavorite() {
-        val target = _user.value ?: return
-        val me = authRepository.currentUser.value?.userId ?: return
         if (_isTogglingFavorite.value) return
+        val target = _user.value ?: return
 
         viewModelScope.launch {
             _isTogglingFavorite.value = true
-
-            val wasFavorite = _isFavorite.value
-            val nextValue = !wasFavorite
-
-            // optimistic update
-            applyFavoriteState(nextValue)
-
             try {
-                if (nextValue) {
-                    userRepository.saveUser(me, target.id)
-                } else {
-                    userRepository.unsaveUser(me, target.id)
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "toggleFavorite FAILED → rollback", e)
-                applyFavoriteState(wasFavorite)
+                val me = requireMe()
+                val targetUserId = target.userId
+
+                val wasFavorite = _isFavorite.value
+                performFavoriteAction(me, targetUserId, wasFavorite)
+
+                // optimistic for icon only
+                _isFavorite.value = !wasFavorite
+
+                // 🔒 re-sync from DB (single source of truth)
+                refreshFavoriteCount(targetUserId)
+
             } finally {
                 _isTogglingFavorite.value = false
             }
         }
     }
 
-    private fun applyFavoriteState(favorite: Boolean) {
-        _isFavorite.value = favorite
-        _favoritesCount.value =
-            if (favorite) _favoritesCount.value + 1
-            else (_favoritesCount.value - 1).coerceAtLeast(0)
-
-        Log.d(
-            TAG,
-            "applyFavoriteState → isFavorite=$favorite favoritesCount=${_favoritesCount.value}"
-        )
+    private suspend fun performFavoriteAction(
+        me: String,
+        targetUserId: String,
+        wasFavorite: Boolean
+    ) {
+        if (wasFavorite) {
+            userRepository.unsaveUser(me, targetUserId)
+        } else {
+            userRepository.saveUser(me, targetUserId)
+        }
     }
+
+    private suspend fun refreshFavoriteCount(targetUserId: String) {
+        _favoritesCount.value =
+            userRepository.countUserFavorites(targetUserId)
+    }
+
+    /* ============================================================
+       HELPERS
+       ============================================================ */
+
+    private suspend fun requireMe(): String =
+        authRepository.currentUser
+            .filterNotNull()
+            .first()
+            .userId
 
     fun openChat(onReady: (chatId: String) -> Unit) {
         viewModelScope.launch {
@@ -154,3 +154,5 @@ class ShowOtherProfileViewModel @Inject constructor(
         }
     }
 }
+
+

@@ -137,45 +137,61 @@ class UserRepository @Inject constructor(
     }
 
     suspend fun isUserFavorite(userA: String, userB: String): Boolean {
-        val response = client.postgrest[TableNames.USER_FAVORITE]
-            .select {
-                filter {
-                    eq(USER_A, userA)
-                    eq(USER_B, userB)
+        return try {
+            val response = client
+                .postgrest[TableNames.USER_FAVORITE]
+                .select {
+                    filter {
+                        eq(USER_A, userA)
+                        eq(USER_B, userB)
+                    }
+                    limit(1)
                 }
-                limit(1)
-            }
 
-        val data = response.data
+            val raw = response.data
+            val exists = raw != "[]"
 
+            android.util.Log.d(
+                "FAVORITE_CHECK",
+                "exists=$exists raw=$raw"
+            )
 
-        if (data !is JsonArray) {
-            return false
+            exists
+        } catch (e: Exception) {
+            android.util.Log.e("FAVORITE_CHECK", "isUserFavorite FAILED", e)
+            false
         }
-        return data.isNotEmpty()
-
     }
 
 
+
     suspend fun saveUser(userA: String, userB: String) {
-        client.postgrest[UserFavoriteTable.TABLE]
-            .insert(
+        try {
+            client.postgrest[TableNames.USER_FAVORITE].insert(
                 mapOf(
                     USER_A to userA,
                     USER_B to userB
                 )
             )
+        } catch (_: Exception) {
+            // duplicate key → ignore
+        }
     }
 
     suspend fun unsaveUser(userA: String, userB: String) {
-        client.postgrest[UserFavoriteTable.TABLE]
-            .delete {
+        try {
+            client.postgrest[TableNames.USER_FAVORITE].delete {
                 filter {
                     eq(USER_A, userA)
                     eq(USER_B, userB)
                 }
             }
+        } catch (_: Exception) {
+            // ignore: not critical if delete fails
+        }
     }
+
+
 
 
     suspend fun syncGoogleAvatar() {
@@ -191,7 +207,6 @@ class UserRepository @Inject constructor(
             updateUserImage(id = u.id, image = avatar)
         }
     }
-
 
     /**
      * Given a chatId of the form "userA_userB", return both users.
