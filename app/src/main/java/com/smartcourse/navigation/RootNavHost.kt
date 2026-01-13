@@ -56,7 +56,7 @@ private fun LaunchedEffectStates(
                 }
             }
 
-
+            // todo change back to login screen
             AuthState.LOGGED_OUT -> {
                 navController.navigate(Screen.Login.route) {
                     popUpTo(0) { inclusive = true }

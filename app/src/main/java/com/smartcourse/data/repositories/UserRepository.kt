@@ -37,7 +37,14 @@ class UserRepository @Inject constructor(
     /**
      * create user in user_table
      */
-    suspend fun createUser(id: String, email: String, name: String, image: String, role: String, bio: String) {
+    suspend fun createUser(
+        id: String,
+        email: String,
+        name: String,
+        image: String,
+        role: String,
+        bio: String
+    ) {
         client.postgrest[TableNames.USERTABLE].insert(
             mapOf(
                 UserTable.ID to id,
@@ -75,13 +82,12 @@ class UserRepository @Inject constructor(
     }
 
 
-
     suspend fun updateUserRole(id: String, role: UserRole) {
         client
             .from(TableNames.USERTABLE)
             .update(
                 mapOf(UserTable.ROLE to role.serialName())
-            ){
+            ) {
                 filter {
                     eq(UserTable.ID, id)
                 }
@@ -163,7 +169,6 @@ class UserRepository @Inject constructor(
     }
 
 
-
     suspend fun saveUser(userA: String, userB: String) {
         try {
             client.postgrest[TableNames.USER_FAVORITE].insert(
@@ -189,7 +194,6 @@ class UserRepository @Inject constructor(
             // ignore: not critical if delete fails
         }
     }
-
 
 
     suspend fun updateUserName(userId: String, name: String) {
@@ -225,7 +229,6 @@ class UserRepository @Inject constructor(
     }
 
 
-
     suspend fun addUserCourse(userId: String, courseId: String) {
         client
             .from(TableNames.USER_COURSES)
@@ -236,13 +239,6 @@ class UserRepository @Inject constructor(
                 )
             )
     }
-
-
-
-
-
-
-
 
 
     suspend fun syncGoogleAvatar() {
@@ -322,7 +318,7 @@ class UserRepository @Inject constructor(
 
 
     // later use
-    suspend fun toDomainUser(user: User): DomainUser =
+    suspend fun toDomainUser(user: User): DomainUser? =
         when (user.role) {
 
             UserRole.STUDENT -> {
@@ -337,13 +333,11 @@ class UserRepository @Inject constructor(
                 Tutor(user, courses)
             }
 
-            UserRole.TEMP -> {
-                error("TEMP user not supported")
-            }
+            UserRole.TEMP -> null
 
-            else -> error("Unhandled role: ${user.role}")
-
+            else -> null
         }
+
 
     suspend fun searchUsers(query: String): List<User> {
         val q = query.trim()
@@ -369,14 +363,6 @@ class UserRepository @Inject constructor(
             .decodeList<UserFavoriteRow>()
             .size
     }
-
-
-
-
-
-
-
-
 
 
 }

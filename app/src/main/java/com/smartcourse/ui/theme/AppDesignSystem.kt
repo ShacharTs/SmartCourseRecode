@@ -113,6 +113,16 @@ data class ShowProfileColorPalette(
 )
 
 
+data class ChooseRoleColorPalette(
+    val backgroundGradient: List<Color>,
+    val card: Color,
+    val avatarBackground: Color,
+    val accent: Color,
+    val textPrimary: Color,
+    val subtext: Color
+)
+
+
 
 
 data class NavBarColorPalette(
@@ -388,6 +398,36 @@ object ShowProfileLayoutColors {
     )
 
     val Light = ShowProfileColorPalette(
+        backgroundGradient = listOf(
+            Color(0xFFF5F3FF),
+            Color(0xFFEDE9FE),
+            Color(0xFFDDD6FE)
+        ),
+        card = Color.White,
+        avatarBackground = Color(0xFFEDE9FE),
+        accent = Color(0xFF9333EA),
+        textPrimary = Color(0xFF1F2937),
+        subtext = Color(0xFF6B7280)
+    )
+}
+
+
+object ChooseRoleLayoutColors {
+
+    val Dark = ChooseRoleColorPalette(
+        backgroundGradient = listOf(
+            Color(0xFF0B0514),
+            Color(0xFF1E0938),
+            Color(0xFF3A0F54)
+        ),
+        card = Color(0xFF16112A),
+        avatarBackground = Color(0xFF241636),
+        accent = Color(0xFFEC4899),
+        textPrimary = Color.White,
+        subtext = Color(0xFFA9A9B3)
+    )
+
+    val Light = ChooseRoleColorPalette(
         backgroundGradient = listOf(
             Color(0xFFF5F3FF),
             Color(0xFFEDE9FE),

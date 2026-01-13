@@ -109,8 +109,9 @@ class AuthRepository @Inject constructor(
         loadOrCreateUser(sessionUser.id)
     }
 
-    suspend fun toDomainUser(user: User): DomainUser {
+    suspend fun toDomainUser(user: User): DomainUser? {
         return userRepo.toDomainUser(user)
     }
+
 
 }
