@@ -22,6 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.ShowProfileColorPalette
@@ -44,33 +48,197 @@ import com.smartcourse.ui.theme.StudentHomeColorPalette
 @Composable
 fun UserProfileScreen(
     navController: NavController,
-    authVM: AuthViewModel
+    authVM: AuthViewModel,
+    vm: UserProfileViewModel = hiltViewModel()
 ) {
     val isDark = LocalAppPalette.current.isDark
     val colors =
-        if (isDark)
-            ShowProfileLayoutColors.Dark
-        else
-            ShowProfileLayoutColors.Light
+        if (isDark) ShowProfileLayoutColors.Dark
+        else ShowProfileLayoutColors.Light
 
-    val user = authVM.currentUser.value?.user ?: return
+    val authUser = authVM.currentUser.value?.user ?: return
+    val user by vm.user.collectAsState()
+
+    LaunchedEffect(authUser.userId) {
+        vm.loadUser(authUser.userId)
+        vm.loadCourses(authUser.userId)
+    }
+
+    val currentUser = user ?: return
+
+    var showEditName by remember { mutableStateOf(false) }
+    var showEditBio by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(colors.backgroundGradient)
-            )
+            .background(Brush.verticalGradient(colors.backgroundGradient))
             .statusBarsPadding()
             .padding(bottom = 24.dp)
     ) {
         ProfileHeader(colors)
-        ProfileCard(user, colors)
-        BioSection(user, colors)
-        CoursesSection(colors, user = user)
+
+        ProfileCard(
+            user = currentUser,
+            home = colors,
+            onEditAvatar = { },
+            onEditName = { showEditName = true }
+        )
+
+        BioSection(
+            user = currentUser,
+            home = colors,
+            onEditBio = { showEditBio = true }
+        )
+
+        CoursesSection(
+            home = colors,
+            user = currentUser,
+            vm = vm
+        )
+
         ProfileActions(authVM)
     }
+
+    if (showEditName) {
+        EditNameDialog(
+            currentName = currentUser.name.orEmpty(),
+            onDismiss = { showEditName = false },
+            onSave = { newName ->
+                vm.updateName(currentUser.userId, newName)
+            }
+        )
+    }
+
+    if (showEditBio) {
+        EditBioDialog(
+            currentBio = currentUser.bio,
+            onDismiss = { showEditBio = false },
+            onSave = { newBio ->
+                vm.updateBio(currentUser.userId, newBio)
+            }
+        )
+    }
 }
+
+
+
+@Composable
+private fun EditNameDialog(
+    currentName: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var name by remember { mutableStateOf(currentName) }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Text(
+                "Save",
+                modifier = Modifier.clickable {
+                    onSave(name.trim())
+                    onDismiss()
+                }
+            )
+        },
+        dismissButton = {
+            Text("Cancel", modifier = Modifier.clickable { onDismiss() })
+        },
+        title = { Text("Edit name") },
+        text = {
+            androidx.compose.material3.TextField(
+                value = name,
+                onValueChange = { name = it },
+                singleLine = true
+            )
+        }
+    )
+}
+
+@Composable
+private fun EditBioDialog(
+    currentBio: String?,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var bio by remember { mutableStateOf(currentBio.orEmpty()) }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Text(
+                "Save",
+                modifier = Modifier.clickable {
+                    onSave(bio.trim())
+                    onDismiss()
+                }
+            )
+        },
+        dismissButton = {
+            Text("Cancel", modifier = Modifier.clickable { onDismiss() })
+        },
+        title = { Text("Edit bio") },
+        text = {
+            androidx.compose.material3.TextField(
+                value = bio,
+                onValueChange = { bio = it },
+                minLines = 3
+            )
+        }
+    )
+}
+
+@Composable
+private fun EditCoursesDialog(
+    allCourses: List<Course>,
+    userCourses: List<Course>,
+    onDismiss: () -> Unit,
+    onAdd: (Course) -> Unit,
+    onRemove: (Course) -> Unit
+) {
+    val userCourseIds = remember(userCourses) {
+        userCourses.map { it.id }.toSet()
+    }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Text("Done", modifier = Modifier.clickable { onDismiss() })
+        },
+        title = { Text("Edit Courses") },
+        text = {
+            Column {
+                allCourses.forEach { course ->
+                    val isAdded = userCourseIds.contains(course.id)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(course.name)
+
+                        Text(
+                            text = if (isAdded) "Remove" else "Add",
+                            color = if (isAdded) Color.Red else Color(0xFF4CAF50),
+                            modifier = Modifier.clickable {
+                                if (isAdded) onRemove(course)
+                                else onAdd(course)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    )
+}
+
+
+
+
 
 @Composable
 private fun ProfileHeader(home: ShowProfileColorPalette) {
@@ -86,7 +254,9 @@ private fun ProfileHeader(home: ShowProfileColorPalette) {
 @Composable
 private fun ProfileCard(
     user: User,
-    home: ShowProfileColorPalette
+    home: ShowProfileColorPalette,
+    onEditAvatar: () -> Unit,
+    onEditName: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -107,8 +277,10 @@ private fun ProfileCard(
                 text = user.name.orEmpty(),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = home.textPrimary
+                color = home.textPrimary,
+                modifier = Modifier.clickable { onEditName() }
             )
+
 
             Spacer(Modifier.height(4.dp))
 
@@ -122,7 +294,11 @@ private fun ProfileCard(
             )
         }
 
-        Avatar(user, home)
+        Avatar(
+            user = user,
+            home = home,
+            onEditAvatar = onEditAvatar
+        )
     }
 
     Spacer(Modifier.height(24.dp))
@@ -131,14 +307,16 @@ private fun ProfileCard(
 @Composable
 private fun BoxScope.Avatar(
     user: User,
-    home: ShowProfileColorPalette
+    home: ShowProfileColorPalette,
+    onEditAvatar: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .align(Alignment.TopCenter)
             .size(76.dp)
             .clip(CircleShape)
-            .background(home.avatarBackground),
+            .background(home.avatarBackground)
+            .clickable { onEditAvatar() },
         contentAlignment = Alignment.Center
     ) {
 
@@ -152,7 +330,6 @@ private fun BoxScope.Avatar(
                 contentScale = ContentScale.Crop
             )
         } else {
-            // Fallback initials
             Text(
                 text = user.name
                     ?.split(" ")
@@ -168,12 +345,18 @@ private fun BoxScope.Avatar(
 }
 
 
+
 @Composable
 private fun BioSection(
     user: User,
-    home: ShowProfileColorPalette
+    home: ShowProfileColorPalette,
+    onEditBio: () -> Unit
 ) {
-    SectionTitle("Bio", home)
+    SectionHeader(
+        title = "Bio",
+        onEditClick = onEditBio,
+        home = home
+    )
 
     CardSection {
         Text(
@@ -192,38 +375,55 @@ private fun BioSection(
 private fun CoursesSection(
     home: ShowProfileColorPalette,
     user: User,
-    vm: UserProfileViewModel = hiltViewModel()
+    vm: UserProfileViewModel
 ) {
-    val courses by vm.courses.collectAsState()
+    val userCourses by vm.courses.collectAsState()
+    val allCourses by vm.allCourses.collectAsState()
 
-    LaunchedEffect(user.userId) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
         vm.loadCourses(user.userId)
+        vm.loadAllCourses()
     }
 
-    SectionTitle("Courses", home)
+    SectionHeader(
+        title = "Courses",
+        onEditClick = { showDialog = true },
+        home = home
+    )
 
     CardSection {
-        if (courses.isEmpty()) {
-            Text(
-                text = "No courses yet.",
-                fontSize = 14.sp,
-                color = home.subtext
-            )
+        if (userCourses.isEmpty()) {
+            Text("No courses yet.", color = home.subtext)
         } else {
-            courses.forEach { course ->
+            userCourses.forEach {
                 Text(
-                    text = "• ${course.name}",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    text = "• ${it.name}",
                     color = home.textPrimary,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
         }
     }
 
+    if (showDialog) {
+        EditCoursesDialog(
+            allCourses = allCourses,
+            userCourses = userCourses,
+            onDismiss = { showDialog = false },
+            onAdd = { course ->
+                vm.addCourse(user.userId, course.id)
+            },
+            onRemove = { course ->
+                vm.removeCourse(user.userId, course.id)
+            }
+        )
+    }
+
     Spacer(Modifier.height(24.dp))
 }
+
 
 
 @Composable

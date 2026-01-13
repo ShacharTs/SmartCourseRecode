@@ -190,17 +190,56 @@ class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun updateUserBio(id: String, bio: String) {
-        client
-            .from(TableNames.USERTABLE)
-            .update(
-                mapOf(UserTable.BIO to bio)
-            ) {
+
+
+    suspend fun updateUserName(userId: String, name: String) {
+        client.from(TableNames.USERTABLE)
+            .update(mapOf(UserTable.NAME to name)) {
+                filter { eq(UserTable.ID, userId) }
+            }
+    }
+
+    suspend fun updateUserBio(userId: String, bio: String) {
+        client.from(TableNames.USERTABLE)
+            .update(mapOf(UserTable.BIO to bio)) {
+                filter { eq(UserTable.ID, userId) }
+            }
+    }
+
+    suspend fun removeUserCourse(userId: String, courseId: String) {
+        client.from(TableNames.USER_COURSES)
+            .delete {
                 filter {
-                    eq(UserTable.ID, id)
+                    eq(UserTable.ID, userId)
+                    eq("course_id", courseId)
                 }
             }
     }
+
+
+    suspend fun getAllCourses(): List<Course> {
+        return client
+            .from(TableNames.COURSE_LIST)
+            .select()
+            .decodeList()
+    }
+
+
+
+    suspend fun addUserCourse(userId: String, courseId: String) {
+        client
+            .from(TableNames.USER_COURSES)
+            .insert(
+                mapOf(
+                    UserTable.ID to userId,
+                    "course_id" to courseId
+                )
+            )
+    }
+
+
+
+
 
 
 

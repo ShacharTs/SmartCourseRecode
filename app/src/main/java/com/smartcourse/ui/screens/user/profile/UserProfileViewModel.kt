@@ -17,26 +17,53 @@ class UserProfileViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    // --------------------------------------------------
+    // USER STATE
+    // --------------------------------------------------
+
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
 
+    // --------------------------------------------------
+    // COURSES STATE
+    // --------------------------------------------------
 
     private val _courses = MutableStateFlow<List<Course>>(emptyList())
     val courses: StateFlow<List<Course>> = _courses
 
-    fun loadCourses(userId: String) {
-        viewModelScope.launch {
-            val links = userRepository.getUserCourses(userId)
-            val courses = links.mapNotNull {
-                userRepository.getCourseById(it.course_id)
-            }
-            _courses.value = courses
-        }
-    }
+
+    private val _allCourses = MutableStateFlow<List<Course>>(emptyList())
+    val allCourses: StateFlow<List<Course>> = _allCourses
+
+    // --------------------------------------------------
+    // LOADERS
+    // --------------------------------------------------
 
     fun loadUser(userId: String) {
         viewModelScope.launch {
             _user.value = userRepository.loadUser(userId)
+        }
+    }
+
+    fun loadCourses(userId: String) {
+        viewModelScope.launch {
+            val links = userRepository.getUserCourses(userId)
+            _courses.value = links.mapNotNull {
+                userRepository.getCourseById(it.course_id)
+            }
+        }
+    }
+
+    // --------------------------------------------------
+    // UPDATES — USER
+    // --------------------------------------------------
+
+    fun updateName(userId: String, name: String) {
+        if (name.isBlank()) return
+
+        viewModelScope.launch {
+            userRepository.updateUserName(userId, name)
+            loadUser(userId)
         }
     }
 
@@ -55,9 +82,38 @@ class UserProfileViewModel @Inject constructor(
     }
 
     fun updateImage(userId: String, image: String) {
+        if (image.isBlank()) return
+
         viewModelScope.launch {
             userRepository.updateUserImage(userId, image)
             loadUser(userId)
         }
     }
+
+    // --------------------------------------------------
+    // UPDATES — COURSES
+    // --------------------------------------------------
+
+    fun removeCourse(userId: String, courseId: String) {
+        viewModelScope.launch {
+            userRepository.removeUserCourse(userId, courseId)
+            loadCourses(userId)
+        }
+    }
+
+
+
+    fun loadAllCourses() {
+        viewModelScope.launch {
+            _allCourses.value = userRepository.getAllCourses()
+        }
+    }
+
+    fun addCourse(userId: String, courseId: String) {
+        viewModelScope.launch {
+            userRepository.addUserCourse(userId, courseId)
+            loadCourses(userId)
+        }
+    }
 }
+
