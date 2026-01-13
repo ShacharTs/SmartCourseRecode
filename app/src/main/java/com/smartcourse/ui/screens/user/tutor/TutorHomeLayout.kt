@@ -55,16 +55,6 @@ fun TutorHomeLayout(
         contentPadding = PaddingValues(16.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // 1. Header Section
-        item {
-            Text(
-                text = "Welcome back, ${tutor.user.getUserName()}",
-                color = homeColors.textPrimary,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
         // 2. My Students Section
         item {
             MyStudentsSection(
