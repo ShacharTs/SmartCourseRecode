@@ -3,6 +3,7 @@ package com.smartcourse.ui.screens.navbar
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,12 +34,10 @@ fun MenuTopAppBar(
         NavBarColors.Light
     }
 
-    // Correct: Compose state, no collect
     val domainUser = authVM.domainUser
-    authVM.refreshDomainUserFromRepo()
 
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
+    CenterAlignedTopAppBar(
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = colors.background,
             navigationIconContentColor = colors.title,
             actionIconContentColor = colors.title,
@@ -56,13 +55,13 @@ fun MenuTopAppBar(
         },
         title = {
             CustomText(
-                modifier = Modifier.fillMaxWidth(),
                 text = "Welcome ${domainUser?.user?.name.orEmpty()}",
                 fontSize = 30.sp,
                 maxLines = 1,
-                textAlign = TextAlign.Start
+                textAlign = TextAlign.Center
             )
         }
     )
 }
+
 
