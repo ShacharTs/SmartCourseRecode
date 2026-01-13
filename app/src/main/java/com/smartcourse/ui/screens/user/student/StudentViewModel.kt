@@ -67,7 +67,7 @@ class StudentHomeViewModel @Inject constructor(
                 s.coursesSeekingHelp.map { it.id }.toSet()
 
             val savedTutorIds =
-                userRepository.getFavoriteTutorIds(myId)
+                userRepository.getFavoriteUserIds(myId)
 
             val tutorUsers =
                 userRepository

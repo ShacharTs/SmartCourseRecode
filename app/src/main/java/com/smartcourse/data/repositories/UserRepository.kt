@@ -122,7 +122,7 @@ class UserRepository @Inject constructor(
             .decodeSingleOrNull<Course>()
     }
 
-    suspend fun getFavoriteTutorIds(userId: String): Set<String> {
+    suspend fun getFavoriteUserIds(userId: String): Set<String> {
         val rows = client
             .postgrest[UserFavoriteTable.TABLE]
             .select {
@@ -189,6 +189,19 @@ class UserRepository @Inject constructor(
             // ignore: not critical if delete fails
         }
     }
+
+    suspend fun updateUserBio(id: String, bio: String) {
+        client
+            .from(TableNames.USERTABLE)
+            .update(
+                mapOf(UserTable.BIO to bio)
+            ) {
+                filter {
+                    eq(UserTable.ID, id)
+                }
+            }
+    }
+
 
 
 

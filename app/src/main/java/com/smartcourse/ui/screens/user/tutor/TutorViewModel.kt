@@ -46,7 +46,7 @@ class TutorHomeViewModel @Inject constructor(
             val myId = t.user.getUID()
 
             // Fetch IDs of students who have "saved" or interacted with this tutor
-            val studentIds = userRepository.getFavoriteTutorIds(myId)
+            val studentIds = userRepository.getFavoriteUserIds(myId)
 
             val studentUsers = userRepository
                 .getAllUsersExcept(myId)

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,8 +30,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.StudentHomeColorPalette
@@ -58,109 +64,141 @@ fun UserProfileScreen(
             .statusBarsPadding()
             .padding(bottom = 24.dp)
     ) {
+        ProfileHeader(home)
+        ProfileCard(user, home)
+        BioSection(user, home)
+        CoursesSection(home, user = user)
+        ProfileActions(authVM)
+    }
+}
 
-        /* ======================
-           TOP TITLE
-           ====================== */
-        Text(
-            text = "Profile",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = home.textPrimary,
-            modifier = Modifier.padding(start = 24.dp, top = 16.dp, bottom = 12.dp)
-        )
+@Composable
+private fun ProfileHeader(home: StudentHomeColorPalette) {
+    Text(
+        text = "Profile",
+        fontSize = 22.sp,
+        fontWeight = FontWeight.Bold,
+        color = home.textPrimary,
+        modifier = Modifier.padding(start = 24.dp, top = 16.dp, bottom = 12.dp)
+    )
+}
 
-        /* ======================
-           PROFILE CARD + AVATAR
-           ====================== */
-        Box(
+@Composable
+private fun ProfileCard(
+    user: User,
+    home: StudentHomeColorPalette
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(top = 48.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(home.card)
+                .padding(top = 64.dp, bottom = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 48.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(home.card)
-                    .padding(top = 64.dp, bottom = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                Text(
-                    text = user.name ?: "",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = home.textPrimary
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                Text(
-                    text = user.role?.name
-                        ?.lowercase()
-                        ?.replaceFirstChar { it.uppercase() }
-                        ?: "",
-                    fontSize = 14.sp,
-                    color = home.subtext
-                )
-            }
-
-            // Avatar (cutting card)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .size(76.dp)
-                    .clip(CircleShape)
-                    .background(home.accent),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = user.name
-                        ?.split(" ")
-                        ?.take(2)
-                        ?.joinToString("") { it.first().uppercase() }
-                        ?: "",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        /* ======================
-           BIO
-           ====================== */
-        SectionTitle("Bio", home)
-
-        CardSection {
             Text(
-                text = user.bio ?: "No bio available yet.",
+                text = user.name.orEmpty(),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = home.textPrimary
+            )
+
+            Spacer(Modifier.height(4.dp))
+
+            Text(
+                text = user.role?.name
+                    ?.lowercase()
+                    ?.replaceFirstChar { it.uppercase() }
+                    .orEmpty(),
                 fontSize = 14.sp,
-                color = home.subtext,
-                lineHeight = 20.sp
+                color = home.subtext
             )
         }
 
-        Spacer(Modifier.height(24.dp))
+        Avatar(user, home)
+    }
 
-        /* ======================
-           COURSES
-           ====================== */
-        SectionTitle("Courses", home)
+    Spacer(Modifier.height(24.dp))
+}
 
-        CardSection {
-            listOf(
-                "Algorithms 1",
-                "Data Structures",
-                "Operating Systems"
-            ).forEach {
+@Composable
+private fun BoxScope.Avatar(
+    user: User,
+    home: StudentHomeColorPalette
+) {
+    Box(
+        modifier = Modifier
+            .align(Alignment.TopCenter)
+            .size(76.dp)
+            .clip(CircleShape)
+            .background(home.accent),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = user.name
+                ?.split(" ")
+                ?.take(2)
+                ?.joinToString("") { it.first().uppercase() }
+                .orEmpty(),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+    }
+}
+
+@Composable
+private fun BioSection(
+    user: User,
+    home: StudentHomeColorPalette
+) {
+    SectionTitle("Bio", home)
+
+    CardSection {
+        Text(
+            text = user.bio ?: "No bio available yet.",
+            fontSize = 14.sp,
+            color = home.subtext,
+            lineHeight = 20.sp
+        )
+    }
+
+    Spacer(Modifier.height(24.dp))
+}
+
+
+@Composable
+private fun CoursesSection(
+    home: StudentHomeColorPalette,
+    user: User,
+    vm: UserProfileViewModel = hiltViewModel()
+) {
+    val courses by vm.courses.collectAsState()
+
+    LaunchedEffect(user.userId) {
+        vm.loadCourses(user.userId)
+    }
+
+    SectionTitle("Courses", home)
+
+    CardSection {
+        if (courses.isEmpty()) {
+            Text(
+                text = "No courses yet.",
+                fontSize = 14.sp,
+                color = home.subtext
+            )
+        } else {
+            courses.forEach { course ->
                 Text(
-                    text = "• $it",
+                    text = "• ${course.name}",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = home.textPrimary,
@@ -168,30 +206,21 @@ fun UserProfileScreen(
                 )
             }
         }
+    }
 
-        Spacer(Modifier.height(24.dp))
+    Spacer(Modifier.height(24.dp))
+}
 
-        /* ======================
-           CHANGE PROFILE
-           ====================== */
-        PrimaryButton(
-            text = "Change Profile",
-            color = Color(0xFFEC4899)
-        ) {
-            // TODO
-        }
 
-        Spacer(Modifier.height(12.dp))
+@Composable
+private fun ProfileActions(authVM: AuthViewModel) {
+    Spacer(Modifier.height(12.dp))
 
-        /* ======================
-           LOGOUT
-           ====================== */
-        PrimaryButton(
-            text = "Logout",
-            color = Color(0xFFB71C1C)
-        ) {
-            authVM.logout()
-        }
+    PrimaryButton(
+        text = "Logout",
+        color = Color(0xFFB71C1C)
+    ) {
+        authVM.logout()
     }
 }
 
@@ -281,8 +310,6 @@ private fun SectionHeader(
         )
     }
 }
-
-
 
 
 @Composable
