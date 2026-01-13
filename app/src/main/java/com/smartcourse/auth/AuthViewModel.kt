@@ -100,6 +100,18 @@ class AuthViewModel @Inject constructor(
     fun onUserLoaded(user: DomainUser) {
         domainUser = user
     }
+
+
+    fun refreshDomainUserFromRepo() {
+        val userId = domainUser?.user?.id ?: return
+
+        viewModelScope.launch {
+            val freshUser = authRepo.loadOrCreateUser(userId)
+
+            domainUser = authRepo.toDomainUser(freshUser)
+        }
+    }
+
 }
 
 

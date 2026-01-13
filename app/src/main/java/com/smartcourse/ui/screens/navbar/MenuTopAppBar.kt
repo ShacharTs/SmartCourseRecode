@@ -1,7 +1,5 @@
 package com.smartcourse.ui.screens.navbar
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -22,20 +20,22 @@ import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.NavBarColors
 
 
-@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuTopAppBar(
     navController: NavController,
     authVM: AuthViewModel
 ) {
-
     val palette = LocalAppPalette.current
     val colors = if (palette.isDark) {
         NavBarColors.Dark
     } else {
         NavBarColors.Light
     }
+
+    // Correct: Compose state, no collect
+    val domainUser = authVM.domainUser
+    authVM.refreshDomainUserFromRepo()
 
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -45,9 +45,9 @@ fun MenuTopAppBar(
             titleContentColor = colors.title
         ),
         navigationIcon = {
-            IconButton(onClick = {
-                navController.navigate(Screen.Settings.route)
-            }) {
+            IconButton(
+                onClick = { navController.navigate(Screen.Settings.route) }
+            ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "Settings"
@@ -57,23 +57,12 @@ fun MenuTopAppBar(
         title = {
             CustomText(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Welcome ${authVM.currentUser.value?.getUserName()}",
+                text = "Welcome ${domainUser?.user?.name.orEmpty()}",
                 fontSize = 30.sp,
                 maxLines = 1,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Start
             )
-        },
-//        // later move to setting
-        // todo move it to setting
-//        actions = {
-//            IconButton(onClick = {
-//                authVM.logout()
-//            }) {
-//                Icon(
-//                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-//                    contentDescription = "Logout",
-//                )
-//            }
-//        }
+        }
     )
 }
+

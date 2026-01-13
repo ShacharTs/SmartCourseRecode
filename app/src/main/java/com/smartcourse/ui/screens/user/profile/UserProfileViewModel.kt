@@ -67,6 +67,7 @@ class UserProfileViewModel @Inject constructor(
         }
     }
 
+
     fun updateBio(userId: String, bio: String) {
         viewModelScope.launch {
             userRepository.updateUserBio(userId, bio)
