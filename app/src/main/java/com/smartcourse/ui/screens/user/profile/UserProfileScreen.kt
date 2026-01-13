@@ -27,15 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.User
-import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
+import com.smartcourse.ui.theme.ShowProfileColorPalette
+import com.smartcourse.ui.theme.ShowProfileLayoutColors
 import com.smartcourse.ui.theme.StudentHomeColorPalette
 
 @Composable
@@ -43,37 +46,34 @@ fun UserProfileScreen(
     navController: NavController,
     authVM: AuthViewModel
 ) {
-    val palette = LocalAppPalette.current
-    val home = palette.home
+    val isDark = LocalAppPalette.current.isDark
+    val colors =
+        if (isDark)
+            ShowProfileLayoutColors.Dark
+        else
+            ShowProfileLayoutColors.Light
+
     val user = authVM.currentUser.value?.user ?: return
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
-                    if (palette.isDark)
-                        listOf(
-                            Color(0xFF0B0514),
-                            Color(0xFF1E0938),
-                            Color(0xFF3A0F54)
-                        )
-                    else AppGradients.Light
-                )
+                Brush.verticalGradient(colors.backgroundGradient)
             )
             .statusBarsPadding()
             .padding(bottom = 24.dp)
     ) {
-        ProfileHeader(home)
-        ProfileCard(user, home)
-        BioSection(user, home)
-        CoursesSection(home, user = user)
+        ProfileHeader(colors)
+        ProfileCard(user, colors)
+        BioSection(user, colors)
+        CoursesSection(colors, user = user)
         ProfileActions(authVM)
     }
 }
 
 @Composable
-private fun ProfileHeader(home: StudentHomeColorPalette) {
+private fun ProfileHeader(home: ShowProfileColorPalette) {
     Text(
         text = "Profile",
         fontSize = 22.sp,
@@ -86,7 +86,7 @@ private fun ProfileHeader(home: StudentHomeColorPalette) {
 @Composable
 private fun ProfileCard(
     user: User,
-    home: StudentHomeColorPalette
+    home: ShowProfileColorPalette
 ) {
     Box(
         modifier = Modifier
@@ -131,33 +131,47 @@ private fun ProfileCard(
 @Composable
 private fun BoxScope.Avatar(
     user: User,
-    home: StudentHomeColorPalette
+    home: ShowProfileColorPalette
 ) {
     Box(
         modifier = Modifier
             .align(Alignment.TopCenter)
             .size(76.dp)
             .clip(CircleShape)
-            .background(home.accent),
+            .background(home.avatarBackground),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = user.name
-                ?.split(" ")
-                ?.take(2)
-                ?.joinToString("") { it.first().uppercase() }
-                .orEmpty(),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
+
+        if (!user.image.isNullOrBlank()) {
+            AsyncImage(
+                model = user.image,
+                contentDescription = "Profile image",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            // Fallback initials
+            Text(
+                text = user.name
+                    ?.split(" ")
+                    ?.take(2)
+                    ?.joinToString("") { it.first().uppercase() }
+                    .orEmpty(),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
     }
 }
+
 
 @Composable
 private fun BioSection(
     user: User,
-    home: StudentHomeColorPalette
+    home: ShowProfileColorPalette
 ) {
     SectionTitle("Bio", home)
 
@@ -176,7 +190,7 @@ private fun BioSection(
 
 @Composable
 private fun CoursesSection(
-    home: StudentHomeColorPalette,
+    home: ShowProfileColorPalette,
     user: User,
     vm: UserProfileViewModel = hiltViewModel()
 ) {
@@ -243,7 +257,7 @@ private fun CardSection(
 @Composable
 private fun SectionTitle(
     text: String,
-    home: StudentHomeColorPalette
+    home: ShowProfileColorPalette
 ) {
     Text(
         text = text,
@@ -285,7 +299,7 @@ private fun PrimaryButton(
 private fun SectionHeader(
     title: String,
     onEditClick: () -> Unit,
-    home: StudentHomeColorPalette
+    home: ShowProfileColorPalette
 ) {
     Row(
         modifier = Modifier
