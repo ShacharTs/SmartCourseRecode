@@ -74,7 +74,7 @@ class StudentHomeViewModel @Inject constructor(
                     .getAllUsersExcept(myId)
                     .filter { it.role == UserRole.TUTOR }
 
-            val allTutors =
+            val allTutors = kotlinx.coroutines.coroutineScope {
                 tutorUsers.map { user ->
                     async {
                         val links = userRepository.getUserCourses(user.userId)
@@ -89,6 +89,8 @@ class StudentHomeViewModel @Inject constructor(
                         )
                     }
                 }.awaitAll()
+            }
+
 
             _myTutors.value =
                 allTutors.filter { it.user.getUID() in savedTutorIds }
