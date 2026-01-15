@@ -90,13 +90,9 @@ fun ChatScaffold(
                 onDismissRequest = { showAttachSheet = false }
             ) {
                 AttachSheetContent(
-                    onCamera = {
-                        cameraVM.onCaptureStarted()
-                               },
+                    onCamera = { cameraVM.requestCamera() },
                     onGallery = { galleryVM.requestGallery() },
-                    onLocation = {
-                        locationVM.onLocationRequest()
-                    }
+                    onLocation = { locationVM.onLocationRequest() }
                 )
 
             }
