@@ -2,7 +2,6 @@ package com.smartcourse.ui.screens.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,18 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-// UI-only row state (NOT domain, NOT repository)
-data class SearchUserRowState(
-    val user: User,
-    val courses: List<String>
-)
-
-data class SearchUserUiState(
-    val query: String = "",
-    val isLoading: Boolean = false,
-    val results: List<SearchUserRowState> = emptyList()
-)
 
 @HiltViewModel
 class SearchUserViewModel @Inject constructor(
