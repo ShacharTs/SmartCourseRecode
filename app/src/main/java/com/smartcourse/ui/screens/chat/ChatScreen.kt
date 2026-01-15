@@ -2,9 +2,15 @@
 
 package com.smartcourse.ui.screens.chat
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.smartcourse.data.models.usermodel.User
+import com.smartcourse.ui.screens.chat.vm.ChatViewModel
+import com.smartcourse.ui.screens.chat.vm.GalleryEvent
+import com.smartcourse.ui.screens.chat.vm.GalleryViewModel
 
 @Composable
 fun ChatScreen(
@@ -18,6 +24,31 @@ fun ChatScreen(
 
     val messages by chatVM.messages.collectAsState()
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+
+    val galleryVM: GalleryViewModel = viewModel()
+
+
+    val galleryLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.GetContent()
+        ) { uri ->
+            if (uri != null) {
+                galleryVM.onImageSelected(uri)
+            }
+        }
+
+    LaunchedEffect(Unit) {
+        galleryVM.events.collect { event ->
+            when (event) {
+                GalleryEvent.OpenGallery -> {
+                    galleryLauncher.launch("image/*")
+                }
+            }
+        }
+    }
+
+
+
 
     LaunchedEffect(chatId) {
         chatVM.ensureFirebaseReady()

@@ -20,9 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.smartcourse.data.models.chat.Message
 import com.smartcourse.data.models.usermodel.User
+import com.smartcourse.ui.screens.chat.vm.CameraViewModel
+import com.smartcourse.ui.screens.chat.vm.ChatViewModel
+import com.smartcourse.ui.screens.chat.vm.GalleryViewModel
+import com.smartcourse.ui.screens.chat.vm.LocationViewModel
 import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
@@ -40,6 +45,10 @@ fun ChatScaffold(
     var showAttachSheet by remember { mutableStateOf(false) }
 
     val chat = LocalAppPalette.current.chatRoom
+
+    val cameraVM: CameraViewModel = viewModel()
+    val galleryVM: GalleryViewModel = viewModel()
+    val locationVM: LocationViewModel = viewModel()
 
     Box(
         modifier = Modifier
@@ -81,10 +90,15 @@ fun ChatScaffold(
                 onDismissRequest = { showAttachSheet = false }
             ) {
                 AttachSheetContent(
-                    onCamera = { showAttachSheet = false },
-                    onGallery = { showAttachSheet = false },
-                    onLocation = { showAttachSheet = false }
+                    onCamera = {
+                        cameraVM.onCaptureStarted()
+                               },
+                    onGallery = { galleryVM.requestGallery() },
+                    onLocation = {
+                        locationVM.onLocationRequest()
+                    }
                 )
+
             }
         }
     }

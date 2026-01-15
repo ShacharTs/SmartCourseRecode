@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.chat
+package com.smartcourse.ui.screens.chat.vm
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

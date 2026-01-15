@@ -28,7 +28,7 @@ import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.chatlist.ChatListScreen
 import com.smartcourse.ui.screens.chatlist.ChatListViewModel
 import com.smartcourse.ui.screens.chat.ChatScreen
-import com.smartcourse.ui.screens.chat.ChatViewModel
+import com.smartcourse.ui.screens.chat.vm.ChatViewModel
 import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
