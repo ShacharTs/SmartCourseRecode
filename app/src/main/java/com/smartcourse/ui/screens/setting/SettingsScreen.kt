@@ -16,9 +16,15 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -43,6 +49,8 @@ fun SettingsScreen(
     val palette = LocalAppPalette.current
     val isDark = palette.isDark
     val gradientColors = if (isDark) AppGradients.Dark else AppGradients.Light
+
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
 
 
@@ -71,11 +79,13 @@ fun SettingsScreen(
 private fun SettingColumn(
     isChatEnabled: Boolean,
     isAppNotificationsEnabled: Boolean,
-    onChatToggle: (Boolean) -> Unit, // New parameter
-    onNotificationToggle: (Boolean) -> Unit, // New parameter
+    onChatToggle: (Boolean) -> Unit,
+    onNotificationToggle: (Boolean) -> Unit,
     authVM: AuthViewModel,
     navController: NavController
 ) {
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,19 +93,21 @@ private fun SettingColumn(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
+
         SettingsSection(title = "Account") {
+
             SettingsRow(
-                label = "Edit Profile", onClick = {
-                    /* TODO Navigate */
+                label = "Edit Profile",
+                onClick = {
                     navController.navigate(Screen.Profile.route)
                 }
             )
+
             SettingsRow(
                 label = "Delete Account",
                 isDanger = true,
                 onClick = {
-                    /* TODO Delete Logic */
-
+                    showDeleteAccountDialog = true
                 }
             )
         }
@@ -104,57 +116,62 @@ private fun SettingColumn(
             SettingsToggleRow(
                 label = "Chat Notifications",
                 isActive = isChatEnabled,
-                onToggle = onChatToggle,
-
-                )
+                onToggle = onChatToggle
+            )
             SettingsToggleRow(
                 label = "App Notifications",
                 isActive = isAppNotificationsEnabled,
-                onToggle = onNotificationToggle,
-
-                )
+                onToggle = onNotificationToggle
+            )
         }
 
         SettingsSection(title = "Preferences") {
             SettingsRow(
                 label = "Theme",
-                onClick = {
-                    // todo add force dark mode or system
-                    navController.navigate(Screen.Theme.route)
-                }
+                onClick = { navController.navigate(Screen.Theme.route) }
             )
             SettingsRow(
                 label = "Language",
-                onClick = {
-                    // Todo add screen for hebrew english
-                    navController.navigate(Screen.Language.route)
-                }
+                onClick = { navController.navigate(Screen.Language.route) }
             )
         }
 
         SettingsSection(title = "About") {
             SettingsRow(
                 label = "Terms & Privacy",
-                onClick = {
-                    //TODO make something because why not
-                    navController.navigate(Screen.Terms.route)
-                }
+                onClick = { navController.navigate(Screen.Terms.route) }
             )
             SettingsRow(label = "App Version", value = "1.0.0")
         }
 
-
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            LogoutButton {
-                authVM.logout()
-            }
-
-            BackButton {
-                navController.popBackStack()
-            }
+            LogoutButton { authVM.logout() }
+            BackButton { navController.popBackStack() }
         }
     }
+
+
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            title = { Text("Delete Account") },
+            text = {
+                Text(
+                    "To delete your account, please send an email to:\n\n" +
+                            "iamNotGoingToCodeThat@gmail.com"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showDeleteAccountDialog = false }
+                ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 }
+
 
 @Composable
 fun SettingsHeader() {
