@@ -77,7 +77,7 @@ fun LanguageScreen(navController: NavController) {
 
             val options = listOf(
                 "English" to "en",
-                "עברית" to "iw"
+                "Hebrew" to "iw"
             )
 
             options.forEach { (label, code) ->
