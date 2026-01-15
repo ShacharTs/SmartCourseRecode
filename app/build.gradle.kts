@@ -70,6 +70,8 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:gotrue-kt:2.4.0")
     implementation("io.github.jan-tennert.supabase:postgrest-kt:2.4.0")
     implementation("io.github.jan-tennert.supabase:compose-auth:2.4.0")
+    implementation("io.github.jan-tennert.supabase:storage-kt:2.4.0")
+    implementation("io.github.jan-tennert.supabase:supabase-kt:2.4.0")
 
 
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))

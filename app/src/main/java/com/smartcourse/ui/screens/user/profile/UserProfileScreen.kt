@@ -1,10 +1,16 @@
 package com.smartcourse.ui.screens.user.profile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -28,65 +34,103 @@ fun UserProfileScreen(
     val isDark = LocalAppPalette.current.isDark
     val colors = if (isDark) ShowProfileLayoutColors.Dark else ShowProfileLayoutColors.Light
 
-    val authUser = authVM.currentUser.value?.user ?: return
+    // Collect states from ViewModels
+    val authState by authVM.currentUser.collectAsState()
     val user by vm.user.collectAsState()
 
-    LaunchedEffect(authUser.userId) {
-        vm.loadUser(authUser.userId)
-        vm.loadCourses(authUser.userId)
+    val context = LocalContext.current
+    val authUser = authState?.user
+
+    // Trigger data load when the auth user ID is available
+    LaunchedEffect(authUser?.userId) {
+        authUser?.userId?.let { id ->
+            vm.loadUser(id)
+            vm.loadCourses(id)
+        }
     }
 
-    val currentUser = user ?: return
+    // Handle Image Selection
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            // Note: Ideally, move the byte reading to a background thread/ViewModel
+            val bytes = context.contentResolver.openInputStream(it)?.use { stream ->
+                stream.readBytes()
+            }
+            if (bytes != null && authUser != null) {
+                vm.updateAvatarPng(authUser.userId, bytes)
+            }
+        }
+    }
 
     var showEditName by remember { mutableStateOf(false) }
     var showEditBio by remember { mutableStateOf(false) }
 
-    Column(
+    // Use a Box to layer the Loading UI over or instead of the content
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(colors.backgroundGradient))
             .statusBarsPadding()
-            .padding(bottom = 24.dp)
     ) {
-        ProfileHeader(colors)
+        if (authUser == null || user == null) {
+            // Show a loading indicator instead of returning null/empty
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            // Content is safe to display here
+            val currentUser = user!!
 
-        ProfileCard(
-            user = currentUser,
-            home = colors,
-            onEditAvatar = { /* Handle avatar edit */ },
-            onEditName = { showEditName = true }
-        )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 24.dp)
+            ) {
+                ProfileHeader(colors)
 
-        BioSection(
-            user = currentUser,
-            home = colors,
-            onEditBio = { showEditBio = true }
-        )
+                ProfileCard(
+                    user = currentUser,
+                    home = colors,
+                    onEditAvatar = { pickImageLauncher.launch("image/*") },
+                    onEditName = { showEditName = true }
+                )
 
-        CoursesSection(
-            home = colors,
-            user = currentUser,
-            vm = vm
-        )
+                BioSection(
+                    user = currentUser,
+                    home = colors,
+                    onEditBio = { showEditBio = true }
+                )
 
-        Spacer(Modifier.weight(1f))
+                CoursesSection(
+                    home = colors,
+                    user = currentUser,
+                    vm = vm
+                )
 
-        ProfileActions(authVM)
-    }
+                Spacer(Modifier.weight(1f))
 
-    if (showEditName) {
-        EditNameDialog(
-            currentName = currentUser.name.orEmpty(),
-            onDismiss = { showEditName = false },
-            onSave = { newName -> vm.updateName(currentUser.userId, newName) }
-        )
-    }
+                ProfileActions(authVM)
+            }
 
-    if (showEditBio) {
-        EditBioDialog(
-            currentBio = currentUser.bio,
-            onDismiss = { showEditBio = false },
-            onSave = { newBio -> vm.updateBio(currentUser.userId, newBio) }
-        )
+            // Dialogs placed inside the 'else' to ensure currentUser is available
+            if (showEditName) {
+                EditNameDialog(
+                    currentName = currentUser.name.orEmpty(),
+                    onDismiss = { showEditName = false },
+                    onSave = { newName -> vm.updateName(currentUser.userId, newName) }
+                )
+            }
+
+            if (showEditBio) {
+                EditBioDialog(
+                    currentBio = currentUser.bio,
+                    onDismiss = { showEditBio = false },
+                    onSave = { newBio -> vm.updateBio(currentUser.userId, newBio) }
+                )
+            }
+        }
     }
 }

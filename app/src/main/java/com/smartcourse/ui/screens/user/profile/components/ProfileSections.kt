@@ -1,5 +1,6 @@
 package com.smartcourse.ui.screens.user.profile.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -7,15 +8,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.ui.theme.ShowProfileColorPalette
 
@@ -67,7 +72,11 @@ fun ProfileCard(
 }
 
 @Composable
-private fun BoxScope.Avatar(user: User, home: ShowProfileColorPalette, onEditAvatar: () -> Unit) {
+private fun BoxScope.Avatar(
+    user: User,
+    home: ShowProfileColorPalette,
+    onEditAvatar: () -> Unit
+) {
     Box(
         modifier = Modifier
             .align(Alignment.TopCenter)
@@ -78,15 +87,41 @@ private fun BoxScope.Avatar(user: User, home: ShowProfileColorPalette, onEditAva
         contentAlignment = Alignment.Center
     ) {
         if (!user.image.isNullOrBlank()) {
+
+            val avatarUrl = user.image.orEmpty()
+            val displayUrl = remember(avatarUrl) {
+                "$avatarUrl?t=${System.currentTimeMillis()}"
+            }
+
             AsyncImage(
-                model = user.image,
-                contentDescription = "Profile image",
-                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(displayUrl)
+                    .memoryCachePolicy(CachePolicy.DISABLED)
+                    .diskCachePolicy(CachePolicy.DISABLED)
+                    .networkCachePolicy(CachePolicy.ENABLED)
+                    .listener(
+                        onSuccess = { _, _ ->
+                            Log.d("AVATAR", "Image loaded SUCCESS")
+                        },
+                        onError = { _, result ->
+                            Log.e("AVATAR", "Load failed", result.throwable)
+                        }
+                    )
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
+
+
+
         } else {
             Text(
-                text = user.name?.split(" ")?.take(2)?.joinToString("") { it.first().uppercase() }.orEmpty(),
+                text = user.name
+                    ?.split(" ")
+                    ?.take(2)
+                    ?.joinToString("") { it.first().uppercase() }
+                    .orEmpty(),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -94,6 +129,7 @@ private fun BoxScope.Avatar(user: User, home: ShowProfileColorPalette, onEditAva
         }
     }
 }
+
 
 @Composable
 fun BioSection(user: User, home: ShowProfileColorPalette, onEditBio: () -> Unit) {

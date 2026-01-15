@@ -103,7 +103,6 @@ class UserProfileViewModel @Inject constructor(
     }
 
 
-
     fun loadAllCourses() {
         viewModelScope.launch {
             _allCourses.value = userRepository.getAllCourses()
@@ -116,5 +115,20 @@ class UserProfileViewModel @Inject constructor(
             loadCourses(userId)
         }
     }
+
+    fun updateAvatarPng(userId: String, imageBytes: ByteArray) {
+        viewModelScope.launch {
+            val baseUrl = userRepository.uploadUserAvatar(userId, imageBytes)
+
+            val versionedUrl = "$baseUrl?v=${System.currentTimeMillis()}"
+
+            userRepository.updateUserImage(userId, versionedUrl)
+            loadUser(userId)
+        }
+    }
+
+
+
+
 }
 

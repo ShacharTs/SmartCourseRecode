@@ -22,6 +22,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -388,6 +389,37 @@ class UserRepository @Inject constructor(
             .decodeList<UserFavoriteRow>()
             .size
     }
+
+
+    suspend fun uploadUserAvatar(
+        userId: String,
+        imageBytes: ByteArray
+    ): String {
+        val bucketName = "user_profile_image"
+        val objectPath = "users/$userId.png"
+
+        val bucket = client.storage.from(bucketName)
+
+        bucket.upload(
+            path = objectPath,
+            data = imageBytes,
+            upsert = true
+        )
+
+        val rawBase = client.supabaseUrl.trimEnd('/')
+        val baseUrl =
+            if (rawBase.startsWith("http://") || rawBase.startsWith("https://")) {
+                rawBase
+            } else {
+                "https://$rawBase"
+            }
+
+        return "$baseUrl/storage/v1/object/public/$bucketName/$objectPath"
+    }
+
+
+
+
 
 
 }
