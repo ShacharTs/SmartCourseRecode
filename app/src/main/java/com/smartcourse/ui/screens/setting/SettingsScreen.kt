@@ -141,6 +141,7 @@ private fun SettingColumn(
                 label = "Terms & Privacy",
                 onClick = { navController.navigate(Screen.Terms.route) }
             )
+
             SettingsRow(label = "App Version", value = "1.0.0")
         }
 
