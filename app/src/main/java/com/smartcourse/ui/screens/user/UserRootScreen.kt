@@ -25,8 +25,8 @@ import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
-import com.smartcourse.ui.screens.chat.ChatListScreen
-import com.smartcourse.ui.screens.chat.ChatListViewModel
+import com.smartcourse.ui.screens.chatlist.ChatListScreen
+import com.smartcourse.ui.screens.chatlist.ChatListViewModel
 import com.smartcourse.ui.screens.chat.ChatScreen
 import com.smartcourse.ui.screens.chat.ChatViewModel
 import com.smartcourse.ui.screens.loading.LoadingScreen

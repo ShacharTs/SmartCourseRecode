@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.chat
+package com.smartcourse.ui.screens.chatlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

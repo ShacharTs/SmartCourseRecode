@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.chat
+package com.smartcourse.ui.screens.chatlist
 
 
 import androidx.compose.foundation.background
