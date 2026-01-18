@@ -2,10 +2,13 @@
 
 package com.smartcourse.ui.screens.chat
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -24,16 +27,17 @@ fun ChatScreen(
     myId: String,
     chatId: String
 ) {
-    //val chatId = chatVM.chatId
-
     var otherUser by remember { mutableStateOf<User?>(null) }
     var otherId by remember { mutableStateOf<String?>(null) }
 
     val messages by chatVM.messages.collectAsState()
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
 
-    val galleryVM: GalleryViewModel = viewModel()
+    val context = LocalContext.current
 
+    /* -------------------- GALLERY -------------------- */
+
+    val galleryVM: GalleryViewModel = viewModel()
 
     val galleryLauncher =
         rememberLauncherForActivityResult(
@@ -44,9 +48,9 @@ fun ChatScreen(
             }
         }
 
-    val cameraVM: CameraViewModel = viewModel()
+    /* -------------------- CAMERA -------------------- */
 
-    val context = LocalContext.current
+    val cameraVM: CameraViewModel = viewModel()
 
     val tempPhotoUri = remember {
         val file = File(context.cacheDir, "camera_${System.currentTimeMillis()}.jpg")
@@ -68,18 +72,38 @@ fun ChatScreen(
             }
         }
 
+    //  CAMERA PERMISSION LAUNCHER
+    val cameraPermissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (granted) {
+                cameraLauncher.launch(tempPhotoUri)
+            } else {
+                cameraVM.onError("Camera permission denied")
+            }
+        }
+
+    /* -------------------- EVENTS -------------------- */
+
     LaunchedEffect(Unit) {
         cameraVM.events.collect { event ->
             when (event) {
                 CameraEvent.OpenCamera -> {
-                    cameraLauncher.launch(tempPhotoUri)
+                    if (
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        cameraLauncher.launch(tempPhotoUri)
+                    } else {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
                 }
             }
         }
     }
-
-
-
 
     LaunchedEffect(Unit) {
         galleryVM.events.collect { event ->
@@ -91,8 +115,7 @@ fun ChatScreen(
         }
     }
 
-
-
+    /* -------------------- CHAT SETUP -------------------- */
 
     LaunchedEffect(chatId) {
         chatVM.ensureFirebaseReady()
@@ -108,10 +131,11 @@ fun ChatScreen(
         }
     }
 
-
     DisposableEffect(chatId) {
         onDispose { chatVM.stopListening() }
     }
+
+    /* -------------------- UI -------------------- */
 
     ChatScaffold(
         navController = navController,
