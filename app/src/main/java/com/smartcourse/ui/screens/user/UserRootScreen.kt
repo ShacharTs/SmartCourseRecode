@@ -1,5 +1,6 @@
 package com.smartcourse.ui.screens.user
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -25,6 +28,7 @@ import com.smartcourse.data.models.usermodel.Student
 import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
+import com.smartcourse.notifications.NotificationAction
 import com.smartcourse.ui.screens.chatlist.ChatListScreen
 import com.smartcourse.ui.screens.chatlist.ChatListViewModel
 import com.smartcourse.ui.screens.chat.ChatScreen
@@ -51,6 +55,49 @@ fun UserRootScreen(
     authVM: AuthViewModel
 ) {
     val navController = rememberNavController()
+
+
+    val context = LocalContext.current
+    val activity = context as? android.app.Activity
+    val intent = activity?.intent
+
+    val action = intent.getNotificationAction()
+
+    LaunchedEffect(action) {
+        when (action) {
+
+            NotificationAction.CHAT_MESSAGE -> {
+                val chatId = intent?.getStringExtra("CHAT_ID") ?: return@LaunchedEffect
+                navController.navigate(
+                    Screen.ChatRoom.createRoute(chatId)
+                ) {
+                    launchSingleTop = true
+                }
+            }
+
+            // TEMP – valid example
+            NotificationAction.USER_PROFILE -> {
+                val userId = intent?.getStringExtra("USER_ID") ?: return@LaunchedEffect
+                navController.navigate(
+                    Screen.ShowOtherProfile.createRoute(userId)
+                ) {
+                    launchSingleTop = true
+                }
+            }
+
+            NotificationAction.NONE -> Unit
+        }
+
+        // must clean – otherwise it will re-trigger
+        intent?.removeExtra("NOTIFICATION_ACTION")
+        intent?.removeExtra("CHAT_ID")
+        intent?.removeExtra("USER_ID")
+    }
+
+
+
+
+
 
     val palette = LocalAppPalette.current
     val isDark = palette.isDark
@@ -122,16 +169,31 @@ fun UserRootScreen(
                     }
                 }
 
+
+
                 composable(
-                    route = Screen.ChatRoom.route, arguments = listOf(
-                    navArgument("chatId") { type = NavType.StringType })) { entry ->
+                    route = Screen.ChatRoom.route,
+                    arguments = listOf(
+                        navArgument("chatId") { type = NavType.StringType }
+                    )
+                ) { entry ->
+
+                    val chatId = entry.arguments?.getString("chatId")
+                        ?: error("chatId missing")
+
                     val chatVM: ChatViewModel = hiltViewModel(entry)
-                    val myId = authVM.currentUser.value?.getUID() ?: return@composable
+
+                    val myId = authVM.currentUser.value?.getUID()
+                        ?: return@composable
 
                     ChatScreen(
-                        chatVM = chatVM, navController = navController, myId = myId
+                        chatVM = chatVM,
+                        navController = navController,
+                        myId = myId,
+                        chatId = chatId
                     )
                 }
+
 
                 composable(Screen.SearchRouter.route) {
                     val searchUserVM: SearchUserViewModel = hiltViewModel()
@@ -160,9 +222,7 @@ fun UserRootScreen(
 
                 composable(
                     route = Screen.ShowOtherProfile.route,
-                    arguments = listOf(
-                        navArgument("userId") { type = NavType.StringType }
-                    )
+                    arguments = listOf(navArgument("userId") { type = NavType.StringType })
                 ) {
                     ShowOtherProfileScreen(
                         navController = navController
@@ -187,6 +247,9 @@ fun UserRootScreen(
                         }
                     )
                 }
+
+
+
 
 
 
@@ -223,5 +286,13 @@ fun ShowUserMenuScreen(
         is Tutor -> TutorHomeLayout(
             navController = navController, tutor = user
         )
+    }
+}
+
+fun Intent?.getNotificationAction(): NotificationAction {
+    return when (this?.getStringExtra("NOTIFICATION_ACTION")) {
+        "CHAT_MESSAGE" -> NotificationAction.CHAT_MESSAGE
+        "USER_PROFILE" -> NotificationAction.USER_PROFILE
+        else -> NotificationAction.NONE
     }
 }

@@ -22,8 +22,10 @@ fun ChatScreen(
     navController: NavController,
     chatVM: ChatViewModel,
     myId: String,
+    chatId: String
 ) {
-    val chatId = chatVM.chatId
+    //val chatId = chatVM.chatId
+
     var otherUser by remember { mutableStateOf<User?>(null) }
     var otherId by remember { mutableStateOf<String?>(null) }
 

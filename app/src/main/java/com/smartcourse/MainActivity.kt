@@ -1,8 +1,8 @@
 package com.smartcourse
 
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -24,8 +24,8 @@ import com.smartcourse.navigation.RootNavigation
 import com.smartcourse.ui.screens.setting.theme.ThemeViewModel
 import com.smartcourse.ui.theme.SmartCourseTheme
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -44,24 +44,28 @@ class MainActivity : ComponentActivity() {
 
         // Check if the app was opened from a notification
         val chatIdFromNotification = intent.getStringExtra("CHAT_ID")
-        if (chatIdFromNotification != null) {
-            // We have a chatId! Later you can use this to navigate:
-            // navController.navigate("chat_screen/$chatIdFromNotification")
-        }
+//        if (chatIdFromNotification != null) {
+//            // We have a chatId! Later you can use this to navigate:
+//            // navController.navigate("chat_screen/$chatIdFromNotification")
+//        }
 
         setContent {
             val themeMode by themeViewModel.themeMode.collectAsState()
+
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 SmartCourseTheme(themeMode = themeMode) {
                     Surface(
                         modifier = androidx.compose.ui.Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        RootNavigation(authViewModel)
+                        RootNavigation(
+                            authViewModel = authViewModel
+                        )
                     }
                 }
             }
         }
+
     }
 
     private fun setupNotifications() {
@@ -87,4 +91,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+
 }
+

@@ -3,7 +3,6 @@ package com.smartcourse.notifications
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
@@ -14,6 +13,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.smartcourse.MainActivity
 import com.smartcourse.R
+import com.smartcourse.core.lifecycle.AppState
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -64,21 +64,38 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // Read from DATA payload only
+        // Read from DATA payload only (no notification payload)
         val data = remoteMessage.data
         val chatId = data["chatId"] ?: return
 
-        // Update Firestore to trigger chat list listeners
+        // Always update Firestore to trigger real-time chat listeners
+        // This is a data synchronization step, not a UI decision
         FirebaseFirestore.getInstance()
             .collection("chats")
             .document(chatId)
             .update("updated_at", Timestamp.now())
 
-        // Build notification content locally (NO remoteMessage.notification)
+        // If the app is currently in the foreground,
+        // do NOT show a system notification
+        if (AppState.isInForeground) {
+            handleInAppMessage(chatId, data)
+            return
+        }
+
+        // App is in the background – build and show a system notification
         val title = data["title"] ?: "New message"
         val body = data["body"] ?: "You have a new message"
 
         showNotification(title, body, chatId)
+    }
+
+
+    private fun handleInAppMessage(
+        chatId: String,
+        data: Map<String, String>
+    ) {
+        // Intentionally left blank.
+        // Firestore listeners will update the UI automatically.
     }
 
 
@@ -88,34 +105,41 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     /**
      * Builds and displays a system notification.
      */
-    private fun showNotification(title: String, message: String, chatId: String?) {
+    private fun showNotification(
+        title: String,
+        message: String,
+        chatId: String
+    ) {
         val channelId = "chat_notifications"
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+        val notificationManager =
+            getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         createNotificationChannel(notificationManager)
 
-        // Intent to open MainActivity
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            // Pass the chatId so MainActivity can navigate to the right screen
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("NOTIFICATION_ACTION", "CHAT_MESSAGE")
             putExtra("CHAT_ID", chatId)
         }
 
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
-            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+            this,
+            chatId.hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val builder = NotificationCompat.Builder(this, channelId)
+        val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
+            .setContentIntent(pendingIntent) // CRITICAL
+            .build()
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
+        notificationManager.notify(chatId.hashCode(), notification)
     }
+
 
     private fun createNotificationChannel(notificationManager: NotificationManager) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
