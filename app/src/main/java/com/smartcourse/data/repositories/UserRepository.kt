@@ -2,6 +2,8 @@
 
 package com.smartcourse.data.repositories
 
+import android.util.Log
+import com.google.firebase.firestore.SetOptions
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.table.TableNames
 import com.smartcourse.data.models.table.UserCourseTable
@@ -416,6 +418,60 @@ class UserRepository @Inject constructor(
 
         return "$baseUrl/storage/v1/object/public/$bucketName/$objectPath"
     }
+
+
+    suspend fun updateFcmToken(token: String) {
+        val supabaseUser = client.auth.currentUserOrNull()
+
+        if (supabaseUser == null) {
+            Log.w("FCM", "❌ No Supabase user – skipping FCM token save")
+            return
+        }
+
+        val supabaseUserId = supabaseUser.id
+        Log.d("FCM", "✅ Supabase user ID: $supabaseUserId")
+        Log.d("FCM", "📲 Saving FCM token (len=${token.length})")
+
+        try {
+            firestore
+                .collection("users")
+                .document(supabaseUserId)
+                .set(
+                    mapOf("fcmToken" to token),
+                    SetOptions.merge()
+                )
+                .await()
+
+            Log.d("FCM", "🎉 FCM token saved to Firestore under users/$supabaseUserId")
+        } catch (e: Exception) {
+            Log.e("FCM", "🔥 Failed to save FCM token", e)
+        }
+    }
+
+
+
+
+    suspend fun getUserFcmToken(userId: String): String? {
+        return try {
+            val doc = firestore
+                .collection("users")
+                .document(userId)
+                .get()
+                .await()
+
+            if (!doc.exists()) {
+                Log.w("FCM", "No Firestore user document for $userId")
+                return null
+            }
+
+            doc.getString("fcmToken")
+        } catch (e: Exception) {
+            Log.e("FCM", "Failed to fetch FCM token for $userId", e)
+            null
+        }
+    }
+
+
 
 
 

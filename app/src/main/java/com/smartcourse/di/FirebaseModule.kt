@@ -25,12 +25,12 @@ object FirebaseModule {
         }
     }
 
-    @Provides
-    @Singleton
-    fun provideChatRepository(
-        firestore: FirebaseFirestore
-    ): ChatRepository {
-        return ChatRepository(firestore)
-    }
+//    @Provides
+//    @Singleton
+//    fun provideChatRepository(
+//        firestore: FirebaseFirestore
+//    ): ChatRepository {
+//        return ChatRepository(firestore)
+//    }
 }
 

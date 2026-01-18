@@ -1,6 +1,7 @@
 package com.smartcourse.ui.screens.user.profile
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.ui.screens.chat.vm.GalleryEvent
+import com.smartcourse.ui.screens.chat.vm.GalleryViewModel
 import com.smartcourse.ui.screens.user.profile.components.BioSection
 import com.smartcourse.ui.screens.user.profile.components.CoursesSection
 import com.smartcourse.ui.screens.user.profile.components.EditBioDialog
@@ -29,7 +32,8 @@ import com.smartcourse.ui.theme.ShowProfileLayoutColors
 fun UserProfileScreen(
     navController: NavController,
     authVM: AuthViewModel,
-    vm: UserProfileViewModel = hiltViewModel()
+    vm: UserProfileViewModel = hiltViewModel(),
+    galleryViewModel : GalleryViewModel = hiltViewModel()
 ) {
     val isDark = LocalAppPalette.current.isDark
     val colors = if (isDark) ShowProfileLayoutColors.Dark else ShowProfileLayoutColors.Light
@@ -49,17 +53,28 @@ fun UserProfileScreen(
         }
     }
 
+
     // Handle Image Selection
     val pickImageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         uri?.let {
-            // Note: Ideally, move the byte reading to a background thread/ViewModel
+
             val bytes = context.contentResolver.openInputStream(it)?.use { stream ->
                 stream.readBytes()
             }
             if (bytes != null && authUser != null) {
                 vm.updateAvatarPng(authUser.userId, bytes)
+            }
+        }
+    }
+
+
+    LaunchedEffect(Unit) {
+        galleryViewModel.events.collect { event ->
+            if (event is GalleryEvent.OpenGallery) {
+
+                pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
         }
     }
@@ -94,7 +109,9 @@ fun UserProfileScreen(
                 ProfileCard(
                     user = currentUser,
                     home = colors,
-                    onEditAvatar = { pickImageLauncher.launch("image/*") },
+                    onEditAvatar = {
+                        galleryViewModel.requestGallery()
+                    },
                     onEditName = { showEditName = true }
                 )
 

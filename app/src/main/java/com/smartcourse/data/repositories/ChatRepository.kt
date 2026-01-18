@@ -14,7 +14,8 @@ import javax.inject.Singleton
 
 @Singleton
 class ChatRepository @Inject constructor (
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val userRepository: UserRepository
 ){
 
     //private val firestore: FirebaseFirestore = FirebaseClientProvider.firestore
@@ -64,30 +65,52 @@ class ChatRepository @Inject constructor (
         myId: String,
         otherId: String
     ) {
-        // Write message inside chat/{chatId}/msgs
-        firestore.collection(DbTable.MESSAGES)
-            .document(chatId)
-            .collection(DbTable.MSGS)
-            .add(message)
-            .await()
+        android.util.Log.d("FCM_DEBUG", "sendMessage called. To: $otherId")
 
-        // Update metadata only — never touch participants here
-        updateChatMetadata(chatId, message.text)
+        val messageWithDetails = message.copy(
+            chatId = chatId,
+            senderId = myId,
+            timestamp = com.google.firebase.Timestamp.now()
+        )
+
+        try {
+            // Step A: Write Message
+            firestore.collection(DbTable.MESSAGES)
+                .document(chatId)
+                .collection(DbTable.MSGS)
+                .add(messageWithDetails)
+                .await()
+
+            // Step B: Update Metadata
+            updateChatMetadata(chatId, messageWithDetails.text)
+
+        } catch (e: Exception) {
+            android.util.Log.e(
+                "ChatRepository",
+                "CRITICAL ERROR in sendMessage: ${e.message}"
+            )
+            throw e
+        }
     }
+
 
     /**
      * Update last message + timestamp only.
      */
-    private fun updateChatMetadata(chatId: String, lastMessage: String) {
-        firestore.collection(DbTable.CHATS)
-            .document(chatId)
-            .set(
-                mapOf(
-                    DbTable.LAST_MESSAGE to lastMessage,
-                    DbTable.UPDATED_AT to com.google.firebase.Timestamp.now()
-                ),
-                SetOptions.merge()
-            )
+    private suspend fun updateChatMetadata(chatId: String, lastMessage: String) {
+        try {
+            firestore.collection(DbTable.CHATS)
+                .document(chatId)
+                .set(
+                    mapOf(
+                        DbTable.LAST_MESSAGE to lastMessage,
+                        DbTable.UPDATED_AT to com.google.firebase.Timestamp.now()
+                    ),
+                    SetOptions.merge()
+                ).await()
+        } catch (e: Exception) {
+            android.util.Log.e("ChatRepository", "Failed to update metadata: ${e.message}")
+        }
     }
 
     // ------------------------------------------------------------
@@ -137,30 +160,29 @@ class ChatRepository @Inject constructor (
 
 
     // ------------------------------------------------------------
-    //  LIVE MESSAGE LISTENER
-    // ------------------------------------------------------------
-
+//  LIVE MESSAGE LISTENER (Updated to catch index/permission errors)
+// ------------------------------------------------------------
     fun listenToMessages(
         chatId: String,
         onMessages: (List<Message>) -> Unit
     ): ListenerRegistration {
-
         return firestore.collection(DbTable.MESSAGES)
             .document(chatId)
             .collection(DbTable.MSGS)
             .orderBy(DbTable.TIMESTAMP)
             .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
+                if (error != null) {
+                    android.util.Log.e("FIRESTORE_ERROR", "Messages listen failed: ${error.message}")
                     onMessages(emptyList())
                     return@addSnapshotListener
                 }
 
-                val msgs = snapshot.documents.mapNotNull { doc ->
+                val msgs = snapshot?.documents?.mapNotNull { doc ->
                     doc.toObject(Message::class.java)?.copy(
                         messageId = doc.id,
                         chatId = chatId
                     )
-                }
+                } ?: emptyList()
 
                 onMessages(msgs)
             }
@@ -175,32 +197,34 @@ class ChatRepository @Inject constructor (
         onChats: (List<ChatItem>) -> Unit
     ): ListenerRegistration {
 
+        // IMPORTANT: This query requires a Composite Index in Firestore Console.
+        // Check your Logcat for a "FIRESTORE_ERROR" and click the link provided there.
         return firestore.collection(DbTable.CHATS)
             .whereArrayContains(DbTable.PARTICIPANTS, userId)
             .orderBy(DbTable.UPDATED_AT, com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .limit(3)
+            .limit(20) // Increased from 3 to 20 so more chats are visible
             .addSnapshotListener { snapshot, error ->
 
-                if (error != null || snapshot == null) {
+                if (error != null) {
+                    // This log is critical for identifying why the list isn't updating
+                    android.util.Log.e("FIRESTORE_ERROR", "Chats list failed: ${error.message}")
                     onChats(emptyList())
                     return@addSnapshotListener
                 }
 
-                val items = snapshot.documents.mapNotNull { doc ->
-                    val participants =
-                        doc.get(DbTable.PARTICIPANTS) as? List<String> ?: return@mapNotNull null
-
-                    val other = participants.firstOrNull { it != userId }
-                        ?: return@mapNotNull null
+                val items = snapshot?.documents?.mapNotNull { doc ->
+                    val participants = doc.get(DbTable.PARTICIPANTS) as? List<String> ?: return@mapNotNull null
+                    val other = participants.firstOrNull { it != userId } ?: return@mapNotNull null
 
                     ChatItem(
                         chatId = doc.id,
                         participants = participants,
                         lastMessage = doc.getString(DbTable.LAST_MESSAGE) ?: "",
+                        // Ensure the timestamp conversion is handled correctly
                         lastTimestamp = doc.getTimestamp(DbTable.UPDATED_AT)?.seconds,
                         otherUserId = other
                     )
-                }
+                } ?: emptyList()
 
                 onChats(items)
             }

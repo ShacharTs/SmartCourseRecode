@@ -75,10 +75,11 @@ dependencies {
 
 
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
-
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
+
+    implementation("com.google.firebase:firebase-messaging-ktx")
 
 
     implementation("io.ktor:ktor-client-okhttp:2.3.7")
