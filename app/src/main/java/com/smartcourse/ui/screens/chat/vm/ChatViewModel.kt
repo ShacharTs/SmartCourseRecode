@@ -70,24 +70,30 @@ class ChatViewModel @Inject constructor(
     ) {
         if (text.isBlank()) return
 
-        val msg = Message(
-            chatId = chatId,
-            text = text,
-            senderId = myId,
-            timestamp = Timestamp.Companion.now(),
-            type = "text",
-        )
-
         viewModelScope.launch {
+            // Fetch current user details to get the sender's name
+            val currentUser = userRepo.loadUser(myId)
+            val name = currentUser?.user?.name ?: "Unknown User"
+
+            val msg = Message(
+                chatId = chatId,
+                text = text,
+                senderId = myId,
+                senderName = name,
+                receiverId = otherId,
+                timestamp = Timestamp.now(),
+                type = "text",
+            )
+
             repo.sendMessage(
                 chatId = chatId,
                 message = msg,
                 myId = myId,
-                otherId = otherId
+                otherId = otherId,
+                senderName = name
             )
         }
     }
-
 
     suspend fun getReceiverId(chatId: String, mySupabaseId: String): String {
         val chat = repo.getChatById(chatId)

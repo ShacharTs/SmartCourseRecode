@@ -12,6 +12,8 @@ data class Message(
     val messageId: String = "",
     val chatId: String = "",
     val senderId: String = "",
+    val senderName: String = "",
+    val receiverId: String = "",
     val text: String = "",
     val timestamp: Timestamp = Timestamp.now(),
     val type: String = "text",

@@ -64,30 +64,35 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        // Read from DATA payload only (no notification payload)
+        Log.d("FCM_DEBUG", "DATA = ${remoteMessage.data}")
+        Log.d("FCM_DEBUG", "NOTIFICATION = ${remoteMessage.notification}")
+
         val data = remoteMessage.data
         val chatId = data["chatId"] ?: return
+        val senderName = data["senderName"]
 
-        // Always update Firestore to trigger real-time chat listeners
-        // This is a data synchronization step, not a UI decision
-        FirebaseFirestore.getInstance()
-            .collection("chats")
-            .document(chatId)
-            .update("updated_at", Timestamp.now())
+        Log.d("FCM_DEBUG", "senderName = $senderName")
 
-        // If the app is currently in the foreground,
-        // do NOT show a system notification
+        // In your Repository, the message field is called "text"
+        // We check both "text" and "body" for safety
+        val messageBody = data["text"] ?: data["body"] ?: "New message received"
+
         if (AppState.isInForeground) {
             handleInAppMessage(chatId, data)
             return
         }
 
-        // App is in the background – build and show a system notification
-        val title = data["title"] ?: "New message"
-        val body = data["body"] ?: "You have a new message"
+        // Build the notification title using the sender's name
+        val title = if (!senderName.isNullOrBlank()) {
+            Log.d("test",senderName)
+            "New message from $senderName"
+        } else {
+            "New message "
+        }
 
-        showNotification(title, body, chatId)
+        showNotification(title, messageBody, chatId)
     }
+
 
 
     private fun handleInAppMessage(

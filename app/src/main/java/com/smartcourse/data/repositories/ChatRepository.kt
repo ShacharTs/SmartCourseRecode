@@ -63,13 +63,19 @@ class ChatRepository @Inject constructor (
         chatId: String,
         message: Message,
         myId: String,
-        otherId: String
+        otherId: String,
+        senderName: String
     ) {
         android.util.Log.d("FCM_DEBUG", "sendMessage called. To: $otherId")
+        // Get the current user's data (the sender)
+        val currentUser = userRepository.loadUser(myId)
+        val myName = currentUser?.user?.name ?: "Unknown"
 
         val messageWithDetails = message.copy(
             chatId = chatId,
             senderId = myId,
+            senderName = myName,
+            receiverId = otherId,
             timestamp = com.google.firebase.Timestamp.now()
         )
 
