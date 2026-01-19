@@ -142,7 +142,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra("NOTIFICATION_ACTION", action)
-            putExtra("NOTIFICATION_ID", id)
+            when(action){
+                NotificationTypes.CHAT -> {
+                    putExtra("CHAT_ID", id)
+                }else ->{
+                putExtra("NOTIFICATION_ID", id)
+                }
+            }
         }
 
         val pendingIntent = PendingIntent.getActivity(
