@@ -3,54 +3,132 @@ import * as admin from "firebase-admin";
 
 admin.initializeApp();
 
-export const onMessageCreated = onDocumentCreated("messages/{chatId}/msgs/{msgId}", async (event) => {
+/* ------------------------------------------------------------------
+ * Notification contract (shared idea with Android)
+ * ---------------------------------------------------------------- */
+
+const NotificationTypes = {
+  CHAT: "CHAT",
+  SYSTEM: "SYSTEM",
+  REMINDER: "REMINDER",
+  FIREBASE_EVENT: "FIREBASE_EVENT",
+} as const;
+
+type NotificationType =
+  typeof NotificationTypes[keyof typeof NotificationTypes];
+
+/* ------------------------------------------------------------------
+ * Helper: build FCM payload
+ * ---------------------------------------------------------------- */
+
+function buildPayload(
+  token: string,
+  type: NotificationType,
+  data: Record<string, string>
+) {
+  return {
+    token,
+    data: {
+      v: "1",          // payload version (future-proof)
+      type,            // REQUIRED
+      ...data,
+    },
+  };
+}
+
+/* ------------------------------------------------------------------
+ * Chat message notification
+ * Triggered when a new message is created
+ * ---------------------------------------------------------------- */
+
+export const onMessageCreated = onDocumentCreated(
+  "messages/{chatId}/msgs/{msgId}",
+  async (event) => {
+
     const snap = event.data;
-    if (!snap) {
-        console.log("No data found in the event.");
-        return null;
-    }
+    if (!snap) return null;
 
     const messageData = snap.data();
     const chatId = event.params.chatId;
 
-    // 1. Get message details
-    // Ensure your app saves 'receiverId' and 'senderName' inside the message document
-    const senderName = messageData.senderName || "New Message";
-    const text = messageData.text || "You have a new message";
     const receiverId = messageData.receiverId;
+    if (!receiverId) return null;
 
-    if (!receiverId) {
-        console.error("No receiverId found in the message document.");
-        return null;
-    }
+    const senderName = messageData.senderName || "New message";
+    const text = messageData.text || "You have a new message";
 
-    try {
-        // 2. Fetch the receiver's FCM token from your 'users' collection
-        const userDoc = await admin.firestore().collection("users").doc(receiverId).get();
-        const userData = userDoc.data();
-        const fcmToken = userData?.fcmToken;
+    // Fetch receiver FCM token
+    const userDoc = await admin
+      .firestore()
+      .collection("users")
+      .doc(receiverId)
+      .get();
 
-        if (!fcmToken) {
-            console.log(`User ${receiverId} does not have a registered FCM token.`);
-            return null;
-        }
+    const fcmToken = userDoc.data()?.fcmToken;
+    if (!fcmToken) return null;
 
-        // 3. Build the payload to match your Android MyFirebaseMessagingService.kt logic
-        const payload = {
-            token: fcmToken,
-            data: {
-                chatId: chatId,
-                senderName: senderName,
-                text: text,
-            },
-        };
+    const payload = buildPayload(
+      fcmToken,
+      NotificationTypes.CHAT,
+      {
+        chatId,
+        senderName,
+        text,
+      }
+    );
 
-        // 4. Send the notification
-        const response = await admin.messaging().send(payload);
-        console.log("Successfully sent message:", response);
-    } catch (error) {
-        console.error("Error sending notification:", error);
-    }
-
+    await admin.messaging().send(payload);
     return null;
-});
+  }
+);
+
+/* ------------------------------------------------------------------
+ * Example: System notification (manual / future use)
+ * ---------------------------------------------------------------- */
+
+export async function sendSystemNotification(
+  userId: string,
+  message: string
+) {
+  const userDoc = await admin.firestore().collection("users").doc(userId).get();
+  const fcmToken = userDoc.data()?.fcmToken;
+  if (!fcmToken) return;
+
+  const payload = buildPayload(
+    fcmToken,
+    NotificationTypes.SYSTEM,
+    {
+      title: "System",
+      text: message,
+    }
+  );
+
+  await admin.messaging().send(payload);
+}
+
+/* ------------------------------------------------------------------
+ * Example: Firebase event notification (approval, role change, etc.)
+ * ---------------------------------------------------------------- */
+
+export async function sendFirebaseEventNotification(
+  userId: string,
+  title: string,
+  text: string,
+  screen: string
+) {
+  const userDoc = await admin.firestore().collection("users").doc(userId).get();
+  const fcmToken = userDoc.data()?.fcmToken;
+  if (!fcmToken) return;
+
+  const payload = buildPayload(
+    fcmToken,
+    NotificationTypes.FIREBASE_EVENT,
+    {
+      title,
+      text,
+      screen, // Android can navigate based on this
+    }
+  );
+
+  await admin.messaging().send(payload);
+}

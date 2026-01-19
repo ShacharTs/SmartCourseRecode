@@ -5,10 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.smartcourse.MainActivity
@@ -27,109 +24,130 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var userRepository: UserRepository
 
-    /**
-     * Called when a new FCM token is generated for the device.
-     * This token is required to send push notifications to this specific device.
-     */
+    /* ------------------------------------------------------------
+     * Notification type constants (NO magic strings)
+     * ---------------------------------------------------------- */
+    object NotificationTypes {
+        const val CHAT = "CHAT"
+        const val SYSTEM = "SYSTEM"
+        const val REMINDER = "REMINDER"
+        const val FIREBASE_EVENT = "FIREBASE_EVENT"
+    }
+
+    /* ------------------------------------------------------------
+     * Token handling
+     * ---------------------------------------------------------- */
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-
-        Log.d("FCM_TOKEN", "onNewToken called. token=$token")
-
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                userRepository.updateFcmToken(token)
-                Log.d("FCM_TOKEN", "Token successfully saved to backend")
-            } catch (e: Exception) {
-                Log.e("FCM_TOKEN", "Failed to save token", e)
-            }
+            userRepository.updateFcmToken(token)
         }
     }
 
-
-//    /**
-//     * Called when a message is received from Firebase Cloud Messaging (FCM).
-//     */
-//    override fun onMessageReceived(remoteMessage: RemoteMessage) {
-//        val chatId = remoteMessage.data["chatId"] ?: return
-//
-//        FirebaseFirestore.getInstance()
-//            .collection("chats")
-//            .document(chatId)
-//            .update(
-//                "updated_at", Timestamp.now()
-//            )
-//    }
-
+    /* ------------------------------------------------------------
+     * Message entry point
+     * ---------------------------------------------------------- */
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        Log.d("FCM_DEBUG", "DATA = ${remoteMessage.data}")
-        Log.d("FCM_DEBUG", "NOTIFICATION = ${remoteMessage.notification}")
+        val prefs = getSharedPreferences("user_settings", MODE_PRIVATE)
+        if (!prefs.getBoolean("notif_enabled", true)) return
 
         val data = remoteMessage.data
+        val type = data["type"] ?: return
+
+        when (type) {
+            NotificationTypes.CHAT -> handleChatNotification(data, prefs)
+            NotificationTypes.SYSTEM -> handleSystemNotification(data)
+            NotificationTypes.REMINDER -> handleReminderNotification(data)
+            NotificationTypes.FIREBASE_EVENT -> handleFirebaseEventNotification(data)
+        }
+    }
+
+    /* ------------------------------------------------------------
+     * Handlers (ONE per type)
+     * ---------------------------------------------------------- */
+
+    private fun handleChatNotification(
+        data: Map<String, String>,
+        prefs: android.content.SharedPreferences
+    ) {
+        if (!prefs.getBoolean("chat_enabled", true)) return
+
         val chatId = data["chatId"] ?: return
         val senderName = data["senderName"]
+        val message = data["text"] ?: "New message"
 
-        Log.d("FCM_DEBUG", "senderName = $senderName")
+        if (AppState.isInForeground) return
 
-        // In your Repository, the message field is called "text"
-        // We check both "text" and "body" for safety
-        val messageBody = data["text"] ?: data["body"] ?: "New message received"
-
-        if (AppState.isInForeground) {
-            handleInAppMessage(chatId, data)
-            return
-        }
-
-        // Build the notification title using the sender's name
-        val title = if (!senderName.isNullOrBlank()) {
-            Log.d("test",senderName)
-            "New message from $senderName"
-        } else {
-            "New message "
-        }
-
-        showNotification(title, messageBody, chatId)
+        showNotification(
+            channelId = Channels.CHAT,
+            title = senderName?.let { "New message from $it" } ?: "New message",
+            message = message,
+            action = NotificationTypes.CHAT,
+            id = chatId
+        )
     }
 
-
-
-    private fun handleInAppMessage(
-        chatId: String,
-        data: Map<String, String>
-    ) {
-        // Intentionally left blank.
-        // Firestore listeners will update the UI automatically.
+    private fun handleSystemNotification(data: Map<String, String>) {
+        val message = data["text"] ?: return
+        showNotification(
+            channelId = Channels.SYSTEM,
+            title = "System",
+            message = message,
+            action = NotificationTypes.SYSTEM,
+            id = "system"
+        )
     }
 
+    private fun handleReminderNotification(data: Map<String, String>) {
+        val message = data["text"] ?: return
+        showNotification(
+            channelId = Channels.REMINDER,
+            title = "Reminder",
+            message = message,
+            action = NotificationTypes.REMINDER,
+            id = "reminder"
+        )
+    }
 
+    private fun handleFirebaseEventNotification(data: Map<String, String>) {
+        val title = data["title"] ?: "Update"
+        val message = data["text"] ?: return
+        val screen = data["screen"] ?: "HOME"
 
+        showNotification(
+            channelId = Channels.SYSTEM,
+            title = title,
+            message = message,
+            action = NotificationTypes.FIREBASE_EVENT,
+            id = screen
+        )
+    }
 
+    /* ------------------------------------------------------------
+     * Notification infrastructure
+     * ---------------------------------------------------------- */
 
-    /**
-     * Builds and displays a system notification.
-     */
     private fun showNotification(
+        channelId: String,
         title: String,
         message: String,
-        chatId: String
+        action: String,
+        id: String
     ) {
-        val channelId = "chat_notifications"
-        val notificationManager =
-            getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        createNotificationChannel(notificationManager)
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        createChannelIfNeeded(manager, channelId)
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("NOTIFICATION_ACTION", "CHAT_MESSAGE")
-            putExtra("CHAT_ID", chatId)
+            putExtra("NOTIFICATION_ACTION", action)
+            putExtra("NOTIFICATION_ID", id)
         }
 
         val pendingIntent = PendingIntent.getActivity(
             this,
-            chatId.hashCode(),
+            id.hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -139,24 +157,37 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
-            .setContentIntent(pendingIntent) // CRITICAL
+            .setContentIntent(pendingIntent)
             .build()
 
-        notificationManager.notify(chatId.hashCode(), notification)
+        manager.notify(id.hashCode(), notification)
     }
 
+    /* ------------------------------------------------------------
+     * Channels (separated per type)
+     * ---------------------------------------------------------- */
+    object Channels {
+        const val CHAT = "chat_notifications"
+        const val SYSTEM = "system_notifications"
+        const val REMINDER = "reminder_notifications"
+    }
 
-    private fun createNotificationChannel(notificationManager: NotificationManager) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "chat_notifications", // Must match your channelId
-                "Chat Messages",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notifications for new chat messages"
-            }
-            notificationManager.createNotificationChannel(channel)
+    private fun createChannelIfNeeded(
+        manager: NotificationManager,
+        channelId: String
+    ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (manager.getNotificationChannel(channelId) != null) return
+
+        val (name, importance) = when (channelId) {
+            Channels.CHAT -> "Chat Messages" to NotificationManager.IMPORTANCE_HIGH
+            Channels.SYSTEM -> "System Updates" to NotificationManager.IMPORTANCE_DEFAULT
+            Channels.REMINDER -> "Reminders" to NotificationManager.IMPORTANCE_HIGH
+            else -> "General" to NotificationManager.IMPORTANCE_DEFAULT
         }
-    }
 
+        manager.createNotificationChannel(
+            NotificationChannel(channelId, name, importance)
+        )
+    }
 }
