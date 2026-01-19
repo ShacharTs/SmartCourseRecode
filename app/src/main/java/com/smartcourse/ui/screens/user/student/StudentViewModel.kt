@@ -7,8 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.google.firebase.firestore.ListenerRegistration
 import com.smartcourse.data.models.chat.ChatItem
-import com.smartcourse.data.models.usermodel.Student
-import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.ChatRepository
@@ -26,164 +24,100 @@ class StudentHomeViewModel @Inject constructor(
     private val chatRepository: ChatRepository
 ) : ViewModel() {
 
-    /* ==============================
-       UI STATE
-       ============================== */
+    // UI state now uses List<User>
+    private val _myTutors = mutableStateOf<List<User>>(emptyList())
+    val myTutors: State<List<User>> = _myTutors
 
-    private val _myTutors = mutableStateOf<List<Tutor>>(emptyList())
-    val myTutors: State<List<Tutor>> = _myTutors
-
-    private val _discoverTutors = mutableStateOf<List<Tutor>>(emptyList())
-    val discoverTutors: State<List<Tutor>> = _discoverTutors
+    private val _discoverTutors = mutableStateOf<List<User>>(emptyList())
+    val discoverTutors: State<List<User>> = _discoverTutors
 
     private val _latestChats = mutableStateOf<List<ChatItem>>(emptyList())
     val latestChats: State<List<ChatItem>> = _latestChats
 
-    private var student: Student? = null
-
+    // Use the flat User model
+    private var currentUser: User? = null
     private var chatsListener: ListenerRegistration? = null
 
-    /* ==============================
-       ENTRY POINT
-       ============================== */
-
-    fun load(student: Student) {
-        this.student = student
+    fun load(user: User) {
+        this.currentUser = user
         loadTutors()
         subscribeToChats()
     }
 
-    /* ==============================
-       TUTORS
-       ============================== */
-
     private fun loadTutors() {
-        val s = student ?: return
+        val s = currentUser ?: return
 
         viewModelScope.launch {
-            val myId = s.user.getUID()
+            val myId = s.userId // Direct access to userId
+            val myCourseIds = s.courses.map { it.id }.toSet() // Courses from User object
+            val savedTutorIds = userRepository.getFavoriteUserIds(myId)
 
-            val myCourseIds =
-                s.coursesSeekingHelp.map { it.id }.toSet()
+            val tutorUsers = userRepository
+                .getAllUsersExcept(myId)
+                .filter { it.role == UserRole.TUTOR }
 
-            val savedTutorIds =
-                userRepository.getFavoriteUserIds(myId)
-
-            val tutorUsers =
-                userRepository
-                    .getAllUsersExcept(myId)
-                    .filter { it.role == UserRole.TUTOR }
-
-            val allTutors = kotlinx.coroutines.coroutineScope {
-                tutorUsers.map { user ->
-                    async {
-                        val links = userRepository.getUserCourses(user.userId)
-                        val courses = links.mapNotNull {
-                            userRepository.getCourseById(it.course_id)
-                        }
-
-                        Tutor(
-                            user = user,
-                            teachingCourses = courses,
-                            savedStudentIds = emptySet()
-                        )
+            val allTutorsEnriched = tutorUsers.map { tutor ->
+                async {
+                    val links = userRepository.getUserCourses(tutor.userId)
+                    val courses = links.mapNotNull {
+                        userRepository.getCourseById(it.course_id)
                     }
-                }.awaitAll()
-            }
-
-
-            _myTutors.value =
-                allTutors.filter { it.user.getUID() in savedTutorIds }
-
-            _discoverTutors.value =
-                allTutors.filter {
-                    it.teachingCourses.any { c -> c.id in myCourseIds } &&
-                            it.user.getUID() !in savedTutorIds
+                    // Enrich the user object with transient course data
+                    tutor.copy(courses = courses)
                 }
+            }.awaitAll()
+
+            _myTutors.value = allTutorsEnriched.filter { it.userId in savedTutorIds }
+            _discoverTutors.value = allTutorsEnriched.filter {
+                it.courses.any { c -> c.id in myCourseIds } && it.userId !in savedTutorIds
+            }
         }
     }
-
-    /* ==============================
-       CHATS (FIXED)
-       ============================== */
 
     private fun subscribeToChats() {
-        val s = student ?: return
-
+        val s = currentUser ?: return
         chatsListener?.remove()
 
-        chatsListener =
-            chatRepository.listenToUserChats(s.user.getUID()) { chats ->
-                viewModelScope.launch {
-                    val enriched = chats.map { chat ->
-                        val otherUser = runCatching {
-                            userRepository.loadUser(chat.otherUserId)
-                        }.getOrNull()
-
-                        chat.copy(otherUser = otherUser)
-                    }
-
-                    _latestChats.value = enriched
+        chatsListener = chatRepository.listenToUserChats(s.userId) { chats ->
+            viewModelScope.launch {
+                val enriched = chats.map { chat ->
+                    val otherUser = runCatching {
+                        userRepository.loadUser(chat.otherUserId)
+                    }.getOrNull()
+                    chat.copy(otherUser = otherUser)
                 }
+                _latestChats.value = enriched
             }
-    }
-
-
-    override fun onCleared() {
-        chatsListener?.remove()
-        chatsListener = null
-    }
-
-    /* ==============================
-       CHAT NAVIGATION
-       ============================== */
-
-    fun openChatWithTutor(
-        tutorId: String,
-        navController: NavController
-    ) {
-        val s = student ?: return
-
-        viewModelScope.launch {
-            val chatId =
-                chatRepository.ensureChatExists(
-                    s.user.getUID(),
-                    tutorId
-                )
-
-            navController.navigate(
-                Screen.ChatRoom.createRoute(chatId)
-            )
         }
     }
 
-    /* ==============================
-       SAVE USER (FAVORITE)
-       ============================== */
-
-    fun saveUser(user: User) {
-        val s = student ?: return
-        val userA = s.user.getUID()
-        val userB = user.getUID()
-
+    fun openChatWithTutor(tutorId: String, navController: NavController) {
+        val s = currentUser ?: return
         viewModelScope.launch {
-            userRepository.saveUser(userA, userB)
+            val chatId = chatRepository.ensureChatExists(s.userId, tutorId)
+            navController.navigate(Screen.ChatRoom.createRoute(chatId))
+        }
+    }
 
-            val tutorToAdd =
-                _discoverTutors.value.firstOrNull {
-                    it.user.getUID() == userB
-                }
+    fun saveUser(targetUser: User) {
+        val s = currentUser ?: return
+        viewModelScope.launch {
+            userRepository.saveUser(s.userId, targetUser.userId)
 
-            _discoverTutors.value =
-                _discoverTutors.value.filter {
-                    it.user.getUID() != userB
-                }
+            val tutorToAdd = _discoverTutors.value.firstOrNull { it.userId == targetUser.userId }
+            _discoverTutors.value = _discoverTutors.value.filter { it.userId != targetUser.userId }
+
 
             tutorToAdd?.let {
-                if (_myTutors.value.none { t -> t.user.getUID() == userB }) {
+                if (_myTutors.value.none { t -> t.userId == targetUser.userId }) {
                     _myTutors.value += it
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        chatsListener?.remove()
+        super.onCleared()
     }
 }

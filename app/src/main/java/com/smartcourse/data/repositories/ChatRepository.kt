@@ -69,7 +69,7 @@ class ChatRepository @Inject constructor (
         android.util.Log.d("FCM_DEBUG", "sendMessage called. To: $otherId")
         // Get the current user's data (the sender)
         val currentUser = userRepository.loadUser(myId)
-        val myName = currentUser?.user?.name ?: "Unknown"
+        val myName = currentUser?.displayName ?: "Unknown"
 
         val messageWithDetails = message.copy(
             chatId = chatId,

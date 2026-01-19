@@ -2,16 +2,13 @@ package com.smartcourse.ui.screens.login
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.smartcourse.auth.AuthStrategy
-import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.auth.EmailAuthStrategy
 import com.smartcourse.auth.GoogleAuthStrategy
 import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.SupabaseClient
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel

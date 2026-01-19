@@ -1,10 +1,10 @@
 package com.smartcourse.data.repositories
 
 import android.content.Context
+import android.util.Log
 import com.google.firebase.messaging.FirebaseMessaging
 import com.smartcourse.auth.AuthResult
 import com.smartcourse.auth.AuthStrategy
-import com.smartcourse.data.models.usermodel.DomainUser
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import io.github.jan.supabase.SupabaseClient
@@ -129,8 +129,26 @@ class AuthRepository @Inject constructor(
         loadOrCreateUser(sessionUser.id)
     }
 
-    suspend fun toDomainUser(user: User): DomainUser? {
-        return userRepo.toDomainUser(user)
+//    suspend fun toDomainUser(user: User): DomainUser? {
+//        return userRepo.toDomainUser(user)
+//    }
+
+    suspend fun populateUserDetails(user: User): User {
+        return try {
+            // 1. Fetch the relationship links (User <-> Course)
+            val userCourseLinks = userRepo.getUserCourses(user.userId)
+
+            // 2. Map those links to full Course objects
+            val fullCourses = userCourseLinks.mapNotNull { link ->
+                userRepo.getCourseById(link.course_id)
+            }
+
+            // 3. Return a copy of the user with the courses list filled
+            user.copy(courses = fullCourses)
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error populating details for ${user.userId}", e)
+            user // Return basic user if the enrichment fails
+        }
     }
 
 

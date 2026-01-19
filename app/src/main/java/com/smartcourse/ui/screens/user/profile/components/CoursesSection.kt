@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.ui.screens.user.profile.UserProfileViewModel
 import com.smartcourse.ui.theme.ShowProfileColorPalette
@@ -12,15 +13,17 @@ import com.smartcourse.ui.theme.ShowProfileColorPalette
 @Composable
 fun CoursesSection(
     home: ShowProfileColorPalette,
-    user: User,
-    vm: UserProfileViewModel
+    user: User, // This is already the enriched User from the parent
+    vm: UserProfileViewModel,
+    authVM: AuthViewModel // Added to sync changes globally
 ) {
-    val userCourses by vm.courses.collectAsState()
+    // 1. Unified Data: Pull courses directly from the flat user object
+    val userCourses = user.courses
     val allCourses by vm.allCourses.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
+    // 2. Optimized Loading: loadCourses is no longer needed as loadUser handles it
     LaunchedEffect(Unit) {
-        vm.loadCourses(user.userId)
         vm.loadAllCourses()
     }
 
@@ -30,8 +33,12 @@ fun CoursesSection(
         if (userCourses.isEmpty()) {
             Text("No courses yet.", color = home.subtext)
         } else {
-            userCourses.forEach {
-                Text(text = "• ${it.name}", color = home.textPrimary, modifier = Modifier.padding(bottom = 8.dp))
+            userCourses.forEach { course ->
+                Text(
+                    text = "• ${course.name}",
+                    color = home.textPrimary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
         }
     }
@@ -41,8 +48,13 @@ fun CoursesSection(
             allCourses = allCourses,
             userCourses = userCourses,
             onDismiss = { showDialog = false },
-            onAdd = { course -> vm.addCourse(user.userId, course.id) },
-            onRemove = { course -> vm.removeCourse(user.userId, course.id) }
+            // 3. Global Sync: Pass authVM to ensure Header/Home update
+            onAdd = { course ->
+                vm.addCourse(user.userId, course.id, authVM)
+            },
+            onRemove = { course ->
+                vm.removeCourse(user.userId, course.id, authVM)
+            }
         )
     }
 }

@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartcourse.data.models.usermodel.DomainUser
+import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AppLaunchRepository
 import com.smartcourse.data.repositories.AuthRepository
@@ -25,7 +25,8 @@ class AuthViewModel @Inject constructor(
     var authState by mutableStateOf(AuthState.LOADING)
         private set
 
-    var domainUser by mutableStateOf<DomainUser?>(null)
+
+    var currentUserProfile by mutableStateOf<User?>(null)
         private set
 
     init {
@@ -40,7 +41,9 @@ class AuthViewModel @Inject constructor(
                 // If terms are accepted, now we listen to the user session
                 authRepo.currentUser.collect { user ->
                     // Update the domain user first
-                    domainUser = user?.let { authRepo.toDomainUser(it) }
+                    //domainUser = user?.let { authRepo.toDomainUser(it) }
+
+                    currentUserProfile = user?.let { authRepo.populateUserDetails(it) }
 
                     // Then update the state (this triggers the UI change)
                     authState = when (user?.role) {
@@ -56,22 +59,6 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             appLaunchRepository.termsAccepted.collect { accepted ->
                 if (accepted) authRepo.restoreValidSession()
-            }
-        }
-    }
-
-    //  Called ONLY from Terms screen
-    fun onTermsAccepted() {
-        viewModelScope.launch {
-            appLaunchRepository.setTermsAccepted()
-
-            // Force auth resolution after terms
-            val user = authRepo.restoreValidSession()
-
-            authState = when (user?.role) {
-                null -> AuthState.LOGGED_OUT
-                UserRole.TEMP -> AuthState.CHOOSING_ROLE
-                else -> AuthState.LOGGED_IN
             }
         }
     }
@@ -92,23 +79,23 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             authRepo.logout()
-            domainUser = null
+            //domainUser = null
+            currentUserProfile = null
             authState = AuthState.LOGGED_OUT
         }
     }
 
-    fun onUserLoaded(user: DomainUser) {
-        domainUser = user
-    }
 
-
-    fun refreshDomainUserFromRepo() {
-        val userId = domainUser?.user?.id ?: return
-
+    fun refreshUser() {
         viewModelScope.launch {
-            val freshUser = authRepo.loadOrCreateUser(userId)
+            // 1. Get the current raw user
+            val rawUser = authRepo.currentUser.value ?: return@launch
 
-            domainUser = authRepo.toDomainUser(freshUser)
+            // 2. Re-run the enrichment process (fetch courses, etc.)
+            val enrichedUser = authRepo.populateUserDetails(rawUser)
+
+            // 3. Update the state with a fresh object to trigger UI recomposition
+            currentUserProfile = enrichedUser
         }
     }
 

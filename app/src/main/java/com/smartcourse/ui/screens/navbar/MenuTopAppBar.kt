@@ -31,7 +31,8 @@ fun MenuTopAppBar(
         NavBarColors.Light
     }
 
-    val domainUser = authVM.domainUser
+    //val domainUser = authVM.domainUser
+    val currentUser = authVM.currentUser
 
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -52,7 +53,8 @@ fun MenuTopAppBar(
         },
         title = {
             CustomText(
-                text = "Welcome ${domainUser?.user?.name.orEmpty()}",
+                //text = "Welcome ${currentUser?.user?.name.orEmpty()}",
+                text = "Welcome ${currentUser.value?.displayName.orEmpty()}",
                 fontSize = 30.sp,
                 maxLines = 1,
                 textAlign = TextAlign.Center

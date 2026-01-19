@@ -24,7 +24,7 @@ class ChatListViewModel @Inject constructor(
 
     // Read ONCE — chat list does not react to auth changes
     private val myId: String =
-        requireNotNull(authRepo.currentUser.value?.getUID()) {
+        requireNotNull(authRepo.currentUser.value?.userId) {
             "ChatListViewModel created without logged-in user"
         }
 

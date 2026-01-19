@@ -32,48 +32,43 @@ import com.smartcourse.ui.theme.ShowProfileLayoutColors
 fun UserProfileScreen(
     navController: NavController,
     authVM: AuthViewModel,
-    vm: UserProfileViewModel = hiltViewModel(),
-    galleryViewModel : GalleryViewModel = hiltViewModel()
+    userProfileViewModel: UserProfileViewModel = hiltViewModel(),
+    galleryViewModel: GalleryViewModel = hiltViewModel()
 ) {
     val isDark = LocalAppPalette.current.isDark
     val colors = if (isDark) ShowProfileLayoutColors.Dark else ShowProfileLayoutColors.Light
 
-    // Collect states from ViewModels
-    val authState by authVM.currentUser.collectAsState()
-    val user by vm.user.collectAsState()
-
+    // 1. Observe the unified states
+    val user by userProfileViewModel.user.collectAsState()
+    val isUpdating by userProfileViewModel.isUpdating.collectAsState()
+    val authUser = authVM.currentUserProfile
     val context = LocalContext.current
-    val authUser = authState?.user
 
-    // Trigger data load when the auth user ID is available
+    // 2. Optimized Data Loading: loadUser now handles courses automatically
     LaunchedEffect(authUser?.userId) {
         authUser?.userId?.let { id ->
-            vm.loadUser(id)
-            vm.loadCourses(id)
+            userProfileViewModel.loadUser(id)
         }
     }
 
-
-    // Handle Image Selection
+    // 3. Image Selection with Auth Sync
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         uri?.let {
-
             val bytes = context.contentResolver.openInputStream(it)?.use { stream ->
                 stream.readBytes()
             }
             if (bytes != null && authUser != null) {
-                vm.updateAvatarPng(authUser.userId, bytes)
+                // Pass authVM to ensure the Header updates immediately
+                userProfileViewModel.updateAvatarPng(authUser.userId, bytes, authVM)
             }
         }
     }
 
-
     LaunchedEffect(Unit) {
         galleryViewModel.events.collect { event ->
             if (event is GalleryEvent.OpenGallery) {
-
                 pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
         }
@@ -82,21 +77,20 @@ fun UserProfileScreen(
     var showEditName by remember { mutableStateOf(false) }
     var showEditBio by remember { mutableStateOf(false) }
 
-    // Use a Box to layer the Loading UI over or instead of the content
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(colors.backgroundGradient))
             .statusBarsPadding()
     ) {
+        // 4. Handle initial load vs. active updating
         if (authUser == null || user == null) {
-            // Show a loading indicator instead of returning null/empty
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = MaterialTheme.colorScheme.primary
             )
         } else {
-            // Content is safe to display here
+            // Use the local 'user' state as it is enriched with courses
             val currentUser = user!!
 
             Column(
@@ -109,9 +103,7 @@ fun UserProfileScreen(
                 ProfileCard(
                     user = currentUser,
                     home = colors,
-                    onEditAvatar = {
-                        galleryViewModel.requestGallery()
-                    },
+                    onEditAvatar = { galleryViewModel.requestGallery() },
                     onEditName = { showEditName = true }
                 )
 
@@ -124,7 +116,8 @@ fun UserProfileScreen(
                 CoursesSection(
                     home = colors,
                     user = currentUser,
-                    vm = vm
+                    vm = userProfileViewModel,
+                    authVM = authVM
                 )
 
                 Spacer(Modifier.weight(1f))
@@ -132,12 +125,15 @@ fun UserProfileScreen(
                 ProfileActions(authVM)
             }
 
-            // Dialogs placed inside the 'else' to ensure currentUser is available
+            // 5. Global Sync in Dialogs: Pass authVM to all updates
             if (showEditName) {
                 EditNameDialog(
                     currentName = currentUser.name.orEmpty(),
                     onDismiss = { showEditName = false },
-                    onSave = { newName -> vm.updateName(currentUser.userId, newName) }
+                    onSave = { newName ->
+                        userProfileViewModel.updateName(currentUser.userId, newName, authVM)
+                        showEditName = false
+                    }
                 )
             }
 
@@ -145,8 +141,22 @@ fun UserProfileScreen(
                 EditBioDialog(
                     currentBio = currentUser.bio,
                     onDismiss = { showEditBio = false },
-                    onSave = { newBio -> vm.updateBio(currentUser.userId, newBio) }
+                    onSave = { newBio ->
+                        userProfileViewModel.updateBio(currentUser.userId, newBio, authVM)
+                        showEditBio = false
+                    }
                 )
+            }
+        }
+
+        // 6. Visual feedback during updates
+        if (isUpdating) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f))
+            ) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
     }

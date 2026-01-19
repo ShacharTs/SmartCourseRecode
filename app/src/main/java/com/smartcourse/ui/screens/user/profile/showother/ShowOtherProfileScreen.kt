@@ -92,7 +92,8 @@ fun ShowOtherProfileScreen(
     ) {
         ProfileHeader(
             colors = colors,
-            userName = currentUser.getUserName(),
+            //userName = currentUser.getUserName(),
+            userName = currentUser.displayName,
             role = currentUser.role?.name,
             image = currentUser.image,
             favorites = favorites,

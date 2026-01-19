@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChooseRoleViewModel @Inject constructor(
-    private val authRepo: AuthRepository,
+    authRepo: AuthRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
 
@@ -23,7 +23,7 @@ class ChooseRoleViewModel @Inject constructor(
                 ?: error("No logged-in user")
 
             userRepository.updateUserRole(
-                id = user.getUID(),
+                id = user.userId,
                 role = role
             )
 

@@ -3,19 +3,7 @@ package com.smartcourse.ui.screens.user.student
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -41,8 +29,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.smartcourse.data.models.chat.ChatItem
-import com.smartcourse.data.models.usermodel.Student
-import com.smartcourse.data.models.usermodel.Tutor
+import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.StudentHomeColorPalette
@@ -53,15 +40,17 @@ import com.smartcourse.ui.theme.StudentHomeColorPalette
 
 @Composable
 fun TutorAvatar(
-    tutor: Tutor, colors: StudentHomeColorPalette, onClick: () -> Unit
+    user: User, // Changed from Tutor to User
+    colors: StudentHomeColorPalette,
+    onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable(onClick = onClick)
     ) {
-
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(tutor.user.image)
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(user.image) // Direct access
                 .crossfade(true).build(),
             contentDescription = "Tutor avatar",
             modifier = Modifier
@@ -71,8 +60,10 @@ fun TutorAvatar(
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            tutor.user.getUserName(), // name is nullable -> use safe getter
-            color = colors.textPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold
+            user.displayName, // Uses the User helper property
+            color = colors.textPrimary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
@@ -100,8 +91,7 @@ fun ActionButton(
 
 @Composable
 fun TutorDiscoverCard(
-    tutor: Tutor,
-
+    user: User, // Changed from Tutor to User
     colors: StudentHomeColorPalette,
     onProfileClick: () -> Unit,
     onChatClick: () -> Unit,
@@ -116,12 +106,14 @@ fun TutorDiscoverCard(
             .clickable { onProfileClick() }
             .padding(12.dp)) {
         Column(
-            modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current).data(tutor.user.image)
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(user.image) // Direct access
                             .crossfade(true).build(),
                         contentDescription = "Tutor avatar",
                         modifier = Modifier
@@ -133,7 +125,8 @@ fun TutorDiscoverCard(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Column {
-                        tutor.teachingCourses.take(2).forEach { course ->
+                        // Access transient courses list from the flat User model
+                        user.courses.take(2).forEach { course ->
                             Text(
                                 text = course.name,
                                 color = colors.subtext,
@@ -143,25 +136,20 @@ fun TutorDiscoverCard(
                             )
                         }
 
-                        if (tutor.teachingCourses.size > 2) {
+                        if (user.courses.size > 2) {
                             Text(
-                                text = "+${tutor.teachingCourses.size - 2} more",
+                                text = "+${user.courses.size - 2} more",
                                 color = colors.subtext,
                                 fontSize = 11.sp
                             )
                         }
                     }
-
                 }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ActionButton("Chat", true, colors) {
-                    onChatClick()
-                }
-                ActionButton("Save", false, colors) {
-                    onSaveClick()
-                }
+                ActionButton("Chat", true, colors) { onChatClick() }
+                ActionButton("Save", false, colors) { onSaveClick() }
             }
         }
     }
@@ -174,9 +162,9 @@ fun TutorDiscoverCard(
 
 @Composable
 fun MyTutorsSection(
-    tutors: List<Tutor>,
+    tutors: List<User>, // Changed to List<User>
     colors: StudentHomeColorPalette,
-    onChatClick: (Tutor) -> Unit
+    onChatClick: (User) -> Unit
 ) {
     Text(
         "My Tutors",
@@ -188,9 +176,10 @@ fun MyTutorsSection(
     Spacer(modifier = Modifier.height(10.dp))
 
     LazyRow(horizontalArrangement = Arrangement.spacedBy(30.dp)) {
+        // items import is required to avoid Int mismatch errors
         items(tutors) { tutor ->
             TutorAvatar(
-                tutor = tutor,
+                user = tutor,
                 colors = colors,
                 onClick = { onChatClick(tutor) }
             )
@@ -198,15 +187,13 @@ fun MyTutorsSection(
     }
 }
 
-
-
 @Composable
 fun DiscoverTutorsSection(
-    tutors: List<Tutor>,
+    tutors: List<User>, // Changed to List<User>
     colors: StudentHomeColorPalette,
-    onProfileClick: (Tutor) -> Unit,
-    onChatClick: (Tutor) -> Unit,
-    onSaveClick: (Tutor) -> Unit
+    onProfileClick: (User) -> Unit,
+    onChatClick: (User) -> Unit,
+    onSaveClick: (User) -> Unit
 ) {
     Text(
         "Discover Tutors",
@@ -227,20 +214,20 @@ fun DiscoverTutorsSection(
     ) {
         items(tutors.take(4)) { tutor ->
             TutorDiscoverCard(
-                tutor = tutor,
+                user = tutor,
                 colors = colors,
-
                 onProfileClick = { onProfileClick(tutor) },
                 onChatClick = { onChatClick(tutor) },
-                onSaveClick = { onSaveClick(tutor) })
+                onSaveClick = { onSaveClick(tutor) }
+            )
         }
     }
 }
 
-
 @Composable
 fun LatestChatsSection(
-    chats: List<ChatItem>, colors: StudentHomeColorPalette
+    chats: List<ChatItem>,
+    colors: StudentHomeColorPalette
 ) {
     Text(
         "Latest Chats",
@@ -260,10 +247,12 @@ fun LatestChatsSection(
                 .padding(horizontal = 16.dp)
                 .clickable {
                     Log.d("Chat", "Open chatId=${chat.chatId}")
-                }, verticalAlignment = Alignment.CenterVertically
+                },
+            verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current).data(chat.otherUser?.image)
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(chat.otherUser?.image)
                     .crossfade(true).build(),
                 contentDescription = "User avatar",
                 modifier = Modifier
@@ -274,7 +263,7 @@ fun LatestChatsSection(
 
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                "${chat.otherUser?.getUserName() ?: "Chat"} — ${chat.lastMessage}",
+                "${chat.otherUser?.displayName ?: "Chat"} — ${chat.lastMessage}",
                 color = colors.textPrimary,
                 fontSize = 15.sp
             )
@@ -289,7 +278,8 @@ fun LatestChatsSection(
 
 @Composable
 fun StudentHomeLayout(
-    navController: NavController, student: Student
+    navController: NavController,
+    user: User // Passed directly from Root Screen
 ) {
     val vm: StudentHomeViewModel = hiltViewModel()
 
@@ -299,10 +289,10 @@ fun StudentHomeLayout(
 
     val palette = LocalAppPalette.current
     val homeColors = palette.home
-    val isDark = palette.isDark
 
-    LaunchedEffect(student.user.getUID()) {
-        vm.load(student)
+    // Use the flat userId property
+    LaunchedEffect(user.userId) {
+        vm.load(user)
     }
 
     LazyColumn(
@@ -316,36 +306,33 @@ fun StudentHomeLayout(
                 colors = homeColors,
                 onChatClick = { tutor ->
                     vm.openChatWithTutor(
-                        tutorId = tutor.user.getUID(),
+                        tutorId = tutor.userId, // Direct access
                         navController = navController
                     )
                 }
             )
         }
 
-
         item {
             DiscoverTutorsSection(
-                tutors = discoverTutors, colors = homeColors,
-
+                tutors = discoverTutors,
+                colors = homeColors,
                 onProfileClick = { tutor ->
                     navController.navigate(
-                        Screen.ShowOtherProfile.createRoute(tutor.id)
+                        Screen.ShowOtherProfile.createRoute(tutor.userId) // Direct access
                     )
                 },
-
-
                 onChatClick = { tutor ->
                     vm.openChatWithTutor(
-                        tutorId = tutor.user.getUID(), navController = navController
+                        tutorId = tutor.userId,
+                        navController = navController
                     )
                 },
-
                 onSaveClick = { tutor ->
-                    vm.saveUser(tutor.user)
-                })
+                    vm.saveUser(tutor) // Pass the User directly
+                }
+            )
         }
-
 
         item { LatestChatsSection(chats, homeColors) }
     }

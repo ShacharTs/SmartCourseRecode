@@ -18,10 +18,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val repo: ChatRepository,
+    private val chatRepo: ChatRepository,
     private val userRepo: UserRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+
 
     val chatId: String =
         checkNotNull(savedStateHandle["chatId"]) {
@@ -44,7 +46,7 @@ class ChatViewModel @Inject constructor(
 
             listener?.remove()
 
-            listener = repo.listenToMessages(chatId) { msgs ->
+            listener = chatRepo.listenToMessages(chatId) { msgs ->
                 _messages.value = msgs
             }
         }
@@ -73,7 +75,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             // Fetch current user details to get the sender's name
             val currentUser = userRepo.loadUser(myId)
-            val name = currentUser?.user?.name ?: "Unknown User"
+            val name = currentUser?.displayName ?: "Unknown User"
 
             val msg = Message(
                 chatId = chatId,
@@ -85,7 +87,7 @@ class ChatViewModel @Inject constructor(
                 type = "text",
             )
 
-            repo.sendMessage(
+            chatRepo.sendMessage(
                 chatId = chatId,
                 message = msg,
                 myId = myId,
@@ -96,7 +98,7 @@ class ChatViewModel @Inject constructor(
     }
 
     suspend fun getReceiverId(chatId: String, mySupabaseId: String): String {
-        val chat = repo.getChatById(chatId)
+        val chat = chatRepo.getChatById(chatId)
 
         val receiver = chat.participants.firstOrNull { it != mySupabaseId }
             ?: throw IllegalStateException("Chat has no other participant.")
@@ -107,7 +109,7 @@ class ChatViewModel @Inject constructor(
 
     fun openChatWith(otherUserId: String, myId: String, navController: NavController) {
         viewModelScope.launch {
-            val chatId = repo.ensureChatExists(myId, otherUserId)
+            val chatId = chatRepo.ensureChatExists(myId, otherUserId)
             navController.navigate("chat/$chatId")
         }
     }
@@ -127,7 +129,7 @@ class ChatViewModel @Inject constructor(
      * Get both users participating in this chat.
      */
     suspend fun getChatParticipants(chatId: String): Pair<String, String> {
-        val chat = repo.getChatById(chatId)
+        val chat = chatRepo.getChatById(chatId)
         if (chat.participants.size != 2) {
             throw IllegalStateException("Chat must have exactly 2 participants.")
         }

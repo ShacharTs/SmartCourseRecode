@@ -14,9 +14,6 @@ import com.smartcourse.data.models.table.UserFavoriteTable.USER_A
 import com.smartcourse.data.models.table.UserFavoriteTable.USER_B
 import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.data.models.usermodel.Course
-import com.smartcourse.data.models.usermodel.DomainUser
-import com.smartcourse.data.models.usermodel.Student
-import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.models.usermodel.serialName
@@ -347,25 +344,25 @@ class UserRepository @Inject constructor(
 
 
     // later use
-    suspend fun toDomainUser(user: User): DomainUser? =
-        when (user.role) {
-
-            UserRole.STUDENT -> {
-                val links = getUserCourses(user.userId)
-                val courses = links.mapNotNull { getCourseById(it.course_id) }
-                Student(user, courses)
-            }
-
-            UserRole.TUTOR -> {
-                val links = getUserCourses(user.userId)
-                val courses = links.mapNotNull { getCourseById(it.course_id) }
-                Tutor(user, courses)
-            }
-
-            UserRole.TEMP -> null
-
-            else -> null
-        }
+//    suspend fun toDomainUser(user: User): DomainUser? =
+//        when (user.role) {
+//
+//            UserRole.STUDENT -> {
+//                val links = getUserCourses(user.userId)
+//                val courses = links.mapNotNull { getCourseById(it.course_id) }
+//                Student(user, courses)
+//            }
+//
+//            UserRole.TUTOR -> {
+//                val links = getUserCourses(user.userId)
+//                val courses = links.mapNotNull { getCourseById(it.course_id) }
+//                Tutor(user, courses)
+//            }
+//
+//            UserRole.TEMP -> null
+//
+//            else -> null
+//        }
 
 
     suspend fun searchUsers(query: String): List<User> {
@@ -401,8 +398,17 @@ class UserRepository @Inject constructor(
         val bucketName = "user_profile_image"
         val objectPath = "users/$userId.png"
 
+        // FIX: Check if we are authenticated. If the session is null,
+        // the request will be sent as 'anon' and trigger the RLS error.
+        val session = client.auth.currentSessionOrNull()
+        if (session == null) {
+            // Attempt to refresh or restore if null
+            throw IllegalStateException("User must be logged in to upload an avatar.")
+        }
+
         val bucket = client.storage.from(bucketName)
 
+        // This POST request fails if the Bearer token in 'client' is the anon key.
         bucket.upload(
             path = objectPath,
             data = imageBytes,
@@ -410,12 +416,11 @@ class UserRepository @Inject constructor(
         )
 
         val rawBase = client.supabaseUrl.trimEnd('/')
-        val baseUrl =
-            if (rawBase.startsWith("http://") || rawBase.startsWith("https://")) {
-                rawBase
-            } else {
-                "https://$rawBase"
-            }
+        val baseUrl = if (rawBase.startsWith("http://") || rawBase.startsWith("https://")) {
+            rawBase
+        } else {
+            "https://$rawBase"
+        }
 
         return "$baseUrl/storage/v1/object/public/$bucketName/$objectPath"
     }
@@ -496,6 +501,7 @@ class UserRepository @Inject constructor(
         val token = FirebaseMessaging.getInstance().token.await()
         updateFcmToken(token)
     }
+
 
 
 

@@ -5,35 +5,37 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+// User.kt
 @Serializable
 data class User(
     @SerialName(UserTable.ID)
     val userId: String,
-
     @SerialName(UserTable.NAME)
-    var name: String? = null, // No 'override' here
-
+    var name: String? = null,
     @SerialName(UserTable.EMAIL)
-    var email: String? = null, // No 'override' here
-
+    var email: String? = null,
     @SerialName(UserTable.IMAGE)
     var image: String? = null,
-
     @SerialName(UserTable.ROLE)
     var role: UserRole? = null,
-
     @SerialName(UserTable.BIO)
     var bio: String? = null,
 
+    // Optimization: Keep all specific data in one place
+    // Use @Transient so Supabase doesn't try to find these columns in the user_table
     @Transient
-    var courses: List<Course> = emptyList()
+    var courses: List<Course> = emptyList(),
 
-) : DomainUser {
-    override val user: User get() = this
+    @Transient
+    var favoritesCount: Int = 0,
 
-    // Keeping your original getters exactly as they were
-    fun getUID() : String = userId
-    fun getUserName() : String = name ?: ""
-    fun getUserEmail() : String = email ?: ""
-    fun setUserName(name : String) { this@User.name = name }
+    @Transient
+    var savedUserIds: Set<String> = emptySet()
+) {
+    // Helper property to replace the old DomainUser functionality
+    val displayName: String get() = name.orEmpty()
+    val displayImage: String get() = image.orEmpty()
+
+
+
 }

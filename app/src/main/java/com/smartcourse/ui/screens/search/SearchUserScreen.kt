@@ -130,7 +130,7 @@ private fun SearchUserRow(
                 )
             } else {
                 Text(
-                    text = user.getUserName()
+                    text = user.displayName
                         .split(" ")
                         .take(2)
                         .joinToString("") { it.first().uppercase() },
@@ -145,7 +145,7 @@ private fun SearchUserRow(
 
         Column {
             Text(
-                text = user.getUserName(),
+                text = user.displayName,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = colors.textPrimary

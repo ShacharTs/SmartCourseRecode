@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -24,15 +23,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.smartcourse.auth.AuthViewModel
-import com.smartcourse.data.models.usermodel.Student
-import com.smartcourse.data.models.usermodel.Tutor
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
 import com.smartcourse.notifications.NotificationAction
-import com.smartcourse.ui.screens.chatlist.ChatListScreen
-import com.smartcourse.ui.screens.chatlist.ChatListViewModel
 import com.smartcourse.ui.screens.chat.ChatScreen
 import com.smartcourse.ui.screens.chat.vm.ChatViewModel
+import com.smartcourse.ui.screens.chatlist.ChatListScreen
+import com.smartcourse.ui.screens.chatlist.ChatListViewModel
 import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
@@ -107,8 +104,11 @@ fun UserRootScreen(
         colors = if (isDark) AppGradients.Dark else AppGradients.Light
     )
 
-    val currentUser by authVM.currentUser.collectAsState()
-    val role = currentUser?.role ?: UserRole.TEMP
+    //val currentUser by authVM.currentUser.collectAsState()
+    //val role = currentUser?.role ?: UserRole.TEMP
+
+    val userProfile = authVM.currentUserProfile
+    val role = userProfile?.role ?: UserRole.TEMP
 
     val items = bottomNavItemsForRole(role)
 
@@ -184,7 +184,12 @@ fun UserRootScreen(
 
                     val chatVM: ChatViewModel = hiltViewModel(entry)
 
-                    val myId = authVM.currentUser.value?.getUID()
+                    //val myId = authVM.currentUser.value?.getUID()
+
+//                    val myId = authVM.currentUser.value?.userId
+//                        ?: return@composable
+
+                    val myId = authVM.currentUserProfile?.userId
                         ?: return@composable
 
                     ChatScreen(
@@ -277,16 +282,23 @@ fun ShowUserMenuScreen(
     navController: NavController,
     authVM: AuthViewModel
 ) {
-    when (val user = authVM.domainUser) {
-        null -> LoadingScreen()
+    //when (val user = authVM.domainUser) {
+    val user = authVM.currentUserProfile
 
-        is Student -> StudentHomeLayout(
-            navController = navController, student = user
+    when {
+        user == null -> LoadingScreen()
+
+        user.role == UserRole.STUDENT -> StudentHomeLayout(
+            navController = navController,
+            user = user // Pass the flat User object
         )
 
-        is Tutor -> TutorHomeLayout(
-            navController = navController, tutor = user
+        user.role == UserRole.TUTOR -> TutorHomeLayout(
+            navController = navController,
+            user = user // Pass the flat User object
         )
+
+        else -> LoadingScreen() // Handle TEMP or unexpected roles
     }
 }
 

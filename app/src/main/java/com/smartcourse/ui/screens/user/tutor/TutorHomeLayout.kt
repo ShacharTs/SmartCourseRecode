@@ -28,8 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.smartcourse.data.models.usermodel.Student
-import com.smartcourse.data.models.usermodel.Tutor
+import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.ui.screens.user.student.LatestChatsSection
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.StudentHomeColorPalette
@@ -37,7 +36,7 @@ import com.smartcourse.ui.theme.StudentHomeColorPalette
 @Composable
 fun TutorHomeLayout(
     navController: NavController,
-    tutor: Tutor,
+    user: User,
 ) {
     val vm: TutorHomeViewModel = hiltViewModel()
     val myStudents by vm.myStudents
@@ -46,8 +45,8 @@ fun TutorHomeLayout(
     val palette = LocalAppPalette.current
     val homeColors = palette.home
 
-    LaunchedEffect(tutor.user.getUID()) {
-        vm.load(tutor)
+    LaunchedEffect(user.userId) {
+        vm.load(user)
     }
 
     LazyColumn(
@@ -55,54 +54,54 @@ fun TutorHomeLayout(
         contentPadding = PaddingValues(16.dp, 24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // 2. My Students Section
         item {
             MyStudentsSection(
                 students = myStudents,
                 colors = homeColors,
                 onStudentClick = { student ->
-                    vm.openChatWithStudent(student.user.getUID(), navController)
+                    vm.openChatWithStudent(student.userId, navController)
                 }
             )
         }
 
-        // 3. Latest Chats Section (Reusing logic from StudentHomeLayout)
         item {
             LatestChatsSection(chats = chats, colors = homeColors)
         }
     }
 }
 
-@Composable
-fun MyStudentsSection(
-    students: List<Student>,
-    colors: StudentHomeColorPalette,
-    onStudentClick: (Student) -> Unit
-) {
-    Column {
-        Text(
-            "My Students",
-            color = colors.textPrimary,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+    @Composable
+    fun MyStudentsSection(
+        //students: List<Student>,
+        students: List<User>,
+        colors: StudentHomeColorPalette,
+        //onStudentClick: (Student) -> Unit
+        onStudentClick: (User) -> Unit
+    ) {
+        Column {
+            Text(
+                "My Students",
+                color = colors.textPrimary,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(12.dp))
 
-        if (students.isEmpty()) {
-            Text("No students assigned yet.", color = colors.subtext)
-        } else {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                items(students) { student ->
-                    StudentAvatar(student, colors) { onStudentClick(student) }
+            if (students.isEmpty()) {
+                Text("No students assigned yet.", color = colors.subtext)
+            } else {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    items(students) { student ->
+                        StudentAvatar(student, colors) { onStudentClick(student) }
+                    }
                 }
             }
         }
     }
-}
 
 @Composable
 fun StudentAvatar(
-    student: Student,
+    student: User, // Changed from Student to User
     colors: StudentHomeColorPalette,
     onClick: () -> Unit
 ) {
@@ -112,8 +111,9 @@ fun StudentAvatar(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(student.user.image)
-                .crossfade(true).build(),
+                .data(student.image) // Direct access: student.image
+                .crossfade(true)
+                .build(),
             contentDescription = "Student avatar",
             modifier = Modifier
                 .size(56.dp)
@@ -122,7 +122,7 @@ fun StudentAvatar(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            student.user.getUserName(),
+            student.displayName, // Direct access using your helper property
             color = colors.textPrimary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium

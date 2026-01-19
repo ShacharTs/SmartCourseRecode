@@ -11,12 +11,9 @@ import androidx.navigation.compose.composable
 import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.ui.screens.chooserole.ChooseRoleScreen
-import com.smartcourse.ui.screens.chooserole.ChooseRoleViewModel
 import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.screens.login.LoginScreen
-import com.smartcourse.ui.screens.login.LoginViewModel
 import com.smartcourse.ui.screens.register.RegisterScreen
-import com.smartcourse.ui.screens.register.RegisterViewModel
 import com.smartcourse.ui.screens.setting.AppStartViewModel
 import com.smartcourse.ui.screens.setting.terms.TermsAndServiceScreen
 import com.smartcourse.ui.screens.user.UserRootScreen
@@ -109,7 +106,7 @@ private fun NavHostGraph(
     authVM: AuthViewModel,
     appStartViewModel: AppStartViewModel = hiltViewModel()
 ) {
-    val authVM: AuthViewModel = hiltViewModel()
+    //val authVM: AuthViewModel = hiltViewModel()
     val termsAccepted by appStartViewModel.termsAccepted.collectAsState()
 
     val startDestination = when {
