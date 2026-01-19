@@ -1,6 +1,7 @@
 package com.smartcourse.data.repositories
 
 import android.content.Context
+import com.google.firebase.messaging.FirebaseMessaging
 import com.smartcourse.auth.AuthResult
 import com.smartcourse.auth.AuthStrategy
 import com.smartcourse.data.models.usermodel.DomainUser
@@ -36,6 +37,7 @@ class AuthRepository @Inject constructor(
 
         if (result.success && result.userId != null) {
             loadOrCreateUser(result.userId)
+            restoreValidSession()
         }
 
         return result
@@ -74,18 +76,36 @@ class AuthRepository @Inject constructor(
     suspend fun restoreValidSession(): User? {
         val session = supabase.auth.currentSessionOrNull() ?: return null
         val userId = session.user?.id ?: return null
-        return loadOrCreateUser(userId)
+
+        val user = loadOrCreateUser(userId)
+
+
+        userRepo.ensureFcmTokenSaved()
+
+        return user
     }
+
 
     // ------------------------------------------------------------
     // LOGOUT
     // ------------------------------------------------------------
     suspend fun logout(strategy: AuthStrategy? = null) {
+        // 1. Remove token from backend
+        userRepo.removeFcmToken()
+
+        // 2. Invalidate local FCM token
+        FirebaseMessaging.getInstance().deleteToken()
+
+        // 3. Logout auth providers
         strategy?.logout()
         supabase.auth.signOut()
         supabase.auth.clearSession()
+
+        // 4. Clear app state
         _currentUser.value = null
     }
+
+
 
 
     suspend fun registerWithEmail(

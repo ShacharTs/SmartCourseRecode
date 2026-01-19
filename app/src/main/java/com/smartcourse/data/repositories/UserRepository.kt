@@ -4,6 +4,7 @@ package com.smartcourse.data.repositories
 
 import android.util.Log
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.table.TableNames
 import com.smartcourse.data.models.table.UserCourseTable
@@ -159,14 +160,14 @@ class UserRepository @Inject constructor(
             val raw = response.data
             val exists = raw != "[]"
 
-            android.util.Log.d(
+            Log.d(
                 "FAVORITE_CHECK",
                 "exists=$exists raw=$raw"
             )
 
             exists
         } catch (e: Exception) {
-            android.util.Log.e("FAVORITE_CHECK", "isUserFavorite FAILED", e)
+            Log.e("FAVORITE_CHECK", "isUserFavorite FAILED", e)
             false
         }
     }
@@ -472,6 +473,39 @@ class UserRepository @Inject constructor(
     }
 
 
+
+    suspend fun removeFcmToken() {
+        val supabaseUser = client.auth.currentUserOrNull()
+            ?: return
+
+        try {
+            firestore
+                .collection("users")
+                .document(supabaseUser.id)
+                .update("fcmToken", com.google.firebase.firestore.FieldValue.delete())
+                .await()
+
+            Log.d("FCM", "🗑️ FCM token removed for user ${supabaseUser.id}")
+        } catch (e: Exception) {
+            Log.e("FCM", "Failed to remove FCM token", e)
+        }
+    }
+
+
+
+//    suspend fun refreshAndSaveFcmToken() {
+//        try {
+//            val token = FirebaseMessaging.getInstance().token.await()
+//            updateFcmToken(token)
+//        } catch (e: Exception) {
+//            Log.e("FCM", "Failed to refresh FCM token", e)
+//        }
+//    }
+
+    suspend fun ensureFcmTokenSaved() {
+        val token = FirebaseMessaging.getInstance().token.await()
+        updateFcmToken(token)
+    }
 
 
 
