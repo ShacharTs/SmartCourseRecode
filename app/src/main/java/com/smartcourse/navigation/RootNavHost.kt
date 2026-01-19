@@ -109,6 +109,7 @@ private fun NavHostGraph(
     authVM: AuthViewModel,
     appStartViewModel: AppStartViewModel = hiltViewModel()
 ) {
+    val authVM: AuthViewModel = hiltViewModel()
     val termsAccepted by appStartViewModel.termsAccepted.collectAsState()
 
     val startDestination = when {
@@ -147,11 +148,11 @@ private fun NavHostGraph(
 
 
         composable(Screen.Login.route) {
-            val loginVM = hiltViewModel<LoginViewModel>()
-
+            //val loginVM = hiltViewModel<LoginViewModel>()
+            //val loginVM : LoginViewModel = hiltViewModel()
             LoginScreen(
                 navController = navController,
-                loginVM = loginVM,
+                //loginVM = loginVM,
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
                 }
@@ -159,9 +160,9 @@ private fun NavHostGraph(
         }
 
         composable(Screen.Register.route) {
-            val registerVM = hiltViewModel<RegisterViewModel>()
+            //val registerVM = hiltViewModel<RegisterViewModel>()
             RegisterScreen(
-                registerVM = registerVM,
+                //registerVM = registerVM,
                 onNavigateBack = { navController.popBackStack() },
                 onRegisterSuccess = {
                     navController.navigate(Screen.ChooseRole.route)
@@ -170,10 +171,10 @@ private fun NavHostGraph(
         }
 
         composable(Screen.ChooseRole.route) {
-            val chooseRoleVM = hiltViewModel<ChooseRoleViewModel>()
+            //val chooseRoleVM = hiltViewModel<ChooseRoleViewModel>()
             ChooseRoleScreen(
                 navController = navController,
-                chooseRoleViewModel = chooseRoleVM,
+                //chooseRoleViewModel = chooseRoleVM,
                 //authVM = authVM
             )
         }

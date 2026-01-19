@@ -45,7 +45,7 @@ import com.smartcourse.ui.theme.LocalAppPalette
 @Composable
 fun ChooseRoleScreen(
     navController: NavController,
-    chooseRoleViewModel: ChooseRoleViewModel,
+    chooseRoleViewModel: ChooseRoleViewModel = hiltViewModel(),
     //authVM: AuthViewModel
 ) {
     val authVM: AuthViewModel = hiltViewModel()

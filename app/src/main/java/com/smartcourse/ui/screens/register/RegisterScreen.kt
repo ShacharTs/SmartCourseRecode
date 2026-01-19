@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartcourse.R
 import com.smartcourse.ui.screens.components.*
 import com.smartcourse.ui.theme.AppGradients
@@ -26,7 +27,7 @@ import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
 fun RegisterScreen(
-    registerVM: RegisterViewModel,
+    registerVM: RegisterViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onRegisterSuccess: () -> Unit
 ) {

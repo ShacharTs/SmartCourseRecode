@@ -54,6 +54,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.smartcourse.R
 import com.smartcourse.ui.theme.AppGradients
@@ -64,7 +65,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     navController: NavController,
-    loginVM: LoginViewModel,
+    loginVM: LoginViewModel = hiltViewModel(),
     onNavigateToRegister: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
