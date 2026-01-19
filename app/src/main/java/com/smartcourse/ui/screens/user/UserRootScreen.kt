@@ -52,9 +52,10 @@ import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
 fun UserRootScreen(
-    authVM: AuthViewModel
+    //authVM: AuthViewModel
 ) {
     val navController = rememberNavController()
+    val authVM: AuthViewModel = hiltViewModel()
 
 
     val context = LocalContext.current

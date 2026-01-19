@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.smartcourse.R
 import com.smartcourse.auth.AuthViewModel
@@ -45,8 +46,10 @@ import com.smartcourse.ui.theme.LocalAppPalette
 fun ChooseRoleScreen(
     navController: NavController,
     chooseRoleViewModel: ChooseRoleViewModel,
-    authVM: AuthViewModel
+    //authVM: AuthViewModel
 ) {
+    val authVM: AuthViewModel = hiltViewModel()
+
     val palette = LocalAppPalette.current
     val colors = palette.chooseRole
 

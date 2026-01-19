@@ -24,8 +24,9 @@ import com.smartcourse.ui.screens.user.UserRootScreen
 @Composable
 fun RootNavHost(
     navController: NavHostController,
-    authVM: AuthViewModel
+    //authVM: AuthViewModel
 ) {
+    val authVM: AuthViewModel = hiltViewModel()
     val state = authVM.authState
 
     LaunchedEffectStates(
@@ -173,13 +174,13 @@ private fun NavHostGraph(
             ChooseRoleScreen(
                 navController = navController,
                 chooseRoleViewModel = chooseRoleVM,
-                authVM = authVM
+                //authVM = authVM
             )
         }
 
         composable(Screen.UserScreen.route) {
             UserRootScreen(
-                authVM = authVM
+                //authVM = authVM
             )
         }
 

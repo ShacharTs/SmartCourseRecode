@@ -1,18 +1,20 @@
 package com.smartcourse.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.compose.rememberNavController
-import com.smartcourse.auth.AuthViewModel
+import androidx.navigation.NavHostController
 
 @Composable
-fun RootNavigation(authViewModel: AuthViewModel) {
+fun RootNavigation(
+    navController: NavHostController
+    //authViewModel: AuthViewModel
+) {
 
     // MUST BE REMEMBERED ONCE
-    val navController = rememberNavController()
+    //val navController = rememberNavController()
 
     // DO NOT depend on authViewModel in recomposition
     RootNavHost(
         navController = navController,
-        authVM = authViewModel
+        //authVM = authViewModel
     )
 }

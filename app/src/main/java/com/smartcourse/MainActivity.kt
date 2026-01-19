@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.messaging.FirebaseMessaging
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.repositories.UserRepository
@@ -52,6 +53,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themeMode by themeViewModel.themeMode.collectAsState()
 
+            val navController = rememberNavController()
+
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 SmartCourseTheme(themeMode = themeMode) {
                     Surface(
@@ -59,7 +62,8 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         RootNavigation(
-                            authViewModel = authViewModel
+                            navController = navController
+                            //authViewModel = authViewModel
                         )
                     }
                 }

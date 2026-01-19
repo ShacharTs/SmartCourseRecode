@@ -492,16 +492,6 @@ class UserRepository @Inject constructor(
     }
 
 
-
-//    suspend fun refreshAndSaveFcmToken() {
-//        try {
-//            val token = FirebaseMessaging.getInstance().token.await()
-//            updateFcmToken(token)
-//        } catch (e: Exception) {
-//            Log.e("FCM", "Failed to refresh FCM token", e)
-//        }
-//    }
-
     suspend fun ensureFcmTokenSaved() {
         val token = FirebaseMessaging.getInstance().token.await()
         updateFcmToken(token)
