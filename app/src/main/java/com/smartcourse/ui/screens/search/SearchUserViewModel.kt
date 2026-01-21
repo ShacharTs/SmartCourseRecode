@@ -3,10 +3,9 @@ package com.smartcourse.ui.screens.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,29 +14,25 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchUserViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val supabaseClient: SupabaseClient
+    private val authRepo: AuthRepository
 ) : ViewModel() {
-
-
-    private var myCourses: Set<String> = emptySet()
 
     private val _uiState = MutableStateFlow(SearchUserUiState())
     val uiState: StateFlow<SearchUserUiState> = _uiState
 
-    private var myRole: UserRole? = null
     private var myUserId: String? = null
+    private var myRole: UserRole? = null
+    private var myCourses: Set<String> = emptySet()
 
     init {
         viewModelScope.launch {
-            val authUser = supabaseClient.auth.currentUserOrNull()
-                ?: return@launch
+            val me = authRepo.restoreValidSession() ?: return@launch
 
-            myUserId = authUser.id
-            myRole = userRepository.loadUser(authUser.id)?.role
+            myUserId = me.userId
+            myRole = me.role
 
-
-            val myLinks = userRepository.getUserCourses(authUser.id)
-            myCourses = myLinks
+            myCourses = userRepository
+                .getUserCourses(me.userId)
                 .mapNotNull { link ->
                     userRepository.getCourseById(link.course_id)
                 }
@@ -62,7 +57,7 @@ class SearchUserViewModel @Inject constructor(
             val users = userRepository.searchUsers(query)
 
             val filteredUsers = users
-                .filter { it.userId != myUserId } // 🚫 never show myself
+                .filter { it.userId != myUserId }
                 .filter { user ->
                     when (myRole) {
                         UserRole.STUDENT -> user.role == UserRole.TUTOR
