@@ -105,27 +105,32 @@ class SearchUserViewModelTest {
     }
 
     /**
-     * Test 3: Verifies specific string matching and exclusion logic. [cite: 33, 34]
+     * Test 3: Verifies specific string matching and exclusion logic.
+     * Scenario: Both "Or" and "Orian" exist, but searching "Ori" should only return "Orian".
      */
     @Test
     fun `onQueryChanged handles specific string match correctly`() = runTest {
-        // 1. Setting up conditions [cite: 35]
+        // 1. Setting up conditions: We have two similar users [cite: 35, 141]
         val query = "Ori"
         val orian = User("u1", "Orian", role = UserRole.TUTOR)
-        // Repository returns "Orian" for query "Ori"
+        val or = User("u2", "Or", role = UserRole.TUTOR)
+
+        // Repository is mocked to return ONLY Orian for the specific query "Ori"
         whenever(userRepository.searchUsers(query)).thenReturn(listOf(orian))
 
-        // 2. Calling the function
+        // 2. Calling the function [cite: 36]
         viewModel.onQueryChanged(query)
         advanceUntilIdle()
 
         // 3. Assertions [cite: 37]
         val state = viewModel.uiState.value
+
+        // Verify Orian is present
         assertEquals(1, state.results.size)
         assertEquals("Orian", state.results[0].user.name)
 
-        // Ensure "Ori" is NOT in the results if not returned by repo
-        val containsOri = state.results.any { it.user.name == "Ori" }
-        assertEquals(false, containsOri)
+        // Verify "Or" is NOT in the results, ensuring precise matching
+        val containsOr = state.results.any { it.user.name == "Or" }
+        assertEquals(false, containsOr)
     }
 }

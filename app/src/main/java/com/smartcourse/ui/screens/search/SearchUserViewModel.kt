@@ -6,6 +6,8 @@ import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -42,13 +44,23 @@ class SearchUserViewModel @Inject constructor(
     }
 
 
+    // 1. Add this variable to your class to track the current search
+    private var searchJob: Job? = null
+
     fun onQueryChanged(query: String) {
         _uiState.value = _uiState.value.copy(
             query = query,
             isLoading = true
         )
 
-        viewModelScope.launch {
+        // 2. Cancel the previous search immediately to prevent race conditions
+        searchJob?.cancel()
+
+        searchJob = viewModelScope.launch {
+            // 3. Wait 300ms. If the user types again, this job is cancelled
+            // and the database is never called, saving resources.
+            delay(300)
+
             if (query.isBlank()) {
                 _uiState.value = SearchUserUiState()
                 return@launch
@@ -58,6 +70,9 @@ class SearchUserViewModel @Inject constructor(
 
             val filteredUsers = users
                 .filter { it.userId != myUserId }
+                // 4. Safety Filter: Double-check that the name actually
+                // starts with the query, matching your repository logic.
+                .filter { it.displayName.startsWith(query, ignoreCase = true) }
                 .filter { user ->
                     when (myRole) {
                         UserRole.STUDENT -> user.role == UserRole.TUTOR
@@ -74,10 +89,7 @@ class SearchUserViewModel @Inject constructor(
                     }
                     .map { it.name }
 
-                SearchUserRowState(
-                    user = user,
-                    courses = courses
-                )
+                SearchUserRowState(user = user, courses = courses)
             }
 
             _uiState.value = _uiState.value.copy(
