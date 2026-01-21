@@ -1,4 +1,3 @@
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.navigation.compose.rememberNavController
@@ -53,7 +52,7 @@ class SearchUserUITest {
 
         Thread.sleep(2000)
 
-        // Verification: Both results should be displayed [cite: 56, 131]
+        // Verification: Both results should be displayed
         composeTestRule.onNodeWithText("John Smith").assertIsDisplayed()
         composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
 
@@ -83,7 +82,7 @@ class SearchUserUITest {
 
         Thread.sleep(2000)
 
-        // Verification: Ensure common names are NOT displayed [cite: 56, 138]
+        // Verification: Ensure common names are NOT displayed
         composeTestRule.onNodeWithText("John Smith").assertDoesNotExist()
     }
 
@@ -112,22 +111,21 @@ class SearchUserUITest {
             )
         }
 
-        // 1. Action: Type "Ori" into the search field
+        // Action: Type "Ori" into the search field
         composeTestRule.onNode(
-            (hasText("Search by name", ignoreCase = true) or hasAnyChild(hasText("Search by name")))
+            (hasText("Search by name", ignoreCase = true)
+                    or hasAnyChild(hasText("Search by name")))
                     and hasSetTextAction()
         ).performTextInput("Ori")
 
-        Thread.sleep(2000) // Observe the typing [cite: 56]
+        Thread.sleep(2000) // Observe the typing
 
-        // 2. Verification: "Orian" MUST be visible in the results
+        // Verification: "Orian" MUST be visible in the results
         composeTestRule.onNodeWithText("Orian").assertIsDisplayed()
 
-        // 3. Verification: "Or" MUST NOT be displayed
-        // We check that a result card with the exact name "Or" does not exist.
-        // Unlike "Ori", the string "Or" is NOT in your search bar, so we can check it directly.
+        // Verification: "Or" MUST NOT be displayed
         composeTestRule.onNodeWithText("Or").assertDoesNotExist()
 
-        Thread.sleep(3000) // Observe the final state [cite: 56]
+        Thread.sleep(3000) // Observe the final state
     }
 }

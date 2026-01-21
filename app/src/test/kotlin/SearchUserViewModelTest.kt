@@ -110,7 +110,7 @@ class SearchUserViewModelTest {
      */
     @Test
     fun `onQueryChanged handles specific string match correctly`() = runTest {
-        // 1. Setting up conditions: We have two similar users [cite: 35, 141]
+        // 1. Setting up conditions: We have two similar users
         val query = "Ori"
         val orian = User("u1", "Orian", role = UserRole.TUTOR)
         val or = User("u2", "Or", role = UserRole.TUTOR)
@@ -118,11 +118,11 @@ class SearchUserViewModelTest {
         // Repository is mocked to return ONLY Orian for the specific query "Ori"
         whenever(userRepository.searchUsers(query)).thenReturn(listOf(orian))
 
-        // 2. Calling the function [cite: 36]
+        // 2. Calling the function
         viewModel.onQueryChanged(query)
         advanceUntilIdle()
 
-        // 3. Assertions [cite: 37]
+        // 3. Assertions
         val state = viewModel.uiState.value
 
         // Verify Orian is present
