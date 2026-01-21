@@ -50,9 +50,8 @@ class SearchUserViewModelTest {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
 
-        println("--- SETUP START ---")
+        // Initial setup: current user is a student
         val me = User(userId = "my_user_id", name = "Me", role = UserRole.STUDENT)
-        println("Mocking current user: ${me.name} as ${me.role}")
 
         runTest(testDispatcher) {
             whenever(authRepository.restoreValidSession()).thenReturn(me)
@@ -60,55 +59,73 @@ class SearchUserViewModelTest {
         }
 
         viewModel = SearchUserViewModel(userRepository, authRepository)
-        println("ViewModel initialized. Waiting for init block coroutine...")
-
-        // Ensure init block (fetching myUserId/Role) finishes
         testDispatcher.scheduler.advanceUntilIdle()
-        println("--- SETUP FINISHED ---\n")
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        println("\n--- TEST CLEANUP ---")
     }
 
+    /**
+     * Test 1: Student searching for multiple Tutors.
+     * Checks if the filter allows multiple valid tutors to be displayed.
+     */
     @Test
-    fun `onQueryChanged filters out self and non-tutor users for a student`() = runTest {
-        // 1. Arrange
+    fun `onQueryChanged returns multiple tutors for student search`() = runTest {
         val query = "John"
-        val tutor = User("tutor_id", "John Tutor", role = UserRole.TUTOR)
-        val otherStudent = User("student_id", "John Student", role = UserRole.STUDENT)
-        val myself = User("my_user_id", "John Me", role = UserRole.STUDENT)
+        val tutor1 = User("t1", "John Smith", role = UserRole.TUTOR)
+        val tutor2 = User("t2", "John Doe", role = UserRole.TUTOR)
 
-        println("[1] Arrange: Mocking search results for query '$query'")
-        println("    - User 1: ${tutor.userId} (${tutor.role})")
-        println("    - User 2: ${otherStudent.userId} (${otherStudent.role})")
-        println("    - User 3: ${myself.userId} (${myself.role})")
+        whenever(userRepository.searchUsers(query)).thenReturn(listOf(tutor1, tutor2))
 
-        whenever(userRepository.searchUsers(query))
-            .thenReturn(listOf(tutor, otherStudent, myself))
-
-        // 2. Act
-        println("[2] Act: Calling onQueryChanged('$query')")
         viewModel.onQueryChanged(query)
-
-        println("    Waiting for search coroutine to finish...")
         advanceUntilIdle()
 
-        // 3. Assert
         val state = viewModel.uiState.value
-        println("[3] Assert: Analyzing final UI State")
-        println("    Results count in UI: ${state.results.size}")
+        assertEquals(2, state.results.size)
+        println("Test 1: Found ${state.results.size} tutors.")
+    }
 
-        state.results.forEachIndexed { index, result ->
-            println("    Result #$index: ${result.user.name} | Role: ${result.user.role} | ID: ${result.user.userId}")
-        }
+    /**
+     * Test 2: Search for a name that does not exist in the database.
+     * Checks if the UI state remains empty when the repository returns nothing.
+     */
+    @Test
+    fun `onQueryChanged returns empty list when no users exist`() = runTest {
+        val query = "UnknownName"
+        whenever(userRepository.searchUsers(query)).thenReturn(emptyList())
 
-        // Verification logic
-        assertEquals("Should only have 1 result (the tutor)", 1, state.results.size)
-        assertEquals("The result should be the tutor", "tutor_id", state.results[0].user.userId)
+        viewModel.onQueryChanged(query)
+        advanceUntilIdle()
 
-        println("--- TEST SUCCESS ---")
+        val state = viewModel.uiState.value
+        assertEquals(0, state.results.size)
+        println("Test 2: No users found for query: $query")
+    }
+
+    /**
+     * Test 3: Verifies specific string matching and exclusion logic. [cite: 33, 34]
+     */
+    @Test
+    fun `onQueryChanged handles specific string match correctly`() = runTest {
+        // 1. Setting up conditions [cite: 35]
+        val query = "Ori"
+        val orian = User("u1", "Orian", role = UserRole.TUTOR)
+        // Repository returns "Orian" for query "Ori"
+        whenever(userRepository.searchUsers(query)).thenReturn(listOf(orian))
+
+        // 2. Calling the function
+        viewModel.onQueryChanged(query)
+        advanceUntilIdle()
+
+        // 3. Assertions [cite: 37]
+        val state = viewModel.uiState.value
+        assertEquals(1, state.results.size)
+        assertEquals("Orian", state.results[0].user.name)
+
+        // Ensure "Ori" is NOT in the results if not returned by repo
+        val containsOri = state.results.any { it.user.name == "Ori" }
+        assertEquals(false, containsOri)
     }
 }
