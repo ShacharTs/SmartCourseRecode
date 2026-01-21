@@ -8,6 +8,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.smartcourse.auth.AuthState
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.ui.screens.chooserole.ChooseRoleScreen
@@ -19,10 +20,9 @@ import com.smartcourse.ui.screens.setting.terms.TermsAndServiceScreen
 import com.smartcourse.ui.screens.user.UserRootScreen
 
 @Composable
-fun RootNavHost(
-    navController: NavHostController,
-    //authVM: AuthViewModel
-) {
+fun RootNavHost() {
+    val navController = rememberNavController()
+
     val authVM: AuthViewModel = hiltViewModel()
     val state = authVM.authState
 
@@ -31,10 +31,7 @@ fun RootNavHost(
         navController = navController
     )
 
-    NavHostGraph(
-        navController = navController,
-        authVM = authVM
-    )
+    NavHostGraph(navController = navController)
 }
 
 
@@ -54,7 +51,6 @@ private fun LaunchedEffectStates(
                 }
             }
 
-            // todo change back to login screen
             AuthState.LOGGED_OUT -> {
                 navController.navigate(Screen.Login.route) {
                     popUpTo(0) { inclusive = true }
@@ -103,10 +99,8 @@ private fun LaunchedEffectStates(
 @Composable
 private fun NavHostGraph(
     navController: NavHostController,
-    authVM: AuthViewModel,
     appStartViewModel: AppStartViewModel = hiltViewModel()
 ) {
-    //val authVM: AuthViewModel = hiltViewModel()
     val termsAccepted by appStartViewModel.termsAccepted.collectAsState()
 
     val startDestination = when {
@@ -119,8 +113,6 @@ private fun NavHostGraph(
         navController = navController,
         startDestination = Screen.Loading.route
     ) {
-
-
         composable(Screen.TermsFirstTime.route) {
             TermsAndServiceScreen(
                 showBackButton = false,
@@ -137,19 +129,14 @@ private fun NavHostGraph(
         }
 
 
-
-
         composable(Screen.Loading.route) {
             LoadingScreen()
         }
 
 
         composable(Screen.Login.route) {
-            //val loginVM = hiltViewModel<LoginViewModel>()
-            //val loginVM : LoginViewModel = hiltViewModel()
             LoginScreen(
                 navController = navController,
-                //loginVM = loginVM,
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
                 }
@@ -157,33 +144,22 @@ private fun NavHostGraph(
         }
 
         composable(Screen.Register.route) {
-            //val registerVM = hiltViewModel<RegisterViewModel>()
             RegisterScreen(
-                //registerVM = registerVM,
                 onNavigateBack = { navController.popBackStack() },
                 onRegisterSuccess = {
-                    navController.navigate(Screen.ChooseRole.route)
+                    navController.navigate(Screen.ChooseRole.route
+                    )
                 }
             )
         }
 
         composable(Screen.ChooseRole.route) {
-            //val chooseRoleVM = hiltViewModel<ChooseRoleViewModel>()
-            ChooseRoleScreen(
-                navController = navController,
-                //chooseRoleViewModel = chooseRoleVM,
-                //authVM = authVM
-            )
+            ChooseRoleScreen(navController = navController)
         }
 
         composable(Screen.UserScreen.route) {
-            UserRootScreen(
-                //authVM = authVM
-            )
+            UserRootScreen(navController = navController)
         }
-
-
-
 
     }
 }

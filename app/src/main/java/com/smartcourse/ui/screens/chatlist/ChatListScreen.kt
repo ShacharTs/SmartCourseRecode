@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.smartcourse.data.models.chat.ChatItem
@@ -41,7 +42,7 @@ import com.smartcourse.ui.theme.LocalAppPalette
 @Composable
 fun ChatListScreen(
     navController: NavController,
-    chatListVM: ChatListViewModel
+    chatListVM: ChatListViewModel = hiltViewModel()
 ) {
     val chats by chatListVM.chats.collectAsState()
 

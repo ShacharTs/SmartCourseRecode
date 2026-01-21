@@ -42,7 +42,7 @@ import com.smartcourse.ui.theme.LocalAppPalette
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    authVM: AuthViewModel,
+    authVM: AuthViewModel = hiltViewModel(),
     settingVM: SettingViewModel = hiltViewModel()
 ) {
 
@@ -63,7 +63,6 @@ fun SettingsScreen(
             SettingsHeader()
 
             SettingColumn(
-                // Use state from ViewModel
                 isChatEnabled = settingVM.isChatEnabled,
                 isAppNotificationsEnabled = settingVM.isAppNotificationsEnabled,
                 onChatToggle = { settingVM.toggleChat(it) },
@@ -227,13 +226,12 @@ fun SettingsRow(
     label: String,
     isDanger: Boolean = false,
     value: String? = null,
-    onClick: () -> Unit = {} // Add the onClick parameter with a default empty action
+    onClick: () -> Unit = {}
 ) {
     val palette = LocalAppPalette.current.settings
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            // Apply clickable before padding so the whole row area is touch-responsive
             .clickable { onClick() }
             .padding(vertical = 16.dp, horizontal = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,

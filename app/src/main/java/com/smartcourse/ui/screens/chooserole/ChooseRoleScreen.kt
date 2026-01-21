@@ -46,7 +46,6 @@ import com.smartcourse.ui.theme.LocalAppPalette
 fun ChooseRoleScreen(
     navController: NavController,
     chooseRoleViewModel: ChooseRoleViewModel = hiltViewModel(),
-    //authVM: AuthViewModel
 ) {
     val authVM: AuthViewModel = hiltViewModel()
 

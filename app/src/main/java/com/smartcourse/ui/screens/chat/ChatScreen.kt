@@ -4,12 +4,14 @@ package com.smartcourse.ui.screens.chat
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.smartcourse.data.models.usermodel.User
@@ -23,10 +25,11 @@ import java.io.File
 @Composable
 fun ChatScreen(
     navController: NavController,
-    chatVM: ChatViewModel,
+    chatVM: ChatViewModel = hiltViewModel(),
     myId: String,
     chatId: String
 ) {
+
     var otherUser by remember { mutableStateOf<User?>(null) }
     var otherId by remember { mutableStateOf<String?>(null) }
 

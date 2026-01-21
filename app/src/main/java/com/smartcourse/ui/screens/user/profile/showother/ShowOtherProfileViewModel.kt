@@ -107,7 +107,7 @@ class ShowOtherProfileViewModel @Inject constructor(
                 // optimistic for icon only
                 _isFavorite.value = !wasFavorite
 
-                // 🔒 re-sync from DB (single source of truth)
+                // re-sync from DB (single source of truth)
                 refreshFavoriteCount(targetUserId)
 
             } finally {

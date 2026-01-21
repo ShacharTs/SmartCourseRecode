@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.smartcourse.navigation.Screen
@@ -24,7 +25,7 @@ import com.smartcourse.ui.theme.LocalAppPalette
 @Composable
 fun SearchUserScreen(
     navController: NavController,
-    viewModel: SearchUserViewModel
+    viewModel: SearchUserViewModel = hiltViewModel()
 ) {
     val colors = LocalAppPalette.current.search
     val state by viewModel.uiState.collectAsState()

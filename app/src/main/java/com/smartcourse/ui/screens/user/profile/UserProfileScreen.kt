@@ -31,7 +31,7 @@ import com.smartcourse.ui.theme.ShowProfileLayoutColors
 @Composable
 fun UserProfileScreen(
     navController: NavController,
-    authVM: AuthViewModel,
+    authVM: AuthViewModel = hiltViewModel(),
     userProfileViewModel: UserProfileViewModel = hiltViewModel(),
     galleryViewModel: GalleryViewModel = hiltViewModel()
 ) {

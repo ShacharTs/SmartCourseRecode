@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UserProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val authRepo: AuthRepository // Required for enrichment
+    private val authRepo: AuthRepository
 ) : ViewModel() {
 
     // --------------------------------------------------

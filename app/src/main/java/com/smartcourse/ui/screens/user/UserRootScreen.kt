@@ -27,15 +27,12 @@ import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
 import com.smartcourse.notifications.NotificationAction
 import com.smartcourse.ui.screens.chat.ChatScreen
-import com.smartcourse.ui.screens.chat.vm.ChatViewModel
 import com.smartcourse.ui.screens.chatlist.ChatListScreen
-import com.smartcourse.ui.screens.chatlist.ChatListViewModel
 import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
 import com.smartcourse.ui.screens.search.SearchUserScreen
-import com.smartcourse.ui.screens.search.SearchUserViewModel
 import com.smartcourse.ui.screens.setting.SettingsScreen
 import com.smartcourse.ui.screens.setting.language.LanguageScreen
 import com.smartcourse.ui.screens.setting.terms.TermsAndServiceScreen
@@ -49,9 +46,9 @@ import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
 fun UserRootScreen(
-    //authVM: AuthViewModel
+    navController: NavController
 ) {
-    val navController = rememberNavController()
+    val internalNavController = rememberNavController()
     val authVM: AuthViewModel = hiltViewModel()
 
 
@@ -66,7 +63,7 @@ fun UserRootScreen(
 
             NotificationAction.CHAT_MESSAGE -> {
                 val chatId = intent?.getStringExtra("CHAT_ID") ?: return@LaunchedEffect
-                navController.navigate(
+                internalNavController.navigate(
                     Screen.ChatRoom.createRoute(chatId)
                 ) {
                     launchSingleTop = true
@@ -76,7 +73,7 @@ fun UserRootScreen(
             // TEMP – valid example
             NotificationAction.USER_PROFILE -> {
                 val userId = intent?.getStringExtra("USER_ID") ?: return@LaunchedEffect
-                navController.navigate(
+                internalNavController.navigate(
                     Screen.ShowOtherProfile.createRoute(userId)
                 ) {
                     launchSingleTop = true
@@ -112,7 +109,7 @@ fun UserRootScreen(
 
     val items = bottomNavItemsForRole(role)
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val navBackStackEntry by internalNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val topBarRoutes = setOf(
@@ -128,13 +125,13 @@ fun UserRootScreen(
     Scaffold(containerColor = Color.Transparent, topBar = {
         if (currentRoute in topBarRoutes) {
             MenuTopAppBar(
-                navController = navController, authVM = authVM
+                navController = internalNavController, authVM = authVM
             )
         }
     }, bottomBar = {
         if (currentRoute in bottomBarRoutes && items.isNotEmpty()) {
             AppBottomNavBar(
-                navController = navController, items = items
+                navController = internalNavController, items = items
             )
         }
     }) { padding ->
@@ -146,7 +143,7 @@ fun UserRootScreen(
                 .background(backgroundBrush)
         ) {
             NavHost(
-                navController = navController,
+                navController = internalNavController,
                 startDestination = Screen.Home.route,
                 modifier = Modifier.fillMaxSize()
                 //.padding(padding)
@@ -154,18 +151,20 @@ fun UserRootScreen(
 
                 composable(Screen.Home.route) {
                     MenuScreen(padding) {
-                        ShowUserMenuScreen(
-                            navController = navController, authVM = authVM
+                        ShowHomeScreen(
+                            navController = internalNavController,
+                            authVM = authVM
                         )
                     }
                 }
 
                 composable(Screen.ChatList.route) {
-                    val chatListVM = hiltViewModel<ChatListViewModel>()
+                    //val chatListVM = hiltViewModel<ChatListViewModel>()
 
                     MenuScreen(padding) {
                         ChatListScreen(
-                            navController = navController, chatListVM = chatListVM
+                            navController = internalNavController,
+                            //chatListVM = chatListVM
                         )
                     }
                 }
@@ -182,19 +181,12 @@ fun UserRootScreen(
                     val chatId = entry.arguments?.getString("chatId")
                         ?: error("chatId missing")
 
-                    val chatVM: ChatViewModel = hiltViewModel(entry)
-
-                    //val myId = authVM.currentUser.value?.getUID()
-
-//                    val myId = authVM.currentUser.value?.userId
-//                        ?: return@composable
-
                     val myId = authVM.currentUserProfile?.userId
                         ?: return@composable
 
                     ChatScreen(
-                        chatVM = chatVM,
-                        navController = navController,
+                        //chatVM = chatVM,
+                        navController = internalNavController,
                         myId = myId,
                         chatId = chatId
                     )
@@ -202,28 +194,18 @@ fun UserRootScreen(
 
 
                 composable(Screen.SearchRouter.route) {
-                    val searchUserVM: SearchUserViewModel = hiltViewModel()
-
-                    SearchUserScreen(
-                        navController = navController,
-                        viewModel = searchUserVM
-                    )
+                    SearchUserScreen(navController = internalNavController,)
                 }
 
 
                 composable(Screen.Profile.route) {
                     UserProfileScreen(
-                        navController = navController,
-                        authVM = authVM
-
-                    )
+                        navController = internalNavController)
                 }
 
 
                 composable(Screen.Settings.route) {
-                    SettingsScreen(
-                        navController = navController, authVM = authVM
-                    )
+                    SettingsScreen(navController = internalNavController)
                 }
 
                 composable(
@@ -231,16 +213,16 @@ fun UserRootScreen(
                     arguments = listOf(navArgument("userId") { type = NavType.StringType })
                 ) {
                     ShowOtherProfileScreen(
-                        navController = navController
+                        navController = internalNavController
                     )
                 }
 
                 composable(Screen.Theme.route){
-                    ThemeScreen(navController = navController)
+                    ThemeScreen(navController = internalNavController)
                 }
 
                 composable(Screen.Language.route){
-                    LanguageScreen(navController = navController)
+                    LanguageScreen(navController = internalNavController)
                 }
 
 
@@ -249,7 +231,7 @@ fun UserRootScreen(
                         showBackButton = true,
                         requireAcceptance = false,
                         onBack = {
-                            navController.popBackStack()
+                            internalNavController.popBackStack()
                         }
                     )
                 }
@@ -277,8 +259,9 @@ fun MenuScreen(
 }
 
 
+//Todo merge both to one UI and one VM does not need it split anymore
 @Composable
-fun ShowUserMenuScreen(
+fun ShowHomeScreen(
     navController: NavController,
     authVM: AuthViewModel
 ) {

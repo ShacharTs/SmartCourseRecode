@@ -62,18 +62,18 @@ fun ShowOtherProfileScreen(
         ?.getString("userId")
         ?: return
 
-    val viewModel: ShowOtherProfileViewModel =
-        hiltViewModel(key = "ShowOtherProfile-$userId")
+    // avoid incorrect profile show, use ID to split
+    val showOtherProfileVM: ShowOtherProfileViewModel = hiltViewModel(key = "ShowOtherProfile-$userId")
 
     val palette = LocalAppPalette.current
     val colors = palette.otherProfile
 
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val user by viewModel.user.collectAsStateWithLifecycle()
-    val favorites by viewModel.favoritesCount.collectAsStateWithLifecycle()
-    val courses by viewModel.courses.collectAsStateWithLifecycle()
-    val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
-    val isToggling by viewModel.isTogglingFavorite.collectAsStateWithLifecycle()
+    val isLoading by showOtherProfileVM.isLoading.collectAsStateWithLifecycle()
+    val user by showOtherProfileVM.user.collectAsStateWithLifecycle()
+    val favorites by showOtherProfileVM.favoritesCount.collectAsStateWithLifecycle()
+    val courses by showOtherProfileVM.courses.collectAsStateWithLifecycle()
+    val isFavorite by showOtherProfileVM.isFavorite.collectAsStateWithLifecycle()
+    val isToggling by showOtherProfileVM.isTogglingFavorite.collectAsStateWithLifecycle()
 
     if (isLoading || user == null) {
         LoadingScreen()
@@ -92,7 +92,6 @@ fun ShowOtherProfileScreen(
     ) {
         ProfileHeader(
             colors = colors,
-            //userName = currentUser.getUserName(),
             userName = currentUser.displayName,
             role = currentUser.role?.name,
             image = currentUser.image,
@@ -101,12 +100,12 @@ fun ShowOtherProfileScreen(
             isFavorite = isFavorite,
             isToggling = isToggling,
             onChatClick = {
-                viewModel.openChat { chatId ->
+                showOtherProfileVM.openChat { chatId ->
                     navController.navigate(Screen.ChatRoom.createRoute(chatId))
                 }
             },
             onFavoriteClick = {
-                viewModel.toggleFavorite()
+                showOtherProfileVM.toggleFavorite()
             }
         )
 
@@ -200,8 +199,6 @@ private fun ActionButtons(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Location: ShowOtherProfileScreen.kt -> ActionButtons function
-
         OutlinedButton(
             onClick = onFavoriteClick,
             enabled = !isToggling,

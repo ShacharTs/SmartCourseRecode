@@ -20,7 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessaging
 import com.smartcourse.data.repositories.UserRepository
-import com.smartcourse.navigation.RootNavigation
+import com.smartcourse.navigation.RootNavHost
 import com.smartcourse.ui.screens.setting.theme.ThemeViewModel
 import com.smartcourse.ui.theme.SmartCourseTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,7 +49,8 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         // RootNavigation should not require a navController from here
-                        RootNavigation()
+                        //RootNavigation()
+                        RootNavHost()
                     }
                 }
             }

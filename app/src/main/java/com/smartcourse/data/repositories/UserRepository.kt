@@ -343,28 +343,6 @@ class UserRepository @Inject constructor(
     }
 
 
-    // later use
-//    suspend fun toDomainUser(user: User): DomainUser? =
-//        when (user.role) {
-//
-//            UserRole.STUDENT -> {
-//                val links = getUserCourses(user.userId)
-//                val courses = links.mapNotNull { getCourseById(it.course_id) }
-//                Student(user, courses)
-//            }
-//
-//            UserRole.TUTOR -> {
-//                val links = getUserCourses(user.userId)
-//                val courses = links.mapNotNull { getCourseById(it.course_id) }
-//                Tutor(user, courses)
-//            }
-//
-//            UserRole.TEMP -> null
-//
-//            else -> null
-//        }
-
-
     suspend fun searchUsers(query: String): List<User> {
         val q = query.trim()
 
@@ -400,11 +378,8 @@ class UserRepository @Inject constructor(
 
         // FIX: Check if we are authenticated. If the session is null,
         // the request will be sent as 'anon' and trigger the RLS error.
-        val session = client.auth.currentSessionOrNull()
-        if (session == null) {
-            // Attempt to refresh or restore if null
-            throw IllegalStateException("User must be logged in to upload an avatar.")
-        }
+        val session = client.auth.currentSessionOrNull() ?: // Attempt to refresh or restore if null
+        throw IllegalStateException("User must be logged in to upload an avatar.")
 
         val bucket = client.storage.from(bucketName)
 
@@ -430,13 +405,13 @@ class UserRepository @Inject constructor(
         val supabaseUser = client.auth.currentUserOrNull()
 
         if (supabaseUser == null) {
-            Log.w("FCM", "❌ No Supabase user – skipping FCM token save")
+            Log.w("FCM", "No Supabase user – skipping FCM token save")
             return
         }
 
         val supabaseUserId = supabaseUser.id
-        Log.d("FCM", "✅ Supabase user ID: $supabaseUserId")
-        Log.d("FCM", "📲 Saving FCM token (len=${token.length})")
+        Log.d("FCM", "Supabase user ID: $supabaseUserId")
+        Log.d("FCM", "Saving FCM token (len=${token.length})")
 
         try {
             firestore
@@ -448,9 +423,9 @@ class UserRepository @Inject constructor(
                 )
                 .await()
 
-            Log.d("FCM", "🎉 FCM token saved to Firestore under users/$supabaseUserId")
+            Log.d("FCM", "FCM token saved to Firestore under users/$supabaseUserId")
         } catch (e: Exception) {
-            Log.e("FCM", "🔥 Failed to save FCM token", e)
+            Log.e("FCM", "Failed to save FCM token", e)
         }
     }
 
@@ -490,7 +465,7 @@ class UserRepository @Inject constructor(
                 .update("fcmToken", com.google.firebase.firestore.FieldValue.delete())
                 .await()
 
-            Log.d("FCM", "🗑️ FCM token removed for user ${supabaseUser.id}")
+            Log.d("FCM", "FCM token removed for user ${supabaseUser.id}")
         } catch (e: Exception) {
             Log.e("FCM", "Failed to remove FCM token", e)
         }

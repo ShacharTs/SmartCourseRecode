@@ -24,7 +24,7 @@ class TutorHomeViewModel @Inject constructor(
     private val chatRepository: ChatRepository
 ) : ViewModel() {
 
-    // Now uses List<User> instead of List<Student>
+
     private val _myStudents = mutableStateOf<List<User>>(emptyList())
     val myStudents: State<List<User>> = _myStudents
 
