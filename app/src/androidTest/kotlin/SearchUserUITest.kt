@@ -10,6 +10,7 @@ import com.smartcourse.ui.screens.search.SearchUserScreen
 import com.smartcourse.ui.screens.search.SearchUserViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -24,108 +25,60 @@ class SearchUserUITest {
 
     private val userRepository = mockk<UserRepository>(relaxed = true)
     private val authRepository = mockk<AuthRepository>(relaxed = true)
+    private val me = User(userId = "me", name = "Me", role = UserRole.STUDENT)
 
-    /**
-     * Test 1: Multiple Results Flow (Matches Manual Scenario 1)
-     * Verifies that searching for "John" displays all returned tutors.
-     */
-    @Test
-    fun testMultipleResultsSearchFlow() {
-        val me = User(userId = "me", name = "Me", role = UserRole.STUDENT)
-        val tutor1 = User("t1", "John Smith", role = UserRole.TUTOR)
-        val tutor2 = User("t2", "John Doe", role = UserRole.TUTOR)
-
+    @Before
+    fun setup() {
         coEvery { authRepository.restoreValidSession() } returns me
-        coEvery { userRepository.searchUsers("John") } returns listOf(tutor1, tutor2)
         coEvery { userRepository.getUserCourses(any()) } returns emptyList()
-
-        val viewModel = SearchUserViewModel(userRepository, authRepository)
-
-        composeTestRule.setContent {
-            val navController = rememberNavController()
-            SearchUserScreen(navController = navController, viewModel = viewModel)
-        }
-
-        // Action: Type "John"
-        composeTestRule.onNode(hasText("Search by name") and hasSetTextAction())
-            .performTextInput("John")
-
-        Thread.sleep(2000)
-
-        // Verification: Both results should be displayed
-        composeTestRule.onNodeWithText("John Smith").assertIsDisplayed()
-        composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
-
-        Thread.sleep(3000)
     }
 
-    /**
-     * Test 2: Empty Results Flow (Matches Manual Scenario 2)
-     * Verifies that the UI remains empty when no users are found.
-     */
-    @Test
-    fun testEmptyResultsSearchFlow() {
-        val me = User(userId = "me", name = "Me", role = UserRole.STUDENT)
-        coEvery { authRepository.restoreValidSession() } returns me
-        coEvery { userRepository.searchUsers("UnknownName") } returns emptyList()
+    private fun launchSearchScreen(query: String, results: List<User>, expectedResultName: String? = null) {
+        coEvery { userRepository.searchUsers(query) } returns results
 
         val viewModel = SearchUserViewModel(userRepository, authRepository)
-
         composeTestRule.setContent {
-            val navController = rememberNavController()
-            SearchUserScreen(navController = navController, viewModel = viewModel)
+            SearchUserScreen(navController = rememberNavController(), viewModel = viewModel)
         }
 
-        // Action: Type name that doesn't exist
-        composeTestRule.onNode(hasText("Search by name") and hasSetTextAction())
-            .performTextInput("UnknownName")
+        // Action: Type the search query
+        composeTestRule.onNode(hasSetTextAction()).performTextInput(query)
 
-        Thread.sleep(2000)
+        // Fix: If we expect a result, wait until it is actually displayed (handles debounce/async)
+        if (expectedResultName != null) {
+            composeTestRule.waitUntil(timeoutMillis = 5000) {
+                composeTestRule
+                    .onAllNodesWithText(expectedResultName)
+                    .fetchSemanticsNodes().isNotEmpty()
+            }
+        }
+    }
 
-        // Verification: Ensure common names are NOT displayed
+    @Test
+    fun testMultipleResultsSearchFlow() {
+        val tutors = listOf(
+            User("t1", "John Smith", role = UserRole.TUTOR),
+            User("t2", "John Doe", role = UserRole.TUTOR)
+        )
+        // We pass "John Smith" so the test waits for it to appear
+        launchSearchScreen("John", tutors, expectedResultName = "John Smith")
+
+        composeTestRule.onNodeWithText("John Smith").assertIsDisplayed()
+        composeTestRule.onNodeWithText("John Doe").assertIsDisplayed()
+    }
+
+    @Test
+    fun testEmptyResultsSearchFlow() {
+        launchSearchScreen("UnknownName", emptyList())
         composeTestRule.onNodeWithText("John Smith").assertDoesNotExist()
     }
 
-    /**
-     * Test 3: Specific Match & Exclusion (Matches Manual Scenario 3)
-     * Verifies search accuracy and exclusion of non-returned similar names.
-     */
     @Test
     fun testSpecificStringMatchFlow() {
-        val me = User(userId = "me", name = "Me", role = UserRole.STUDENT)
-        val orian = User("u1", "Orian", role = UserRole.TUTOR)
-        // We don't need to define 'or' here because the mock returns only 'orian'
+        // We pass "Orian" so the test waits for it to appear
+        launchSearchScreen("Ori", listOf(User("u1", "Orian", role = UserRole.TUTOR)), expectedResultName = "Orian")
 
-        coEvery { authRepository.restoreValidSession() } returns me
-        // The mock explicitly returns only "Orian" for the query "Ori"
-        coEvery { userRepository.searchUsers("Ori") } returns listOf(orian)
-        coEvery { userRepository.getUserCourses(any()) } returns emptyList()
-
-        val viewModel = SearchUserViewModel(userRepository, authRepository)
-
-        composeTestRule.setContent {
-            val navController = rememberNavController()
-            SearchUserScreen(
-                navController = navController,
-                viewModel = viewModel
-            )
-        }
-
-        // Action: Type "Ori" into the search field
-        composeTestRule.onNode(
-            (hasText("Search by name", ignoreCase = true)
-                    or hasAnyChild(hasText("Search by name")))
-                    and hasSetTextAction()
-        ).performTextInput("Ori")
-
-        Thread.sleep(2000) // Observe the typing
-
-        // Verification: "Orian" MUST be visible in the results
         composeTestRule.onNodeWithText("Orian").assertIsDisplayed()
-
-        // Verification: "Or" MUST NOT be displayed
         composeTestRule.onNodeWithText("Or").assertDoesNotExist()
-
-        Thread.sleep(3000) // Observe the final state
     }
 }
