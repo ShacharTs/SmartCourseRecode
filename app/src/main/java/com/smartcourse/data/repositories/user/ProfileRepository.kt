@@ -9,8 +9,11 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -80,11 +83,32 @@ class ProfileRepository @Inject constructor(
     suspend fun syncGoogleAvatar() {
         val u = client.auth.currentUserOrNull() ?: return
         val metadata = u.userMetadata ?: return
-        val avatar = (metadata["avatar_url"] as? JsonPrimitive)?.contentOrNull
+
+        val googleAvatar = (metadata["avatar_url"] as? JsonPrimitive)?.contentOrNull
             ?: (metadata["picture"] as? JsonPrimitive)?.contentOrNull ?: ""
 
-        if (avatar.isNotBlank()) {
-            updateUserImage(id = u.id, image = avatar)
+        if (googleAvatar.isBlank()) return
+
+        try {
+            val tableName = TableNames.USERTABLE
+
+            // 1. Change "image" to "user_image" to match your DB screenshot
+            val result = client.from(tableName).select(columns = Columns.list(UserTable.IMAGE)) {
+                filter { eq(UserTable.ID, u.id) }
+            }.decodeSingleOrNull<JsonObject>()
+
+            // 2. Extract using the correct key "user_image"
+            val existingImage = result?.get(UserTable.IMAGE)?.jsonPrimitive?.contentOrNull
+
+            // 3. Logic: Only update if the database has nothing (NULL or empty)
+            if (existingImage.isNullOrBlank()) {
+                updateUserImage(id = u.id, image = googleAvatar)
+            } else {
+                // It will now see the URL in your screenshot and skip this part
+                println("User already has an image. Skipping overwrite.")
+            }
+        } catch (e: Exception) {
+            println("Database check failed: ${e.message}")
         }
     }
 
