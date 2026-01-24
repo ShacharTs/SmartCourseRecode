@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.CourseRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchUserViewModel @Inject constructor(
-    private val userRepository: UserRepository,
+    private val courseRepo: CourseRepository,
+    private val profileRepo: ProfileRepository,
     private val authRepo: AuthRepository
 ) : ViewModel() {
 
@@ -33,10 +35,10 @@ class SearchUserViewModel @Inject constructor(
             myUserId = me.userId
             myRole = me.role
 
-            myCourses = userRepository
+            myCourses = courseRepo
                 .getUserCourses(me.userId)
                 .mapNotNull { link ->
-                    userRepository.getCourseById(link.course_id)
+                    courseRepo.getCourseById(link.course_id)
                 }
                 .map { it.name }
                 .toSet()
@@ -44,7 +46,7 @@ class SearchUserViewModel @Inject constructor(
     }
 
 
-    // 1. Add this variable to your class to track the current search
+    // Add this variable to your class to track the current search
     private var searchJob: Job? = null
 
     fun onQueryChanged(query: String) {
@@ -53,11 +55,11 @@ class SearchUserViewModel @Inject constructor(
             isLoading = true
         )
 
-        // 2. Cancel the previous search immediately to prevent race conditions
+        // Cancel the previous search immediately to prevent race conditions
         searchJob?.cancel()
 
         searchJob = viewModelScope.launch {
-            // 3. Wait 300ms. If the user types again, this job is cancelled
+            // Wait 300ms. If the user types again, this job is cancelled
             // and the database is never called, saving resources.
             delay(300)
 
@@ -66,11 +68,11 @@ class SearchUserViewModel @Inject constructor(
                 return@launch
             }
 
-            val users = userRepository.searchUsers(query)
+            val users = profileRepo.searchUsers(query)
 
             val filteredUsers = users
                 .filter { it.userId != myUserId }
-                // 4. Safety Filter: Double-check that the name actually
+                // Safety Filter: Double-check that the name actually
                 // starts with the query, matching your repository logic.
                 .filter { it.displayName.startsWith(query, ignoreCase = true) }
                 .filter { user ->
@@ -82,10 +84,10 @@ class SearchUserViewModel @Inject constructor(
                 }
 
             val rows = filteredUsers.map { user ->
-                val links = userRepository.getUserCourses(user.userId)
+                val links = courseRepo.getUserCourses(user.userId)
                 val courses = links
                     .mapNotNull { link ->
-                        userRepository.getCourseById(link.course_id)
+                        courseRepo.getCourseById(link.course_id)
                     }
                     .map { it.name }
 

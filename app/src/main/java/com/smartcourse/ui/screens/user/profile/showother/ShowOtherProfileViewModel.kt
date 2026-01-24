@@ -7,7 +7,9 @@ import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.CourseRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
+import com.smartcourse.data.repositories.user.SocialRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +21,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ShowOtherProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val userRepository: UserRepository,
+    private val profileRepo: ProfileRepository,
+    private val courseRepo: CourseRepository,
+    private val socialRepo: SocialRepository,
     private val chatRepository: ChatRepositoryImpl,
     private val authRepository: AuthRepository
 ) : ViewModel() {
@@ -69,22 +73,22 @@ class ShowOtherProfileViewModel @Inject constructor(
     }
 
     private suspend fun loadUser() {
-        val targetUser = userRepository.loadUser(userId)
+        val targetUser = profileRepo.loadUser(userId)
             ?: error("User not found")
         _user.value = targetUser
     }
 
     private suspend fun loadCourses() {
-        _courses.value = userRepository
+        _courses.value = courseRepo
             .getUserCourses(userId)
-            .mapNotNull { userRepository.getCourseById(it.course_id) }
+            .mapNotNull { courseRepo.getCourseById(it.course_id) }
     }
 
     private suspend fun loadFavoriteState() {
         val me = requireMe()
-        _isFavorite.value = userRepository.isUserFavorite(me, userId)
+        _isFavorite.value = socialRepo.isUserFavorite(me, userId)
         _favoritesCount.value =
-            userRepository.countUserFavorites(userId)
+            socialRepo.countUserFavorites(userId)
     }
 
     /* ============================================================
@@ -122,15 +126,15 @@ class ShowOtherProfileViewModel @Inject constructor(
         wasFavorite: Boolean
     ) {
         if (wasFavorite) {
-            userRepository.unsaveUser(me, targetUserId)
+            socialRepo.unsaveUser(me, targetUserId)
         } else {
-            userRepository.saveUser(me, targetUserId)
+            socialRepo.saveUser(me, targetUserId)
         }
     }
 
     private suspend fun refreshFavoriteCount(targetUserId: String) {
         _favoritesCount.value =
-            userRepository.countUserFavorites(targetUserId)
+            socialRepo.countUserFavorites(targetUserId)
     }
 
     /* ============================================================

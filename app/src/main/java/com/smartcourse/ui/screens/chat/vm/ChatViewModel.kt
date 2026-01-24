@@ -1,18 +1,16 @@
 package com.smartcourse.ui.screens.chat.vm
-
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.ktx.storage
 import com.smartcourse.data.models.chat.Message
 import com.smartcourse.data.remote.firebase.FirebaseUserProvider
-// Change from ChatRepository to IChatRepository
 import com.smartcourse.data.repositories.chat.IChatRepository
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
+import com.smartcourse.data.repositories.user.SocialRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val chatRepo: IChatRepository,
-    private val userRepo: UserRepository,
+    private val profileRepo: ProfileRepository,
+    private val socialRepo: SocialRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -74,7 +73,7 @@ class ChatViewModel @Inject constructor(
         if (text.isBlank() && type == "text") return
 
         viewModelScope.launch {
-            val currentUser = userRepo.loadUser(myId)
+            val currentUser = profileRepo.loadUser(myId)
             val name = currentUser?.displayName ?: "Unknown User"
 
             val msg = Message(
@@ -99,13 +98,7 @@ class ChatViewModel @Inject constructor(
 
         return receiver
     }
-    // todo useable ?
-//    fun openChatWith(otherUserId: String, myId: String, navController: NavController) {
-//        viewModelScope.launch {
-//            val chatId = chatRepo.ensureChatExists(myId, otherUserId)
-//            navController.navigate("chat/$chatId")
-//        }
-//    }
+
 
     fun ensureFirebaseReady() {
         viewModelScope.launch {
@@ -113,15 +106,8 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-//    suspend fun getChatParticipants(chatId: String): Pair<String, String> {
-//        val chat = chatRepo.getChatById(chatId)
-//        if (chat.participants.size != 2) {
-//            throw IllegalStateException("Chat must have exactly 2 participants.")
-//        }
-//        return Pair(chat.participants[0], chat.participants[1])
-//    }
 
-    suspend fun getBothUsers(chatId: String) = userRepo.getUsersInChat(chatId)
+    suspend fun getBothUsers(chatId: String) = socialRepo.getUsersInChat(chatId)
 
     override fun onCleared() {
         super.onCleared()

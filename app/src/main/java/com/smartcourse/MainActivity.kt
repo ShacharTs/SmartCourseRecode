@@ -19,19 +19,18 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessaging
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.NotificationRepository
 import com.smartcourse.navigation.RootNavHost
 import com.smartcourse.ui.screens.setting.theme.ThemeViewModel
 import com.smartcourse.ui.theme.SmartCourseTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var userRepository: UserRepository
+
+    lateinit var notificationRepo: NotificationRepository
 
     private val themeViewModel: ThemeViewModel by viewModels()
 
@@ -48,8 +47,6 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        // RootNavigation should not require a navController from here
-                        //RootNavigation()
                         RootNavHost()
                     }
                 }
@@ -75,7 +72,7 @@ class MainActivity : ComponentActivity() {
                 val token = task.result
                 lifecycleScope.launch {
                     try {
-                        userRepository.updateFcmToken(token)
+                        notificationRepo.updateFcmToken(token)
                     } catch (e: Exception) {
                         // Fail silently
                     }

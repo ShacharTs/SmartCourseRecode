@@ -147,8 +147,7 @@ private fun NavHostGraph(
             RegisterScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onRegisterSuccess = {
-                    navController.navigate(Screen.ChooseRole.route
-                    )
+                    navController.navigate(Screen.ChooseRole.route)
                 }
             )
         }

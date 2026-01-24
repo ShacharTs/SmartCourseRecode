@@ -3,6 +3,8 @@ package com.smartcourse.data.repositories.user
 import com.smartcourse.data.models.table.TableNames
 import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.data.models.usermodel.User
+import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.models.usermodel.serialName
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
@@ -58,6 +60,20 @@ class ProfileRepository @Inject constructor(
             .select { filter { ilike(UserTable.NAME, "$q%") } }
             .decodeList<User>()
     }
+
+    suspend fun updateUserRole(id: String, role: UserRole) {
+        client
+            .from(TableNames.USERTABLE)
+            .update(
+                mapOf(UserTable.ROLE to role.serialName())
+            ) {
+                filter {
+                    eq(UserTable.ID, id)
+                }
+            }
+    }
+
+
 
     suspend fun syncGoogleAvatar() {
         val u = client.auth.currentUserOrNull() ?: return

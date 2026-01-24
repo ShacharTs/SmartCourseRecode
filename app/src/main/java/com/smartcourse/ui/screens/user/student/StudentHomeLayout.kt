@@ -279,7 +279,7 @@ fun LatestChatsSection(
 @Composable
 fun StudentHomeLayout(
     navController: NavController,
-    user: User // Passed directly from Root Screen
+    user: User
 ) {
     val vm: StudentHomeViewModel = hiltViewModel()
 

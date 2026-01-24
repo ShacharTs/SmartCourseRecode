@@ -10,7 +10,9 @@ import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.CourseRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
+import com.smartcourse.data.repositories.user.SocialRepository
 import com.smartcourse.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -20,7 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StudentHomeViewModel @Inject constructor(
-    private val userRepository: UserRepository,
+    private val socialRepo: SocialRepository,
+    private val courseRepo: CourseRepository,
+    private val profileRepo: ProfileRepository,
     private val chatRepositoryImpl: ChatRepositoryImpl
 ) : ViewModel() {
 
@@ -50,17 +54,17 @@ class StudentHomeViewModel @Inject constructor(
         viewModelScope.launch {
             val myId = s.userId // Direct access to userId
             val myCourseIds = s.courses.map { it.id }.toSet() // Courses from User object
-            val savedTutorIds = userRepository.getFavoriteUserIds(myId)
+            val savedTutorIds = socialRepo.getFavoriteUserIds(myId)
 
-            val tutorUsers = userRepository
+            val tutorUsers = socialRepo
                 .getAllUsersExcept(myId)
                 .filter { it.role == UserRole.TUTOR }
 
             val allTutorsEnriched = tutorUsers.map { tutor ->
                 async {
-                    val links = userRepository.getUserCourses(tutor.userId)
+                    val links = courseRepo.getUserCourses(tutor.userId)
                     val courses = links.mapNotNull {
-                        userRepository.getCourseById(it.course_id)
+                        courseRepo.getCourseById(it.course_id)
                     }
                     // Enrich the user object with transient course data
                     tutor.copy(courses = courses)
@@ -82,7 +86,7 @@ class StudentHomeViewModel @Inject constructor(
             viewModelScope.launch {
                 val enriched = chats.map { chat ->
                     val otherUser = runCatching {
-                        userRepository.loadUser(chat.otherUserId)
+                        profileRepo.loadUser(chat.otherUserId)
                     }.getOrNull()
                     chat.copy(otherUser = otherUser)
                 }
@@ -102,7 +106,7 @@ class StudentHomeViewModel @Inject constructor(
     fun saveUser(targetUser: User) {
         val s = currentUser ?: return
         viewModelScope.launch {
-            userRepository.saveUser(s.userId, targetUser.userId)
+            socialRepo.saveUser(s.userId, targetUser.userId)
 
             val tutorToAdd = _discoverTutors.value.firstOrNull { it.userId == targetUser.userId }
             _discoverTutors.value = _discoverTutors.value.filter { it.userId != targetUser.userId }

@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.smartcourse.data.repositories.user.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -12,7 +11,6 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingViewModel @Inject constructor(
     @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context,
-    private val userRepository: UserRepository
 ) : ViewModel() {
 
     // Access local phone storage (SharedPreferences)

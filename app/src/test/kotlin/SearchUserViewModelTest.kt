@@ -3,7 +3,8 @@ package com.smartcourse.ui.screens.search
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.CourseRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -39,7 +40,10 @@ class SearchUserViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     @Mock
-    private lateinit var userRepository: UserRepository
+    private lateinit var courseRepo: CourseRepository
+
+    @Mock
+    private lateinit var profileRepo: ProfileRepository
     @Mock
     private lateinit var authRepository: AuthRepository
 
@@ -55,10 +59,10 @@ class SearchUserViewModelTest {
 
         runTest(testDispatcher) {
             whenever(authRepository.restoreValidSession()).thenReturn(me)
-            whenever(userRepository.getUserCourses(anyString())).thenReturn(emptyList())
+            whenever(courseRepo.getUserCourses(anyString())).thenReturn(emptyList())
         }
 
-        viewModel = SearchUserViewModel(userRepository, authRepository)
+        viewModel = SearchUserViewModel(courseRepo = courseRepo, profileRepo = profileRepo, authRepo = authRepository )
         testDispatcher.scheduler.advanceUntilIdle()
     }
 
@@ -77,7 +81,7 @@ class SearchUserViewModelTest {
         val tutor1 = User("t1", "John Smith", role = UserRole.TUTOR)
         val tutor2 = User("t2", "John Doe", role = UserRole.TUTOR)
 
-        whenever(userRepository.searchUsers(query)).thenReturn(listOf(tutor1, tutor2))
+        whenever(profileRepo.searchUsers(query)).thenReturn(listOf(tutor1, tutor2))
 
         viewModel.onQueryChanged(query)
         advanceUntilIdle()
@@ -94,7 +98,7 @@ class SearchUserViewModelTest {
     @Test
     fun `onQueryChanged returns empty list when no users exist`() = runTest {
         val query = "UnknownName"
-        whenever(userRepository.searchUsers(query)).thenReturn(emptyList())
+        whenever(profileRepo.searchUsers(query)).thenReturn(emptyList())
 
         viewModel.onQueryChanged(query)
         advanceUntilIdle()
@@ -116,7 +120,7 @@ class SearchUserViewModelTest {
         val or = User("u2", "Or", role = UserRole.TUTOR)
 
         // Repository is mocked to return ONLY Orian for the specific query "Ori"
-        whenever(userRepository.searchUsers(query)).thenReturn(listOf(orian))
+        whenever(profileRepo.searchUsers(query)).thenReturn(listOf(orian))
 
         // 2. Calling the function
         viewModel.onQueryChanged(query)

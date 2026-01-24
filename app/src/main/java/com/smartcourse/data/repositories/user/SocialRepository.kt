@@ -6,6 +6,7 @@ import com.smartcourse.data.models.table.UserFavoriteRow
 import com.smartcourse.data.models.table.UserFavoriteTable
 import com.smartcourse.data.models.table.UserFavoriteTable.USER_A
 import com.smartcourse.data.models.table.UserFavoriteTable.USER_B
+import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.remote.firebase.FirebaseClientProvider
 import io.github.jan.supabase.SupabaseClient
@@ -57,6 +58,27 @@ class SocialRepository @Inject constructor(
             .select { filter { eq(USER_A, userId) } }
             .decodeList<UserFavoriteRow>()
         return rows.map { it.userB }.toSet()
+    }
+
+    suspend fun countUserFavorites(userId: String): Int {
+        return client.postgrest[UserFavoriteTable.TABLE]
+            .select {
+                filter {
+                    eq(USER_B, userId)
+                }
+            }
+            .decodeList<UserFavoriteRow>()
+            .size
+    }
+
+    suspend fun getAllUsersExcept(myId: String): List<User> {
+        return client.postgrest[TableNames.USERTABLE]
+            .select {
+                filter {
+                    neq(UserTable.ID, myId)
+                }
+            }
+            .decodeList<User>()
     }
 
     suspend fun loadRecentChats(userId: String): List<ChatItem> {

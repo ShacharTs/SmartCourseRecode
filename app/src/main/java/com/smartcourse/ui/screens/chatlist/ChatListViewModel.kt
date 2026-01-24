@@ -7,7 +7,7 @@ import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.remote.firebase.FirebaseUserProvider
 import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
     authRepo: AuthRepository,
-    private val repo: ChatRepositoryImpl,
-    private val userRepo: UserRepository
+    private val chatRepositoryImpl: ChatRepositoryImpl,
+    private val profileRepo: ProfileRepository,
 ) : ViewModel() {
 
     // Read ONCE — chat list does not react to auth changes
@@ -66,11 +66,11 @@ class ChatListViewModel @Inject constructor(
     private fun startListening() {
         listener?.remove()
 
-        listener = repo.listenToUserChats(myId) { list ->
+        listener = chatRepositoryImpl.listenToUserChats(myId) { list ->
             viewModelScope.launch {
                 val enriched = list.map { chatItem ->
                     val otherUser = runCatching {
-                        userRepo.loadUser(chatItem.otherUserId)
+                        profileRepo.loadUser(chatItem.otherUserId)
                     }.getOrNull()
 
                     chatItem.copy(otherUser = otherUser)

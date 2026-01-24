@@ -11,7 +11,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.smartcourse.MainActivity
 import com.smartcourse.R
 import com.smartcourse.core.lifecycle.AppState
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.NotificationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,8 +21,10 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
+
+
     @Inject
-    lateinit var userRepository: UserRepository
+    lateinit var notificationRepo: NotificationRepository
 
     /* ------------------------------------------------------------
      * Notification type constants (NO magic strings)
@@ -40,7 +42,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         CoroutineScope(Dispatchers.IO).launch {
-            userRepository.updateFcmToken(token)
+            notificationRepo.updateFcmToken(token)
         }
     }
 

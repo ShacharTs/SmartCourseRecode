@@ -1,11 +1,16 @@
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performTextInput
 import androidx.navigation.compose.rememberNavController
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.CourseRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
 import com.smartcourse.ui.screens.search.SearchUserScreen
 import com.smartcourse.ui.screens.search.SearchUserViewModel
 import io.mockk.coEvery
@@ -16,27 +21,28 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 
-
 @RunWith(AndroidJUnit4::class)
 class SearchUserUITest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private val userRepository = mockk<UserRepository>(relaxed = true)
+    private val profileRepo = mockk<ProfileRepository>(relaxed = true)
+
+    private val courseRepo = mockk<CourseRepository>(relaxed = true)
     private val authRepository = mockk<AuthRepository>(relaxed = true)
     private val me = User(userId = "me", name = "Me", role = UserRole.STUDENT)
 
     @Before
     fun setup() {
         coEvery { authRepository.restoreValidSession() } returns me
-        coEvery { userRepository.getUserCourses(any()) } returns emptyList()
+        coEvery { courseRepo.getUserCourses(any()) } returns emptyList()
     }
 
     private fun launchSearchScreen(query: String, results: List<User>, expectedResultName: String? = null) {
-        coEvery { userRepository.searchUsers(query) } returns results
+        coEvery { profileRepo.searchUsers(query) } returns results
 
-        val viewModel = SearchUserViewModel(userRepository, authRepository)
+        val viewModel = SearchUserViewModel(courseRepo = courseRepo, profileRepo = profileRepo, authRepo = authRepository)
         composeTestRule.setContent {
             SearchUserScreen(navController = rememberNavController(), viewModel = viewModel)
         }

@@ -5,9 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.User
-import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.repositories.AuthRepository
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.CourseRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
+import com.smartcourse.data.repositories.user.StorageRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +17,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserProfileViewModel @Inject constructor(
-    private val userRepository: UserRepository,
+    private val profileRepo: ProfileRepository,
+    private val courseRepo: CourseRepository,
+    private val storageRepo: StorageRepository,
     private val authRepo: AuthRepository
 ) : ViewModel() {
 
@@ -43,15 +46,14 @@ class UserProfileViewModel @Inject constructor(
      */
     fun loadUser(userId: String) {
         viewModelScope.launch {
-            val rawUser = userRepository.loadUser(userId)
-            // Manual Enrichment: populateUserDetails fills the @Transient fields
+            val rawUser = profileRepo.loadUser(userId)
             _user.value = rawUser?.let { authRepo.populateUserDetails(it) }
         }
     }
 
     fun loadAllCourses() {
         viewModelScope.launch {
-            _allCourses.value = userRepository.getAllCourses()
+            _allCourses.value = courseRepo.getAllCourses()
         }
     }
 
@@ -79,23 +81,24 @@ class UserProfileViewModel @Inject constructor(
 
     fun updateName(userId: String, name: String, authVM: AuthViewModel) {
         if (name.isBlank()) return
-        performUpdate(userId, authVM) { userRepository.updateUserName(userId, name) }
+        performUpdate(userId, authVM) { profileRepo.updateUserName(userId, name) }
     }
 
     fun updateBio(userId: String, bio: String, authVM: AuthViewModel) {
-        performUpdate(userId, authVM) { userRepository.updateUserBio(userId, bio) }
+        performUpdate(userId, authVM) { profileRepo.updateUserBio(userId, bio) }
     }
 
-    fun updateRole(userId: String, role: UserRole, authVM: AuthViewModel) {
-        performUpdate(userId, authVM) { userRepository.updateUserRole(userId, role) }
-    }
+
+//    fun updateRole(userId: String, role: UserRole, authVM: AuthViewModel) {
+//        performUpdate(userId, authVM) { profileRepo.updateUserRole(userId, role) }
+//    }
 
     fun addCourse(userId: String, courseId: String, authVM: AuthViewModel) {
-        performUpdate(userId, authVM) { userRepository.addUserCourse(userId, courseId) }
+        performUpdate(userId, authVM) { courseRepo.addUserCourse(userId, courseId) }
     }
 
     fun removeCourse(userId: String, courseId: String, authVM: AuthViewModel) {
-        performUpdate(userId, authVM) { userRepository.removeUserCourse(userId, courseId) }
+        performUpdate(userId, authVM) { courseRepo.removeUserCourse(userId, courseId) }
     }
 
     fun updateAvatarPng(userId: String, imageBytes: ByteArray, authVM: AuthViewModel) {
@@ -103,19 +106,16 @@ class UserProfileViewModel @Inject constructor(
             _isUpdating.value = true
             try {
                 // Check session manually before calling the repository to avoid the IllegalStateException
-                val baseUrl = userRepository.uploadUserAvatar(userId, imageBytes)
+                val baseUrl = storageRepo.uploadUserAvatar(userId, imageBytes)
                 val versionedUrl = "$baseUrl?v=${System.currentTimeMillis()}"
 
-                userRepository.updateUserImage(userId, versionedUrl)
+                profileRepo.updateUserImage(userId, versionedUrl)
 
                 // Refresh local and global state
                 loadUser(userId)
                 authVM.refreshUser()
             } catch (e: Exception) {
-                // This prevents the FATAL EXCEPTION: main
-                // The catch handles the "User must be logged in" error gracefully
                 println("Upload failed: ${e.message}")
-                // Optional: Set an error state to show a message in the UI
             } finally {
                 _isUpdating.value = false
             }

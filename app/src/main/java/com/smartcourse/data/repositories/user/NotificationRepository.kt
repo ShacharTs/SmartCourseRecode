@@ -2,6 +2,7 @@ package com.smartcourse.data.repositories.user
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.messaging.FirebaseMessaging
 import com.smartcourse.data.remote.firebase.FirebaseClientProvider.firestore
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
@@ -25,5 +26,11 @@ class NotificationRepository @Inject constructor(
         firestore.collection("users").document(userId)
             .update("fcmToken", FieldValue.delete())
             .await()
+    }
+
+
+    suspend fun ensureFcmTokenSaved() {
+        val token = FirebaseMessaging.getInstance().token.await()
+        updateFcmToken(token)
     }
 }

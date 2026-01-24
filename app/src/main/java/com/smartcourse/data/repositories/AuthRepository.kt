@@ -7,7 +7,9 @@ import com.smartcourse.auth.AuthResult
 import com.smartcourse.auth.AuthStrategy
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.CourseRepository
+import com.smartcourse.data.repositories.user.NotificationRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
@@ -20,7 +22,9 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     private val supabase: SupabaseClient,
-    private val userRepo: UserRepository,
+    private val profileRepo: ProfileRepository,
+    private val notificationRepo: NotificationRepository,
+    private val courseRepo: CourseRepository,
 
 ) {
 
@@ -50,12 +54,12 @@ class AuthRepository @Inject constructor(
     // USER PROFILE
     // ------------------------------------------------------------
     suspend fun loadOrCreateUser(userId: String): User {
-        var profile = userRepo.loadUser(userId)
+        var profile = profileRepo.loadUser(userId)
 
         if (profile == null) {
             val u = supabase.auth.currentUserOrNull()
 
-            userRepo.createUser(
+            profileRepo.createUser(
                 id = userId,
                 email = u?.email ?: "",
                 name = u?.userMetadata?.get("full_name")?.toString() ?: "",
@@ -64,7 +68,7 @@ class AuthRepository @Inject constructor(
                 role = UserRole.TEMP.name
             )
 
-            profile = userRepo.loadUser(userId)
+            profile = profileRepo.loadUser(userId)
                 ?: error("Failed to create user profile")
         }
 
@@ -82,7 +86,7 @@ class AuthRepository @Inject constructor(
         val user = loadOrCreateUser(userId)
 
 
-        userRepo.ensureFcmTokenSaved()
+        notificationRepo.ensureFcmTokenSaved()
 
         return user
     }
@@ -93,7 +97,7 @@ class AuthRepository @Inject constructor(
     // ------------------------------------------------------------
     suspend fun logout(strategy: AuthStrategy? = null) {
         // 1. Remove token from backend
-        userRepo.removeFcmToken()
+        notificationRepo.removeFcmToken()
 
         // 2. Invalidate local FCM token
         FirebaseMessaging.getInstance().deleteToken()
@@ -135,17 +139,17 @@ class AuthRepository @Inject constructor(
     suspend fun populateUserDetails(user: User): User {
         return try {
             // 1. Fetch the relationship links (User <-> Course)
-            val userCourseLinks = userRepo.getUserCourses(user.userId)
+            val userCourseLinks = courseRepo.getUserCourses(user.userId)
 
             // 2. Map those links to full Course objects
             val fullCourses = userCourseLinks.mapNotNull { link ->
-                userRepo.getCourseById(link.course_id)
+                courseRepo.getCourseById(link.course_id)
             }
 
             // 3. Return a copy of the user with the courses list filled
             user.copy(courses = fullCourses)
         } catch (e: Exception) {
-            Log.e("UserRepository", "Error populating details for ${user.userId}", e)
+            Log.e("CourseRepo", "Error populating details for ${user.userId}", e)
             user // Return basic user if the enrichment fails
         }
     }

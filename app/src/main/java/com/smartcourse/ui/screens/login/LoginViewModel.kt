@@ -6,7 +6,7 @@ import com.smartcourse.auth.AuthStrategy
 import com.smartcourse.auth.EmailAuthStrategy
 import com.smartcourse.auth.GoogleAuthStrategy
 import com.smartcourse.data.repositories.AuthRepository
-import com.smartcourse.data.repositories.user.UserRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.SupabaseClient
 import javax.inject.Inject
@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepo: AuthRepository,
-    private val userRepo: UserRepository,
+    private val profileRepo: ProfileRepository,
     private val supabase: SupabaseClient
 ) : ViewModel() {
 
@@ -66,7 +66,7 @@ class LoginViewModel @Inject constructor(
         }
 
         // THIS is enough
-        userRepo.syncGoogleAvatar()
+        profileRepo.syncGoogleAvatar()
         authRepo.loadOrCreateUser(result.userId)
 
         return Result.success(Unit)
