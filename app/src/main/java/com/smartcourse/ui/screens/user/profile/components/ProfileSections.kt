@@ -1,28 +1,27 @@
 package com.smartcourse.ui.screens.user.profile.components
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import com.smartcourse.data.models.usermodel.User
+import com.smartcourse.ui.screens.home.UserAvatar
 import com.smartcourse.ui.theme.ShowProfileColorPalette
+import com.smartcourse.ui.theme.StudentHomeColorPalette
 
 @Composable
 fun ProfileHeader(home: ShowProfileColorPalette) {
@@ -42,14 +41,18 @@ fun ProfileCard(
     onEditAvatar: () -> Unit,
     onEditName: () -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 48.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(home.card)
-                .padding(top = 64.dp, bottom = 24.dp),
+                .padding(top = 44.dp, bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -59,75 +62,35 @@ fun ProfileCard(
                 color = home.textPrimary,
                 modifier = Modifier.clickable { onEditName() }
             )
+
             Spacer(Modifier.height(4.dp))
+
             Text(
                 text = user.role?.name?.lowercase()?.replaceFirstChar { it.uppercase() }.orEmpty(),
                 fontSize = 14.sp,
                 color = home.subtext
             )
         }
-        Avatar(user = user, home = home, onEditAvatar = onEditAvatar)
-    }
-    Spacer(Modifier.height(24.dp))
-}
 
-@Composable
-private fun BoxScope.Avatar(
-    user: User,
-    home: ShowProfileColorPalette,
-    onEditAvatar: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .align(Alignment.TopCenter)
-            .size(76.dp)
-            .clip(CircleShape)
-            .background(home.avatarBackground)
-            .clickable { onEditAvatar() },
-        contentAlignment = Alignment.Center
-    ) {
-        if (!user.image.isNullOrBlank()) {
-
-            val avatarUrl = user.image.orEmpty()
-            val displayUrl = remember(avatarUrl) {
-                "$avatarUrl?t=${System.currentTimeMillis()}"
-            }
-
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(displayUrl)
-                    .memoryCachePolicy(CachePolicy.DISABLED)
-                    .diskCachePolicy(CachePolicy.DISABLED)
-                    .networkCachePolicy(CachePolicy.ENABLED)
-                    .listener(
-                        onSuccess = { _, _ ->
-                            Log.d("AVATAR", "Image loaded SUCCESS")
-                        },
-                        onError = { _, result ->
-                            Log.e("AVATAR", "Load failed", result.throwable)
-                        }
-                    )
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-
-
-
-        } else {
-            Text(
-                text = user.name
-                    ?.split(" ")
-                    ?.take(2)
-                    ?.joinToString("") { it.first().uppercase() }
-                    .orEmpty(),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+        Box(modifier = Modifier.align(Alignment.TopCenter)) {
+            UserAvatar(
+                user = user,
+                // Corrected mapping based on your error messages
+                colors = StudentHomeColorPalette(
+                    accent = home.avatarBackground,
+                    textPrimary = home.textPrimary,
+                    background = home.card,
+                    card = home.card,
+                    subtext = home.subtext, // Use subtext instead of textSecondary
+                    star = Color(0xFFFFD700) // Pass a default gold color for the star
+                ),
+                size = 80.dp,
+                showName = false,
+                onClick = onEditAvatar
             )
         }
     }
+    Spacer(Modifier.height(24.dp))
 }
 
 
