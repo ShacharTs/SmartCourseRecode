@@ -92,15 +92,15 @@ class ProfileRepository @Inject constructor(
         try {
             val tableName = TableNames.USERTABLE
 
-            // 1. Change "image" to "user_image" to match your DB screenshot
+
             val result = client.from(tableName).select(columns = Columns.list(UserTable.IMAGE)) {
                 filter { eq(UserTable.ID, u.id) }
             }.decodeSingleOrNull<JsonObject>()
 
-            // 2. Extract using the correct key "user_image"
+            // Extract
             val existingImage = result?.get(UserTable.IMAGE)?.jsonPrimitive?.contentOrNull
 
-            // 3. Logic: Only update if the database has nothing (NULL or empty)
+            //  Only update if the database has nothing (NULL or empty)
             if (existingImage.isNullOrBlank()) {
                 updateUserImage(id = u.id, image = googleAvatar)
             } else {
