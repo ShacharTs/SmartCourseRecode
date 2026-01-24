@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,215 +46,203 @@ import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
 fun UserRootScreen(
-    navController: NavController
+    navController: NavHostController = rememberNavController()
 ) {
     val internalNavController = rememberNavController()
     val authVM: AuthViewModel = hiltViewModel()
 
 
-    val context = LocalContext.current
-    val activity = context as? android.app.Activity
-    val intent = activity?.intent
-
-    val action = intent.getNotificationAction()
-
-    LaunchedEffect(action) {
-        when (action) {
-
-            NotificationAction.CHAT_MESSAGE -> {
-                val chatId = intent?.getStringExtra("CHAT_ID") ?: return@LaunchedEffect
-                internalNavController.navigate(
-                    Screen.ChatRoom.createRoute(chatId)
-                ) {
-                    launchSingleTop = true
-                }
-            }
-
-            // TEMP – valid example
-            NotificationAction.USER_PROFILE -> {
-                val userId = intent?.getStringExtra("USER_ID") ?: return@LaunchedEffect
-                internalNavController.navigate(
-                    Screen.ShowOtherProfile.createRoute(userId)
-                ) {
-                    launchSingleTop = true
-                }
-            }
-
-            NotificationAction.NONE -> Unit
-        }
-
-        // must clean – otherwise it will re-trigger
-        intent?.removeExtra("NOTIFICATION_ACTION")
-        intent?.removeExtra("CHAT_ID")
-        intent?.removeExtra("USER_ID")
-    }
-
+    NotificationHandler(internalNavController)
 
     val palette = LocalAppPalette.current
-    val isDark = palette.isDark
-
     val backgroundBrush = Brush.verticalGradient(
-        colors = if (isDark) AppGradients.Dark else AppGradients.Light
+        colors = if (palette.isDark) AppGradients.Dark else AppGradients.Light
     )
-
-    val userProfile = authVM.currentUserProfile
-    val role = userProfile?.role ?: UserRole.TEMP
-
-    val items = bottomNavItemsForRole(role)
 
     val navBackStackEntry by internalNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val userRole = authVM.currentUserProfile?.role ?: UserRole.TEMP
 
-    val topBarRoutes = setOf(
-        Screen.Home.route
-    )
-
-    val bottomBarRoutes = setOf(
-        Screen.Home.route,
-        Screen.ChatList.route,
-        Screen.SearchRouter.route,
-    )
-
-    Scaffold(containerColor = Color.Transparent, topBar = {
-        if (currentRoute in topBarRoutes) {
-            MenuTopAppBar(
-                navController = internalNavController, authVM = authVM
-            )
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            UserTopBar(currentRoute, internalNavController, authVM)
+        },
+        bottomBar = {
+            UserBottomBar(currentRoute, internalNavController, userRole)
         }
-    }, bottomBar = {
-        if (currentRoute in bottomBarRoutes && items.isNotEmpty()) {
-            AppBottomNavBar(
-                navController = internalNavController, items = items
-            )
-        }
-    }) { padding ->
-
-        //  SINGLE OWNER OF WINDOW BACKGROUND
+    ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(backgroundBrush)
         ) {
-            NavHost(
-                navController = internalNavController,
-                startDestination = Screen.Home.route,
-                modifier = Modifier.fillMaxSize()
-            ) {
-
-                composable(Screen.Home.route) {
-                    MenuScreen(padding) {
-                        ShowHomeScreen(navController = internalNavController, authVM = authVM)
-                    }
-                }
-
-                composable(Screen.ChatList.route) {
-                    MenuScreen(padding) {
-                        ChatListScreen(navController = internalNavController)
-                    }
-                }
-
-
-
-                composable(
-                    route = Screen.ChatRoom.route,
-                    arguments = listOf(
-                        navArgument("chatId") { type = NavType.StringType }
-                    )
-                ) { entry ->
-
-                    val chatId = entry.arguments?.getString("chatId")
-                        ?: error("chatId missing")
-
-                    val myId = authVM.currentUserProfile?.userId
-                        ?: return@composable
-
-                    ChatScreen(
-                        navController = internalNavController,
-                        myId = myId,
-                        chatId = chatId
-                    )
-                }
-
-
-                composable(Screen.SearchRouter.route) {
-                    SearchUserScreen(navController = internalNavController)
-                }
-
-
-                composable(Screen.Profile.route) {
-                    UserProfileScreen(
-                        navController = internalNavController)
-                }
-
-
-                composable(Screen.Settings.route) {
-                    SettingsScreen(navController = internalNavController)
-                }
-
-                composable(
-                    route = Screen.ShowOtherProfile.route,
-                    arguments = listOf(navArgument("userId") { type = NavType.StringType })
-                ) {
-                    ShowOtherProfileScreen(navController = internalNavController)
-                }
-
-                composable(Screen.Theme.route){
-                    ThemeScreen(navController = internalNavController)
-                }
-
-                composable(Screen.Language.route){
-                    LanguageScreen(navController = internalNavController)
-                }
-
-
-                composable(Screen.Terms.route) {
-                    TermsAndServiceScreen(
-                        showBackButton = true,
-                        requireAcceptance = false,
-                        onBack = {
-                            internalNavController.popBackStack()
-                        }
-                    )
-                }
-
-
-
-
-
-
-
-
-            }
+            UserNavGraph(
+                internalNavController = internalNavController,
+                authVM = authVM,
+                padding = padding
+            )
         }
     }
 }
 
+@Composable
+private fun NotificationHandler(navController: NavHostController) {
+    val context = LocalContext.current
+    val activity = context as? android.app.Activity
+    val intent = activity?.intent
+    val action = intent.getNotificationAction()
+
+    LaunchedEffect(action) {
+        when (action) {
+            NotificationAction.CHAT_MESSAGE -> {
+                intent?.getStringExtra("CHAT_ID")?.let { chatId ->
+                    navController.navigate(Screen.ChatRoom.createRoute(chatId)) {
+                        launchSingleTop = true
+                    }
+                }
+            }
+            NotificationAction.USER_PROFILE -> {
+                intent?.getStringExtra("USER_ID")?.let { userId ->
+                    navController.navigate(Screen.ShowOtherProfile.createRoute(userId)) {
+                        launchSingleTop = true
+                    }
+                }
+            }
+            NotificationAction.NONE -> Unit
+        }
+        // Clear intent extras to prevent re-triggering on recomposition/config change
+        intent?.removeExtra("NOTIFICATION_ACTION")
+        intent?.removeExtra("CHAT_ID")
+        intent?.removeExtra("USER_ID")
+    }
+}
+
+@Composable
+private fun UserTopBar(
+    currentRoute: String?,
+    navController: NavHostController,
+    authVM: AuthViewModel
+) {
+    val topBarRoutes = setOf(Screen.Home.route)
+    if (currentRoute in topBarRoutes) {
+        MenuTopAppBar(navController = navController, authVM = authVM)
+    }
+}
+
+@Composable
+private fun UserBottomBar(
+    currentRoute: String?,
+    navController: NavHostController,
+    role: UserRole
+) {
+    val bottomBarRoutes = setOf(
+        Screen.Home.route,
+        Screen.ChatList.route,
+        Screen.SearchRouter.route,
+    )
+    val items = bottomNavItemsForRole(role)
+
+    if (currentRoute in bottomBarRoutes && items.isNotEmpty()) {
+        AppBottomNavBar(navController = navController, items = items)
+    }
+}
+
+@Composable
+private fun UserNavGraph(
+    internalNavController: NavHostController,
+    authVM: AuthViewModel,
+    padding: PaddingValues
+) {
+    NavHost(
+        navController = internalNavController,
+        startDestination = Screen.Home.route,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        composable(Screen.Home.route) {
+            MenuScreen(padding) {
+                ShowHomeScreen(navController = internalNavController, authVM = authVM)
+            }
+        }
+
+        composable(Screen.ChatList.route) {
+            MenuScreen(padding) {
+                ChatListScreen(navController = internalNavController)
+            }
+        }
+
+        composable(
+            route = Screen.ChatRoom.route,
+            arguments = listOf(navArgument("chatId") { type = NavType.StringType })
+        ) { entry ->
+            val chatId = entry.arguments?.getString("chatId") ?: return@composable
+            val myId = authVM.currentUserProfile?.userId ?: return@composable
+
+            ChatScreen(
+                navController = internalNavController,
+                myId = myId,
+                chatId = chatId
+            )
+        }
+
+        composable(Screen.SearchRouter.route) {
+            SearchUserScreen(navController = internalNavController)
+        }
+
+        composable(Screen.Profile.route) {
+            UserProfileScreen(navController = internalNavController)
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(navController = internalNavController)
+        }
+
+        composable(
+            route = Screen.ShowOtherProfile.route,
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) {
+            ShowOtherProfileScreen(navController = internalNavController)
+        }
+
+        composable(Screen.Theme.route) {
+            ThemeScreen(navController = internalNavController)
+        }
+
+        composable(Screen.Language.route) {
+            LanguageScreen(navController = internalNavController)
+        }
+
+        composable(Screen.Terms.route) {
+            TermsAndServiceScreen(
+                showBackButton = true,
+                requireAcceptance = false,
+                onBack = { internalNavController.popBackStack() }
+            )
+        }
+    }
+}
 
 @Composable
 fun MenuScreen(
-    padding: PaddingValues, content: @Composable () -> Unit
+    padding: PaddingValues,
+    content: @Composable () -> Unit
 ) {
     Box(modifier = Modifier.padding(padding)) {
         content()
     }
 }
 
-
 @Composable
 fun ShowHomeScreen(
-    navController: NavController,
+    navController: NavHostController,
     authVM: AuthViewModel
 ) {
     val user = authVM.currentUserProfile
-
     when {
         user == null -> LoadingScreen()
-
         user.role == UserRole.STUDENT -> StudentHomeLayout(navController = navController)
-
         user.role == UserRole.TUTOR -> TutorHomeLayout(navController = navController)
-
-        else -> LoadingScreen() // Handle TEMP or unexpected roles
+        else -> LoadingScreen()
     }
 }
 
