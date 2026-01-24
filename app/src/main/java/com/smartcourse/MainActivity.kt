@@ -19,7 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessaging
-import com.smartcourse.data.repositories.UserRepository
+import com.smartcourse.data.repositories.user.UserRepository
 import com.smartcourse.navigation.RootNavHost
 import com.smartcourse.ui.screens.setting.theme.ThemeViewModel
 import com.smartcourse.ui.theme.SmartCourseTheme

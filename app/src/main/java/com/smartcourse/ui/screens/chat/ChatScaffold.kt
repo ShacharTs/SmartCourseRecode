@@ -20,14 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.smartcourse.data.models.chat.Message
 import com.smartcourse.data.models.usermodel.User
-import com.smartcourse.ui.screens.chat.vm.CameraViewModel
 import com.smartcourse.ui.screens.chat.vm.ChatViewModel
-import com.smartcourse.ui.screens.chat.vm.GalleryViewModel
-import com.smartcourse.ui.screens.chat.vm.LocationViewModel
 import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
@@ -40,15 +36,14 @@ fun ChatScaffold(
     myId: String,
     messages: List<Message>,
     listState: androidx.compose.foundation.lazy.LazyListState,
+    onCameraClick: () -> Unit,
+    onGalleryClick: () -> Unit,
+    onLocationClick: () -> Unit
 ) {
     var input by rememberSaveable { mutableStateOf("") }
     var showAttachSheet by remember { mutableStateOf(false) }
 
     val chat = LocalAppPalette.current.chatRoom
-
-    val cameraVM: CameraViewModel = viewModel()
-    val galleryVM: GalleryViewModel = viewModel()
-    val locationVM: LocationViewModel = viewModel()
 
     Box(
         modifier = Modifier
@@ -57,9 +52,7 @@ fun ChatScaffold(
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            topBar = {
-                ChatTopBar(navController, otherUser)
-            },
+            topBar = { ChatTopBar(navController, otherUser) },
             bottomBar = {
                 ChatInputBar(
                     input = input,
@@ -90,11 +83,19 @@ fun ChatScaffold(
                 onDismissRequest = { showAttachSheet = false }
             ) {
                 AttachSheetContent(
-                    onCamera = { cameraVM.requestCamera() },
-                    onGallery = { galleryVM.requestGallery() },
-                    onLocation = { locationVM.onLocationRequest() }
+                    onCamera = {
+                        onCameraClick()
+                        showAttachSheet = false
+                    },
+                    onGallery = {
+                        onGalleryClick()
+                        showAttachSheet = false
+                    },
+                    onLocation = {
+                        onLocationClick()
+                        showAttachSheet = false
+                    }
                 )
-
             }
         }
     }

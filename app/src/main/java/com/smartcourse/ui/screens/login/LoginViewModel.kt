@@ -6,7 +6,7 @@ import com.smartcourse.auth.AuthStrategy
 import com.smartcourse.auth.EmailAuthStrategy
 import com.smartcourse.auth.GoogleAuthStrategy
 import com.smartcourse.data.repositories.AuthRepository
-import com.smartcourse.data.repositories.UserRepository
+import com.smartcourse.data.repositories.user.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.SupabaseClient
 import javax.inject.Inject

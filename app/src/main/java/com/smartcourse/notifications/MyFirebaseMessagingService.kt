@@ -11,7 +11,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.smartcourse.MainActivity
 import com.smartcourse.R
 import com.smartcourse.core.lifecycle.AppState
-import com.smartcourse.data.repositories.UserRepository
+import com.smartcourse.data.repositories.user.UserRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

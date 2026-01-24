@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.repositories.AuthRepository
-import com.smartcourse.data.repositories.ChatRepository
-import com.smartcourse.data.repositories.UserRepository
+import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
+import com.smartcourse.data.repositories.user.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +20,7 @@ import javax.inject.Inject
 class ShowOtherProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val userRepository: UserRepository,
-    private val chatRepository: ChatRepository,
+    private val chatRepository: ChatRepositoryImpl,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 

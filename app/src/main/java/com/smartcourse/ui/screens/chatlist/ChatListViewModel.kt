@@ -6,8 +6,8 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.remote.firebase.FirebaseUserProvider
 import com.smartcourse.data.repositories.AuthRepository
-import com.smartcourse.data.repositories.ChatRepository
-import com.smartcourse.data.repositories.UserRepository
+import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
+import com.smartcourse.data.repositories.user.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
     authRepo: AuthRepository,
-    private val repo: ChatRepository,
+    private val repo: ChatRepositoryImpl,
     private val userRepo: UserRepository
 ) : ViewModel() {
 

@@ -83,18 +83,18 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:compose-auth:2.4.0")
     implementation("io.github.jan-tennert.supabase:storage-kt:2.4.0")
     implementation("io.github.jan-tennert.supabase:supabase-kt:2.4.0")
-
+    implementation("io.ktor:ktor-http:2.3.11")
 
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
-
+    implementation("com.google.firebase:firebase-storage-ktx:21.0.1")
     implementation("com.google.firebase:firebase-messaging-ktx")
-
+    implementation("com.google.android.gms:play-services-location:21.1.0")
 
     implementation("io.ktor:ktor-client-okhttp:2.3.7")
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     implementation("androidx.compose.material:material-icons-extended:1.7.0")
 

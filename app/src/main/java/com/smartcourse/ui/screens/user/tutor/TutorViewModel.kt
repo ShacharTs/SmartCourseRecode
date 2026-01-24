@@ -9,8 +9,8 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
-import com.smartcourse.data.repositories.ChatRepository
-import com.smartcourse.data.repositories.UserRepository
+import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
+import com.smartcourse.data.repositories.user.UserRepository
 import com.smartcourse.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TutorHomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val chatRepository: ChatRepository
+    private val chatRepositoryImpl: ChatRepositoryImpl
 ) : ViewModel() {
 
 
@@ -68,7 +68,7 @@ class TutorHomeViewModel @Inject constructor(
         val u = currentUser ?: return
         chatsListener?.remove()
 
-        chatsListener = chatRepository.listenToUserChats(u.userId) { chats ->
+        chatsListener = chatRepositoryImpl.listenToUserChats(u.userId) { chats ->
             viewModelScope.launch {
                 val enriched = chats.map { chat ->
                     val otherUser = runCatching {
@@ -84,7 +84,7 @@ class TutorHomeViewModel @Inject constructor(
     fun openChatWithStudent(studentId: String, navController: NavController) {
         val u = currentUser ?: return
         viewModelScope.launch {
-            val chatId = chatRepository.ensureChatExists(u.userId, studentId)
+            val chatId = chatRepositoryImpl.ensureChatExists(u.userId, studentId)
             navController.navigate(Screen.ChatRoom.createRoute(chatId))
         }
     }

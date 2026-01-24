@@ -1,7 +1,11 @@
 package com.smartcourse.di
 
 
-import com.smartcourse.data.repositories.UserRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
+import com.smartcourse.data.repositories.chat.IChatRepository
+import com.smartcourse.data.repositories.user.ProfileRepository
+import com.smartcourse.data.repositories.user.UserRepository
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -21,8 +25,15 @@ object RepositoryModule {
         return UserRepository(supabase)
     }
 
-
-
-
-
+    @Provides
+    @Singleton
+    fun provideChatRepository(
+        firestore: FirebaseFirestore,
+        userProfileRepo: ProfileRepository
+    ): IChatRepository {
+        return ChatRepositoryImpl(firestore, userProfileRepo)
+    }
 }
+
+
+

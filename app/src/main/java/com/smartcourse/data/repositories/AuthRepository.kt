@@ -7,6 +7,7 @@ import com.smartcourse.auth.AuthResult
 import com.smartcourse.auth.AuthStrategy
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.user.UserRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     private val supabase: SupabaseClient,
-    private val userRepo: UserRepository
+    private val userRepo: UserRepository,
+
 ) {
 
     private val _currentUser = MutableStateFlow<User?>(null)

@@ -1,8 +1,7 @@
-@file:Suppress("UNCHECKED_CAST")
-
-package com.smartcourse.data.repositories
+package com.smartcourse.data.repositories.user
 
 import android.util.Log
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.smartcourse.data.models.chat.ChatItem
@@ -10,14 +9,12 @@ import com.smartcourse.data.models.table.TableNames
 import com.smartcourse.data.models.table.UserCourseTable
 import com.smartcourse.data.models.table.UserFavoriteRow
 import com.smartcourse.data.models.table.UserFavoriteTable
-import com.smartcourse.data.models.table.UserFavoriteTable.USER_A
-import com.smartcourse.data.models.table.UserFavoriteTable.USER_B
 import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.data.models.usermodel.serialName
-import com.smartcourse.data.remote.firebase.FirebaseClientProvider.firestore
+import com.smartcourse.data.remote.firebase.FirebaseClientProvider
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
@@ -28,6 +25,10 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
+
+
+
+//todo use the split version
 
 @Suppress("USELESS_IS_CHECK")
 @Singleton
@@ -134,7 +135,7 @@ class UserRepository @Inject constructor(
             .postgrest[UserFavoriteTable.TABLE]
             .select {
                 filter {
-                    eq(USER_A, userId)
+                    eq(UserFavoriteTable.USER_A, userId)
                 }
             }
             .decodeList<UserFavoriteRow>()
@@ -148,8 +149,8 @@ class UserRepository @Inject constructor(
                 .postgrest[TableNames.USER_FAVORITE]
                 .select {
                     filter {
-                        eq(USER_A, userA)
-                        eq(USER_B, userB)
+                        eq(UserFavoriteTable.USER_A, userA)
+                        eq(UserFavoriteTable.USER_B, userB)
                     }
                     limit(1)
                 }
@@ -174,8 +175,8 @@ class UserRepository @Inject constructor(
         try {
             client.postgrest[TableNames.USER_FAVORITE].insert(
                 mapOf(
-                    USER_A to userA,
-                    USER_B to userB
+                    UserFavoriteTable.USER_A to userA,
+                    UserFavoriteTable.USER_B to userB
                 )
             )
         } catch (e: Exception) {
@@ -187,8 +188,8 @@ class UserRepository @Inject constructor(
         try {
             client.postgrest[TableNames.USER_FAVORITE].delete {
                 filter {
-                    eq(USER_A, userA)
-                    eq(USER_B, userB)
+                    eq(UserFavoriteTable.USER_A, userA)
+                    eq(UserFavoriteTable.USER_B, userB)
                 }
             }
         } catch (e: Exception) {
@@ -302,7 +303,7 @@ class UserRepository @Inject constructor(
 
     // todo remove later when app done
     suspend fun loadRecentChats(userId: String): List<ChatItem> {
-        val chatDocs = firestore
+        val chatDocs = FirebaseClientProvider.firestore
             .collection("chats")
             .whereArrayContains("participants", userId)
             .get()
@@ -361,7 +362,7 @@ class UserRepository @Inject constructor(
         return client.postgrest[UserFavoriteTable.TABLE]
             .select {
                 filter {
-                    eq(USER_B, userId)
+                    eq(UserFavoriteTable.USER_B, userId)
                 }
             }
             .decodeList<UserFavoriteRow>()
@@ -401,6 +402,34 @@ class UserRepository @Inject constructor(
     }
 
 
+    suspend fun uploadUserFile(
+        userId: String,
+        fileBytes: ByteArray,
+        fileName: String // Make sure this includes the extension, e.g., "manual.pdf"
+    ): String {
+        val bucketName = "user_assets"
+
+        // Ensure the path ends with the extension so Supabase knows the file type
+        val objectPath = "users/$userId/$fileName"
+
+        val session = client.auth.currentSessionOrNull()
+            ?: throw IllegalStateException("User must be logged in.")
+
+
+        val bucket = client.storage.from(bucketName)
+
+        // Simple upload - Supabase detects type via the extension (e.g., .pdf)
+        bucket.upload(
+            path = objectPath,
+            data = fileBytes,
+            upsert = true
+        )
+
+        val rawBase = client.supabaseUrl.trimEnd('/')
+        return "$rawBase/storage/v1/object/public/$bucketName/$objectPath"
+    }
+
+
     suspend fun updateFcmToken(token: String) {
         val supabaseUser = client.auth.currentUserOrNull()
 
@@ -414,7 +443,7 @@ class UserRepository @Inject constructor(
         Log.d("FCM", "Saving FCM token (len=${token.length})")
 
         try {
-            firestore
+            FirebaseClientProvider.firestore
                 .collection("users")
                 .document(supabaseUserId)
                 .set(
@@ -434,7 +463,7 @@ class UserRepository @Inject constructor(
 
     suspend fun getUserFcmToken(userId: String): String? {
         return try {
-            val doc = firestore
+            val doc = FirebaseClientProvider.firestore
                 .collection("users")
                 .document(userId)
                 .get()
@@ -459,10 +488,10 @@ class UserRepository @Inject constructor(
             ?: return
 
         try {
-            firestore
+            FirebaseClientProvider.firestore
                 .collection("users")
                 .document(supabaseUser.id)
-                .update("fcmToken", com.google.firebase.firestore.FieldValue.delete())
+                .update("fcmToken", FieldValue.delete())
                 .await()
 
             Log.d("FCM", "FCM token removed for user ${supabaseUser.id}")
