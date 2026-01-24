@@ -29,8 +29,10 @@ class GalleryViewModel : ViewModel() {
     }
 
     fun onImageSelected(uri: Uri) {
-        _state.value = GalleryState(selectedImage = uri)
+        _state.value = _state.value.copy(selectedImage = uri)
     }
+
+
 
     fun clear() {
         _state.value = GalleryState()

@@ -1,12 +1,14 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.smartcourse.ui.screens.chat
+package com.smartcourse.ui.screens.chat.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -35,7 +37,7 @@ fun ChatScaffold(
     chatId: String,
     myId: String,
     messages: List<Message>,
-    listState: androidx.compose.foundation.lazy.LazyListState,
+    listState: LazyListState,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
     onLocationClick: () -> Unit

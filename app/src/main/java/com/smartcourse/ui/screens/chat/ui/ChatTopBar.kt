@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.chat
+package com.smartcourse.ui.screens.chat.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack

@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.chat
+package com.smartcourse.ui.screens.chat.ui
 
 import android.content.Intent
 import android.net.Uri

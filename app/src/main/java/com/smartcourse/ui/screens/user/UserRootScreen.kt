@@ -26,7 +26,7 @@ import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
 import com.smartcourse.notifications.NotificationAction
-import com.smartcourse.ui.screens.chat.ChatScreen
+import com.smartcourse.ui.screens.chat.screen.ChatScreen
 import com.smartcourse.ui.screens.chatlist.ChatListScreen
 import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar

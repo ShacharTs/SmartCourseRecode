@@ -1,4 +1,4 @@
-package com.smartcourse.ui.screens.chat
+package com.smartcourse.ui.screens.chat.util
 
 import com.smartcourse.data.models.usermodel.User
 

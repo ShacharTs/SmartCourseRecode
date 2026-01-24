@@ -99,13 +99,13 @@ class ChatViewModel @Inject constructor(
 
         return receiver
     }
-
-    fun openChatWith(otherUserId: String, myId: String, navController: NavController) {
-        viewModelScope.launch {
-            val chatId = chatRepo.ensureChatExists(myId, otherUserId)
-            navController.navigate("chat/$chatId")
-        }
-    }
+    // todo useable ?
+//    fun openChatWith(otherUserId: String, myId: String, navController: NavController) {
+//        viewModelScope.launch {
+//            val chatId = chatRepo.ensureChatExists(myId, otherUserId)
+//            navController.navigate("chat/$chatId")
+//        }
+//    }
 
     fun ensureFirebaseReady() {
         viewModelScope.launch {
@@ -113,13 +113,13 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    suspend fun getChatParticipants(chatId: String): Pair<String, String> {
-        val chat = chatRepo.getChatById(chatId)
-        if (chat.participants.size != 2) {
-            throw IllegalStateException("Chat must have exactly 2 participants.")
-        }
-        return Pair(chat.participants[0], chat.participants[1])
-    }
+//    suspend fun getChatParticipants(chatId: String): Pair<String, String> {
+//        val chat = chatRepo.getChatById(chatId)
+//        if (chat.participants.size != 2) {
+//            throw IllegalStateException("Chat must have exactly 2 participants.")
+//        }
+//        return Pair(chat.participants[0], chat.participants[1])
+//    }
 
     suspend fun getBothUsers(chatId: String) = userRepo.getUsersInChat(chatId)
 

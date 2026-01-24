@@ -26,18 +26,26 @@ class LocationViewModel @Inject constructor() : ViewModel() {
 
     fun requestLocation() {
         viewModelScope.launch {
-            _state.value = LocationState(isLoading = true)
+            _state.value = _state.value.copy(
+                isLoading = true,
+                error = null
+            )
             _events.emit(LocationEvent.GetLocation)
         }
     }
+
 
     fun onLocationReceived(lat: Double, lng: Double) {
         _state.value = LocationState(latitude = lat, longitude = lng, isLoading = false)
     }
 
     fun onError(msg: String) {
-        _state.value = LocationState(error = msg, isLoading = false)
+        _state.value = _state.value.copy(
+            isLoading = false,
+            error = msg
+        )
     }
+
 
     fun clear() {
         _state.value = LocationState()

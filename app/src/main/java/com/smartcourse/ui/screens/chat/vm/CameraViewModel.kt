@@ -37,8 +37,12 @@ class CameraViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onError(msg: String) {
-        _state.value = CameraState(error = msg)
+        _state.value = _state.value.copy(
+            isLoading = false,
+            error = msg
+        )
     }
+
 
     fun clear() {
         _state.value = CameraState()
