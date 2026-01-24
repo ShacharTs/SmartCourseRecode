@@ -90,19 +90,12 @@ fun UserRootScreen(
     }
 
 
-
-
-
-
     val palette = LocalAppPalette.current
     val isDark = palette.isDark
 
     val backgroundBrush = Brush.verticalGradient(
         colors = if (isDark) AppGradients.Dark else AppGradients.Light
     )
-
-    //val currentUser by authVM.currentUser.collectAsState()
-    //val role = currentUser?.role ?: UserRole.TEMP
 
     val userProfile = authVM.currentUserProfile
     val role = userProfile?.role ?: UserRole.TEMP
@@ -146,26 +139,17 @@ fun UserRootScreen(
                 navController = internalNavController,
                 startDestination = Screen.Home.route,
                 modifier = Modifier.fillMaxSize()
-                //.padding(padding)
             ) {
 
                 composable(Screen.Home.route) {
                     MenuScreen(padding) {
-                        ShowHomeScreen(
-                            navController = internalNavController,
-                            authVM = authVM
-                        )
+                        ShowHomeScreen(navController = internalNavController, authVM = authVM)
                     }
                 }
 
                 composable(Screen.ChatList.route) {
-                    //val chatListVM = hiltViewModel<ChatListViewModel>()
-
                     MenuScreen(padding) {
-                        ChatListScreen(
-                            navController = internalNavController,
-                            //chatListVM = chatListVM
-                        )
+                        ChatListScreen(navController = internalNavController)
                     }
                 }
 
@@ -185,7 +169,6 @@ fun UserRootScreen(
                         ?: return@composable
 
                     ChatScreen(
-                        //chatVM = chatVM,
                         navController = internalNavController,
                         myId = myId,
                         chatId = chatId
@@ -194,7 +177,7 @@ fun UserRootScreen(
 
 
                 composable(Screen.SearchRouter.route) {
-                    SearchUserScreen(navController = internalNavController,)
+                    SearchUserScreen(navController = internalNavController)
                 }
 
 
@@ -212,9 +195,7 @@ fun UserRootScreen(
                     route = Screen.ShowOtherProfile.route,
                     arguments = listOf(navArgument("userId") { type = NavType.StringType })
                 ) {
-                    ShowOtherProfileScreen(
-                        navController = internalNavController
-                    )
+                    ShowOtherProfileScreen(navController = internalNavController)
                 }
 
                 composable(Screen.Theme.route){
@@ -259,23 +240,19 @@ fun MenuScreen(
 }
 
 
-//Todo merge both to one UI and one VM does not need it split anymore
 @Composable
 fun ShowHomeScreen(
     navController: NavController,
     authVM: AuthViewModel
 ) {
-    //when (val user = authVM.domainUser) {
     val user = authVM.currentUserProfile
 
     when {
         user == null -> LoadingScreen()
 
-        user.role == UserRole.STUDENT -> StudentHomeLayout(
-            navController = navController)
+        user.role == UserRole.STUDENT -> StudentHomeLayout(navController = navController)
 
-        user.role == UserRole.TUTOR -> TutorHomeLayout(
-            navController = navController)
+        user.role == UserRole.TUTOR -> TutorHomeLayout(navController = navController)
 
         else -> LoadingScreen() // Handle TEMP or unexpected roles
     }

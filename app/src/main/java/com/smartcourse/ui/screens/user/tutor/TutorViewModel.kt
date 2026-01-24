@@ -9,6 +9,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
 import com.smartcourse.data.repositories.user.CourseRepository
 import com.smartcourse.data.repositories.user.ProfileRepository
@@ -25,8 +26,10 @@ class TutorHomeViewModel @Inject constructor(
     private val socialRepo: SocialRepository,
     private val courseRepo: CourseRepository,
     private val profileRepo: ProfileRepository,
-    private val chatRepositoryImpl: ChatRepositoryImpl
+    private val chatRepositoryImpl: ChatRepositoryImpl,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
+
 
     private var currentUser: User? = null
     private var chatsListener: ListenerRegistration? = null
@@ -36,6 +39,17 @@ class TutorHomeViewModel @Inject constructor(
 
     private val _latestChats = mutableStateOf<List<ChatItem>>(emptyList())
     val latestChats: State<List<ChatItem>> = _latestChats
+
+
+    init {
+        viewModelScope.launch {
+            authRepository.currentUser.collect { user ->
+                user ?: return@collect
+                load(user)
+            }
+        }
+    }
+
 
     fun load(user: User) {
         currentUser = user
