@@ -28,6 +28,8 @@ class TutorHomeViewModel @Inject constructor(
     private val chatRepositoryImpl: ChatRepositoryImpl
 ) : ViewModel() {
 
+    private var currentUser: User? = null
+    private var chatsListener: ListenerRegistration? = null
 
     private val _myStudents = mutableStateOf<List<User>>(emptyList())
     val myStudents: State<List<User>> = _myStudents
@@ -35,13 +37,15 @@ class TutorHomeViewModel @Inject constructor(
     private val _latestChats = mutableStateOf<List<ChatItem>>(emptyList())
     val latestChats: State<List<ChatItem>> = _latestChats
 
-    private var currentUser: User? = null // Changed from Tutor?
-    private var chatsListener: ListenerRegistration? = null
-
     fun load(user: User) {
-        this.currentUser = user
+        currentUser = user
         loadStudents()
         subscribeToChats()
+    }
+
+    fun reload() {
+        val u = currentUser ?: return
+        loadStudents()
     }
 
     private fun loadStudents() {
@@ -97,4 +101,8 @@ class TutorHomeViewModel @Inject constructor(
         chatsListener?.remove()
         super.onCleared()
     }
+
+
+
+
 }

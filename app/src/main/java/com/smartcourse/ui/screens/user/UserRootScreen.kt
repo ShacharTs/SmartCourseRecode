@@ -272,14 +272,10 @@ fun ShowHomeScreen(
         user == null -> LoadingScreen()
 
         user.role == UserRole.STUDENT -> StudentHomeLayout(
-            navController = navController,
-            user = user // Pass the flat User object
-        )
+            navController = navController)
 
         user.role == UserRole.TUTOR -> TutorHomeLayout(
-            navController = navController,
-            user = user // Pass the flat User object
-        )
+            navController = navController)
 
         else -> LoadingScreen() // Handle TEMP or unexpected roles
     }

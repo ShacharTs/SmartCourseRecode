@@ -9,6 +9,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.chat.ChatRepositoryImpl
 import com.smartcourse.data.repositories.user.CourseRepository
 import com.smartcourse.data.repositories.user.ProfileRepository
@@ -25,10 +26,15 @@ class StudentHomeViewModel @Inject constructor(
     private val socialRepo: SocialRepository,
     private val courseRepo: CourseRepository,
     private val profileRepo: ProfileRepository,
-    private val chatRepositoryImpl: ChatRepositoryImpl
+    private val chatRepositoryImpl: ChatRepositoryImpl,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    // UI state now uses List<User>
+    // ---- SOURCE OF TRUTH ----
+    private var currentUser: User? = null
+
+    val currentUserFlow = authRepository.currentUser
+
     private val _myTutors = mutableStateOf<List<User>>(emptyList())
     val myTutors: State<List<User>> = _myTutors
 
@@ -38,51 +44,59 @@ class StudentHomeViewModel @Inject constructor(
     private val _latestChats = mutableStateOf<List<ChatItem>>(emptyList())
     val latestChats: State<List<ChatItem>> = _latestChats
 
-    // Use the flat User model
-    private var currentUser: User? = null
     private var chatsListener: ListenerRegistration? = null
 
-    fun load(user: User) {
-        this.currentUser = user
-        loadTutors()
-        subscribeToChats()
+    // ---- INIT ----
+    init {
+        viewModelScope.launch {
+            currentUserFlow.collect { user ->
+                user ?: return@collect
+                val enriched = authRepository.populateUserDetails(user)
+                load(enriched)
+            }
+        }
     }
 
-    private fun loadTutors() {
-        val s = currentUser ?: return
+    // ---- SINGLE ENTRY POINT ----
+    fun load(user: User) {
+        currentUser = user
+        loadTutors(user)
+        subscribeToChats(user)
+    }
 
+    // ---- TUTORS ----
+    private fun loadTutors(user: User) {
         viewModelScope.launch {
-            val myId = s.userId // Direct access to userId
-            val myCourseIds = s.courses.map { it.id }.toSet() // Courses from User object
+            val myId = user.userId
+            val myCourseIds = user.courses.map { it.id }.toSet()
             val savedTutorIds = socialRepo.getFavoriteUserIds(myId)
 
             val tutorUsers = socialRepo
                 .getAllUsersExcept(myId)
                 .filter { it.role == UserRole.TUTOR }
 
-            val allTutorsEnriched = tutorUsers.map { tutor ->
+            val enrichedTutors = tutorUsers.map { tutor ->
                 async {
                     val links = courseRepo.getUserCourses(tutor.userId)
                     val courses = links.mapNotNull {
                         courseRepo.getCourseById(it.course_id)
                     }
-                    // Enrich the user object with transient course data
                     tutor.copy(courses = courses)
                 }
             }.awaitAll()
 
-            _myTutors.value = allTutorsEnriched.filter { it.userId in savedTutorIds }
-            _discoverTutors.value = allTutorsEnriched.filter {
-                it.courses.any { c -> c.id in myCourseIds } && it.userId !in savedTutorIds
+            _myTutors.value = enrichedTutors.filter { it.userId in savedTutorIds }
+            _discoverTutors.value = enrichedTutors.filter {
+                it.userId !in savedTutorIds &&
+                        it.courses.any { c -> c.id in myCourseIds }
             }
         }
     }
 
-    private fun subscribeToChats() {
-        val s = currentUser ?: return
+    // ---- CHATS ----
+    private fun subscribeToChats(user: User) {
         chatsListener?.remove()
-
-        chatsListener = chatRepositoryImpl.listenToUserChats(s.userId) { chats ->
+        chatsListener = chatRepositoryImpl.listenToUserChats(user.userId) { chats ->
             viewModelScope.launch {
                 val enriched = chats.map { chat ->
                     val otherUser = runCatching {
@@ -95,33 +109,32 @@ class StudentHomeViewModel @Inject constructor(
         }
     }
 
+    // ---- ACTIONS ----
     fun openChatWithTutor(tutorId: String, navController: NavController) {
-        val s = currentUser ?: return
+        val user = currentUser ?: return
         viewModelScope.launch {
-            val chatId = chatRepositoryImpl.ensureChatExists(s.userId, tutorId)
+            val chatId = chatRepositoryImpl.ensureChatExists(user.userId, tutorId)
             navController.navigate(Screen.ChatRoom.createRoute(chatId))
         }
     }
 
     fun saveUser(targetUser: User) {
-        val s = currentUser ?: return
+        val user = currentUser ?: return
         viewModelScope.launch {
-            socialRepo.saveUser(s.userId, targetUser.userId)
-
-            val tutorToAdd = _discoverTutors.value.firstOrNull { it.userId == targetUser.userId }
-            _discoverTutors.value = _discoverTutors.value.filter { it.userId != targetUser.userId }
-
-
-            tutorToAdd?.let {
-                if (_myTutors.value.none { t -> t.userId == targetUser.userId }) {
-                    _myTutors.value += it
-                }
-            }
+            socialRepo.saveUser(user.userId, targetUser.userId)
+            loadTutors(user)
         }
     }
+
 
     override fun onCleared() {
         chatsListener?.remove()
         super.onCleared()
     }
+
+    fun reload() {
+        val user = currentUser ?: return
+        loadTutors(user)
+    }
+
 }

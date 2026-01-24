@@ -41,6 +41,8 @@ class ProfileRepository @Inject constructor(
             .firstOrNull()
     }
 
+
+
     suspend fun updateUserName(userId: String, name: String) {
         client.from(TableNames.USERTABLE).update(mapOf(UserTable.NAME to name)) {
             filter { eq(UserTable.ID, userId) }

@@ -2,11 +2,13 @@ package com.smartcourse.ui.screens.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -32,11 +34,12 @@ fun CustomButton(
     icon: Painter? = null,
     iconSize: Dp = 20.dp,
     spacing: Dp = 8.dp,
+    contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     onClick: () -> Unit
 ) {
     val sized = modifier
-        .let { if (width != null) it.width(width) else it }
-        .let { if (height != null) it.height(height) else it }
+        .let { if (width != null) it.widthIn(min = width) else it }
+        .let { if (height != null) it.heightIn(min = height) else it }
 
     val colors = ButtonDefaults.buttonColors(
         containerColor = backgroundColor ?: MaterialTheme.colorScheme.primary,
@@ -47,7 +50,8 @@ fun CustomButton(
         onClick = onClick,
         modifier = sized,
         shape = shape,
-        colors = colors
+        colors = colors,
+        contentPadding = contentPadding
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -64,7 +68,9 @@ fun CustomButton(
 
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                softWrap = false
             )
         }
     }
