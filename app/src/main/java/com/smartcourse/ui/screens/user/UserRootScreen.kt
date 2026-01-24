@@ -74,7 +74,7 @@ fun UserRootScreen(
     ) { padding ->
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                //.fillMaxSize()
                 .background(backgroundBrush)
         ) {
             UserNavGraph(

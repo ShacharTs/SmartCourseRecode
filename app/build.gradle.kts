@@ -12,6 +12,27 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = file("C:\\Users\\shach\\testjks")
+            storePassword = "123456"
+            keyAlias = "testalias"
+            keyPassword = "123456"
+        }
+
+        buildTypes {
+            getByName("release") {
+                // ADD THIS LINE
+                signingConfig = signingConfigs.getByName("release")
+
+                isMinifyEnabled = false
+                proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro"
+                )
+            }
+        }
+    }
     namespace = "com.smartcourse"
     compileSdk = 35
 
