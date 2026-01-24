@@ -111,7 +111,7 @@ private fun NotificationHandler(navController: NavHostController) {
             }
             NotificationAction.NONE -> Unit
         }
-        // Clear intent extras to prevent re-triggering on recomposition/config change
+
         intent?.removeExtra("NOTIFICATION_ACTION")
         intent?.removeExtra("CHAT_ID")
         intent?.removeExtra("USER_ID")
@@ -222,6 +222,9 @@ private fun UserNavGraph(
     }
 }
 
+/**
+ * Helper composable for show home ,chatlist and search
+ */
 @Composable
 fun MenuScreen(
     padding: PaddingValues,
@@ -232,6 +235,9 @@ fun MenuScreen(
     }
 }
 
+/**
+ * Show the correct home screen for the user role
+ */
 @Composable
 fun ShowHomeScreen(
     navController: NavHostController,
