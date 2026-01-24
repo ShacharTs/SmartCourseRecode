@@ -58,7 +58,7 @@ fun UserProfileScreen(
     var showEditName by remember { mutableStateOf(false) }
     var showEditBio by remember { mutableStateOf(false) }
 
-    // Logic: Handle Data Loading and Image Picking
+
     ProfileEffectHandlers(
         authVM = authVM,
         userProfileViewModel = userProfileViewModel,

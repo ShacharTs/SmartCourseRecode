@@ -51,6 +51,9 @@ import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.ShowOtherProfileColorPalette
 
+
+
+//todo use the most method from Profile so avoid dupes method
 @Composable
 fun ShowOtherProfileScreen(
     navController: NavController
@@ -184,6 +187,7 @@ private fun StatsRow(favorites: Int, courses: Int, colors: ShowOtherProfileColor
     }
 }
 
+//todo remove and use CustomButton for that
 @Composable
 private fun ActionButtons(
     colors: ShowOtherProfileColorPalette,
@@ -245,7 +249,7 @@ private fun ActionButtons(
 
 
 
-
+//todo remove and user UserAvatar later
 @Composable
 private fun Avatar(
     image: String?,

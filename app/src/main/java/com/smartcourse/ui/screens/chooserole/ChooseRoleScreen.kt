@@ -41,7 +41,7 @@ import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.theme.ChooseRoleColorPalette
 import com.smartcourse.ui.theme.LocalAppPalette
 
-
+//todo remove button and use CustomButton
 @Composable
 fun ChooseRoleScreen(
     navController: NavController,

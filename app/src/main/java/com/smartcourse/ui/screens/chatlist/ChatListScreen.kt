@@ -35,6 +35,9 @@ import com.smartcourse.ui.screens.components.CustomSpacer
 import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.theme.LocalAppPalette
 
+
+//todo remove ChatAvatar and use UserAvatar
+
 /**
  * ChatListScreen is a composable function that displays a list of chats.
  * It uses a LazyColumn to display the list of chats.

@@ -62,6 +62,10 @@ import com.smartcourse.ui.theme.LoginColorPalette
 import com.smartcourse.ui.theme.LoginScreenColors
 import kotlinx.coroutines.launch
 
+
+
+//todo remove dupe buttons use CustomButton
+//todo Make field methods to reuse when needed
 @Composable
 fun LoginScreen(
     navController: NavController,

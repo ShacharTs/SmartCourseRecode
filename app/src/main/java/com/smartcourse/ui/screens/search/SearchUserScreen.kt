@@ -22,6 +22,8 @@ import coil.compose.AsyncImage
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.theme.LocalAppPalette
 
+
+//todo split to methods
 @Composable
 fun SearchUserScreen(
     navController: NavController,

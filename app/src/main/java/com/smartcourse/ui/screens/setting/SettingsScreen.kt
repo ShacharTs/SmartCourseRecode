@@ -38,7 +38,7 @@ import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
 
-
+//todo remove dupe method like buttons use CustomButton
 @Composable
 fun SettingsScreen(
     navController: NavController,
