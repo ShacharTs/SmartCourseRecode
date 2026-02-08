@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -22,8 +23,6 @@ import coil.compose.AsyncImage
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.theme.LocalAppPalette
 
-
-//todo split to methods
 @Composable
 fun SearchUserScreen(
     navController: NavController,
@@ -39,32 +38,15 @@ fun SearchUserScreen(
             .padding(horizontal = 16.dp)
             .statusBarsPadding()
     ) {
-
         Spacer(Modifier.height(12.dp))
-
-        Text(
-            text = "Search",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.textPrimary
-        )
-
+        Text("Search", fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
         Spacer(Modifier.height(12.dp))
 
         TextField(
             value = state.query,
             onValueChange = viewModel::onQueryChanged,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .clip(RoundedCornerShape(14.dp)),
-            placeholder = {
-                Text(
-                    "Search by name",
-                    fontSize = 14.sp,
-                    color = colors.subtext
-                )
-            },
+            modifier = Modifier.fillMaxWidth().height(50.dp).clip(RoundedCornerShape(14.dp)),
+            placeholder = { Text("Search by name", fontSize = 14.sp, color = colors.subtext) },
             singleLine = true,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = colors.searchField,
@@ -77,21 +59,66 @@ fun SearchUserScreen(
             )
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        // Horizontal Filter Bar
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            items(state.results) { row ->
-                SearchUserRow(
-                    row = row,
-                    onClick = {
-                        navController.navigate(
-                            Screen.ShowOtherProfile.createRoute(row.user.userId)
-                        )
-
-                    }
+            item {
+                FilterChip(
+                    selected = state.selectedCourse == null,
+                    onClick = { viewModel.onCourseFilterChanged(null) },
+                    label = { Text("All") },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = colors.tagAccent, // This makes it pink when selected
+                        selectedLabelColor = Color.White,
+                        labelColor = colors.textPrimary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = colors.subtext,
+                        enabled = true,
+                        selected = state.selectedCourse == null
+                    )
                 )
+            }
+            items(state.availableCourses) { course ->
+                FilterChip(
+                    selected = state.selectedCourse == course,
+                    onClick = {
+                        val nextValue = if (state.selectedCourse == course) null else course
+                        viewModel.onCourseFilterChanged(nextValue)
+                    },
+                    label = { Text(course) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = colors.tagAccent,
+                        selectedLabelColor = Color.White,
+                        labelColor = colors.textPrimary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = colors.subtext,
+                        enabled = true,
+                        selected = state.selectedCourse == course
+                    )
+                )
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        if (state.isLoading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = colors.tagAccent)
+            }
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(state.results) { row ->
+                    SearchUserRow(
+                        row = row,
+                        onClick = { navController.navigate(Screen.ShowOtherProfile.createRoute(row.user.userId)) }
+                    )
+                }
             }
         }
     }
@@ -116,7 +143,6 @@ private fun SearchUserRow(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Box(
             modifier = Modifier
                 .size(52.dp)
@@ -156,7 +182,6 @@ private fun SearchUserRow(
 
             if (courses.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
-
                 Text(
                     text = courses.joinToString(" · "),
                     fontSize = 12.sp,

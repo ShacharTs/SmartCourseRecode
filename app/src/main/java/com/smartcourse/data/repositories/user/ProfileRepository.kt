@@ -58,11 +58,19 @@ class ProfileRepository @Inject constructor(
         }
     }
 
+
+
     suspend fun searchUsers(query: String): List<User> {
         val q = query.trim()
-        if (q.isBlank()) return emptyList()
+        // REMOVED: if (q.isBlank()) return emptyList()
+
         return client.postgrest[TableNames.USERTABLE]
-            .select { filter { ilike(UserTable.NAME, "$q%") } }
+            .select {
+                filter {
+                    // When q is "", this becomes "%", which matches everything
+                    ilike(UserTable.NAME, "$q%")
+                }
+            }
             .decodeList<User>()
     }
 

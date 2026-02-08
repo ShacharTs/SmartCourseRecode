@@ -26,55 +26,53 @@ class SearchUserViewModel @Inject constructor(
 
     private var myUserId: String? = null
     private var myRole: UserRole? = null
-    private var myCourses: Set<String> = emptySet()
+    private var searchJob: Job? = null
 
     init {
         viewModelScope.launch {
             val me = authRepo.restoreValidSession() ?: return@launch
-
             myUserId = me.userId
             myRole = me.role
 
-            myCourses = courseRepo
-                .getUserCourses(me.userId)
-                .mapNotNull { link ->
-                    courseRepo.getCourseById(link.course_id)
-                }
-                .map { it.name }
-                .toSet()
+
+            val allCourses = courseRepo.getAllCourses().map { it.name }
+            _uiState.value = _uiState.value.copy(availableCourses = allCourses)
+
+
+            performSearch()
         }
     }
 
-
-    // Add this variable to your class to track the current search
-    private var searchJob: Job? = null
-
     fun onQueryChanged(query: String) {
-        _uiState.value = _uiState.value.copy(
-            query = query,
-            isLoading = true
-        )
+        _uiState.value = _uiState.value.copy(query = query)
+        performSearch()
+    }
 
-        // Cancel the previous search immediately to prevent race conditions
+    fun onCourseFilterChanged(courseName: String?) {
+        _uiState.value = _uiState.value.copy(selectedCourse = courseName)
+        performSearch()
+    }
+
+    private fun performSearch() {
+        val currentQuery = _uiState.value.query
+        val currentFilter = _uiState.value.selectedCourse
+
+        _uiState.value = _uiState.value.copy(isLoading = true)
         searchJob?.cancel()
 
         searchJob = viewModelScope.launch {
-            // Wait 300ms. If the user types again, this job is cancelled
-            // and the database is never called, saving resources.
             delay(300)
 
-            if (query.isBlank()) {
-                _uiState.value = SearchUserUiState()
-                return@launch
+
+            if (currentQuery.isBlank() && currentFilter == null && _uiState.value.results.isEmpty()) {
+
             }
 
-            val users = profileRepo.searchUsers(query)
+            // 1. Fetch users (Now returns everyone if currentQuery is "")
+            val users = profileRepo.searchUsers(currentQuery)
 
-            val filteredUsers = users
+            val rows = users
                 .filter { it.userId != myUserId }
-                // Safety Filter: Double-check that the name actually
-                // starts with the query, matching your repository logic.
-                .filter { it.displayName.startsWith(query, ignoreCase = true) }
                 .filter { user ->
                     when (myRole) {
                         UserRole.STUDENT -> user.role == UserRole.TUTOR
@@ -82,17 +80,18 @@ class SearchUserViewModel @Inject constructor(
                         else -> false
                     }
                 }
-
-            val rows = filteredUsers.map { user ->
-                val links = courseRepo.getUserCourses(user.userId)
-                val courses = links
-                    .mapNotNull { link ->
-                        courseRepo.getCourseById(link.course_id)
-                    }
-                    .map { it.name }
-
-                SearchUserRowState(user = user, courses = courses)
-            }
+                .map { user ->
+                    val links = courseRepo.getUserCourses(user.userId)
+                    val courses = links
+                        .mapNotNull { courseRepo.getCourseById(it.course_id) }
+                        .map { it.name }
+                    SearchUserRowState(user = user, courses = courses)
+                }
+                .filter { row ->
+                    // 2. This is why "All" works now:
+                    // If currentFilter is null (The "All" chip), this returns true for everyone.
+                    currentFilter == null || row.courses.contains(currentFilter)
+                }
 
             _uiState.value = _uiState.value.copy(
                 results = rows,
