@@ -9,4 +9,11 @@ object TableNames {
     const val USER_COURSES = "user_courses"
 
     const val USER_FAVORITE ="user_favorite"
+
+
+    const val POSTS = "posts"
+
+    const val POSTS_COURSES = "posts_courses"
+
+    const val POSTS_WITH_COURSES = "posts_with_courses"
 }

@@ -1,13 +1,33 @@
 package com.smartcourse.ui.screens.posts
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,31 +38,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.models.usermodel.Post
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
 
-
-data class PostUiModel(
-    val id: String,
-    val authorRole: UserRole,
-    val authorTitle: String,
-    val description: String,
-    val courses: List<String>
-)
-
 @Composable
 fun PostsFeedScreen(
-    navController: NavController,
+    navController: NavController
 ) {
-    val posts = getDemoPosts()
+    val feedViewModel: PostFeedViewModel = hiltViewModel()
+    val authViewModel: AuthViewModel = hiltViewModel()
 
-    val auth : AuthViewModel = hiltViewModel()
+    val posts by feedViewModel.posts.collectAsState()
+    val isLoading by feedViewModel.isLoading.collectAsState()
 
-    //todo temp for now
-     val myId: String =
-        requireNotNull(auth.currentUser.value?.userId) {
-            "test created without logged-in user"
-        }
+    val myId = authViewModel.currentUser.value?.userId
 
     Column(
         modifier = Modifier
@@ -50,67 +60,62 @@ fun PostsFeedScreen(
             .windowInsetsPadding(WindowInsets.navigationBars)
             .background(Color(0xFF121826))
     ) {
+
         TopBar(
             onMyPostClick = {
-                navController.navigate(Screen.ShowPost.createRoute(userId = myId))
+                myId?.let {
+                    navController.navigate(
+                        Screen.ShowPost.createRoute(userId = it)
+                    )
+                }
             }
         )
 
-        LazyColumn(
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 8.dp,
-                bottom = 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(posts) { post ->
-                PostCard(
-                    post = post,
-                    onClick = {
-                        navController.navigate("post/${post.id}")
-                    }
-                )
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Loading posts...", color = Color.White)
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(
+                    items = posts,
+                    key = { it.id }
+                ) { post ->
+                    PostRow(
+                        post = post,
+                        onClick = {
+                            navController.navigate("post/${post.id}")
+                        }
+                    )
+                }
             }
         }
     }
 }
 
-private fun getDemoPosts(): List<PostUiModel> {
-    return listOf(
-        PostUiModel(
-            id = "1",
-            authorRole = UserRole.STUDENT,
-            authorTitle = "Student • Algorithms",
-            description = "Looking for a tutor to help prepare for the final exam.",
-            courses = listOf("Algorithms", "Java")
-        ),
-        PostUiModel(
-            id = "2",
-            authorRole = UserRole.TUTOR,
-            authorTitle = "Tutor • Python",
-            description = "CS tutor offering online lessons, flexible schedule.",
-            courses = listOf("Python", "Data Structures")
-        )
-    )
-}
-
-
 
 @Composable
-private fun TopBar(
+fun TopBar(
     onMyPostClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .height(64.dp)
+            .height(56.dp)
             .background(Color(0xFF1C2333))
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+
         Text(
             text = "Posts",
             color = Color.White,
@@ -125,7 +130,10 @@ private fun TopBar(
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF4CAF50)
             ),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+            contentPadding = PaddingValues(
+                horizontal = 16.dp,
+                vertical = 6.dp
+            )
         ) {
             Text(
                 text = "My Post",
@@ -136,18 +144,23 @@ private fun TopBar(
     }
 }
 
+
+
 @Composable
-private fun PostCard(
-    post: PostUiModel,
+fun PostRow(
+    post: Post,
     onClick: () -> Unit
 ) {
-    val accentColor = when (post.authorRole) {
+    // Use the role fetched in the ViewModel
+    val role = post.userRole
+
+    val accentColor = when (role) {
         UserRole.STUDENT -> Color(0xFF4CAF50)
-        UserRole.TUTOR -> Color(0xFFFFC107)
+        UserRole.TUTOR -> Color(0xFFFFC107) // Yellow for Tutors
         else -> Color(0xFF9E9E9E)
     }
 
-    val tagColor = when (post.authorRole) {
+    val tagColor = when (role) {
         UserRole.STUDENT -> Color(0xFF2E7DFF)
         UserRole.TUTOR -> Color(0xFFFF9800)
         else -> Color(0xFF757575)
@@ -156,14 +169,10 @@ private fun PostCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1F2A44)
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2A44)),
         onClick = onClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-
-            // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -172,37 +181,39 @@ private fun PostCard(
                         .background(accentColor)
                 )
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(Modifier.width(12.dp))
 
                 Text(
-                    text = post.authorTitle,
+                    text = if (role == UserRole.TUTOR) "Tutor: ${post.displayName}" else "Student: ${post.displayName}",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // Course tags
+            // Courses
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                post.courses.forEach { course ->
-                    CourseTag(text = course, color = tagColor)
+                post.courses.forEach {
+                    CourseTag(
+                        text = it.name,
+                        color = tagColor
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // Description
+            // Content
             Text(
-                text = post.description,
+                text = post.content,
                 color = Color(0xFFD0D4E0),
                 fontSize = 12.sp
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // Action button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -210,17 +221,10 @@ private fun PostCard(
                 Button(
                     onClick = onClick,
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = accentColor
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = accentColor),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)
                 ) {
-                    Text(
-                        text = "View",
-                        fontSize = 12.sp,
-                        color = if (post.authorRole == UserRole.TUTOR)
-                            Color(0xFF1E1E1E) else Color.White
-                    )
+                    Text("View", fontSize = 12.sp, color = Color.White)
                 }
             }
         }
@@ -228,7 +232,7 @@ private fun PostCard(
 }
 
 @Composable
-private fun CourseTag(
+fun CourseTag(
     text: String,
     color: Color
 ) {
@@ -238,10 +242,8 @@ private fun CourseTag(
             .background(color)
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = 12.sp
-        )
+        Text(text = text, color = Color.White, fontSize = 12.sp)
     }
 }
+
+
