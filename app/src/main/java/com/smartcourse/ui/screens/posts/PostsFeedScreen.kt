@@ -26,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,12 +48,21 @@ fun PostsFeedScreen(
     navController: NavController
 ) {
     val feedViewModel: PostFeedViewModel = hiltViewModel()
-    val authViewModel: AuthViewModel = hiltViewModel()
+    val authViewModel: AuthViewModel = hiltViewModel() // Assuming you have an AuthViewModel
 
     val posts by feedViewModel.posts.collectAsState()
     val isLoading by feedViewModel.isLoading.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState()
 
-    val myId = authViewModel.currentUser.value?.userId
+    val myId = currentUser?.userId
+
+
+    LaunchedEffect(currentUser?.role) {
+        if (currentUser?.role != null) {
+            feedViewModel.loadPosts(currentUser?.role)
+        }
+    }
+
 
     Column(
         modifier = Modifier

@@ -3,7 +3,9 @@ package com.smartcourse.ui.screens.posts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartcourse.data.models.usermodel.Post
+import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
+import com.smartcourse.data.repositories.AuthRepository
 import com.smartcourse.data.repositories.user.PostRepository
 import com.smartcourse.data.repositories.user.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class PostFeedViewModel @Inject constructor(
     private val postRepository: PostRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
@@ -26,32 +29,42 @@ class PostFeedViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    // ADD THIS: Automatically triggers the load when the screen opens
-    init {
-        loadPosts()
+    val user  = authRepository.currentUser
+    val role = user.value?.role
+
+
+    init{
+        loadPosts(role)
     }
 
 
-    fun loadPosts() {
+    fun loadPosts(currentUserRole: UserRole?) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val rawPosts = postRepository.loadPosts()
-                val userCache = mutableMapOf<String, com.smartcourse.data.models.usermodel.User>()
+                val userCache = mutableMapOf<String,User>()
 
-                val postsWithUserInfo = rawPosts.map { post ->
+                val processedPosts = rawPosts.map { post ->
                     val user = userCache[post.userId] ?: run {
                         val fetchedUser = profileRepository.loadUser(post.userId)
                         if (fetchedUser != null) userCache[post.userId] = fetchedUser
                         fetchedUser
                     }
-
                     post.copy(
                         userRole = user?.role ?: UserRole.TEMP,
-                        displayName = user?.displayName ?: "Unknown User" // Map the name here
+                        displayName = user?.displayName ?: "Unknown"
                     )
                 }
-                _posts.value = postsWithUserInfo
+
+                // Filter based on the role provided by the UI
+                val filteredPosts = when (currentUserRole) {
+                    UserRole.TUTOR -> processedPosts.filter { it.userRole == UserRole.STUDENT }
+                    UserRole.STUDENT -> processedPosts.filter { it.userRole == UserRole.TUTOR }
+                    else -> emptyList()
+                }
+
+                _posts.value = filteredPosts
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
