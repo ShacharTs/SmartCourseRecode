@@ -42,8 +42,6 @@ import com.smartcourse.ui.theme.ThemeScreenColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeScreen(navController: NavController) {
-    // IMPORTANT:
-    // Use the *Activity-scoped* ThemeViewModel so ThemeScreen + MainActivity share ONE instance.
     val activity = LocalContext.current as ComponentActivity
     val viewModel: ThemeViewModel = hiltViewModel(activity)
 

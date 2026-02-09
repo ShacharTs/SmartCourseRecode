@@ -1,80 +1,48 @@
 package com.smartcourse.ui.screens.chatlist
 
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.smartcourse.data.models.chat.ChatItem
 import com.smartcourse.data.models.table.UserTable
 import com.smartcourse.navigation.Screen
-import com.smartcourse.ui.screens.components.CustomBox
-import com.smartcourse.ui.screens.components.CustomCard
-import com.smartcourse.ui.screens.components.CustomColumn
-import com.smartcourse.ui.screens.components.CustomRow
-import com.smartcourse.ui.screens.components.CustomSpacer
-import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.theme.LocalAppPalette
 
-
-//todo remove ChatAvatar and use UserAvatar
-
-/**
- * ChatListScreen is a composable function that displays a list of chats.
- * It uses a LazyColumn to display the list of chats.
- */
 @Composable
 fun ChatListScreen(
     navController: NavController,
     chatListVM: ChatListViewModel = hiltViewModel()
 ) {
-    val chats by chatListVM.chats.collectAsState()
+    // Collect properly without calling .value in composition
+    val chats by chatListVM.chats.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         chatListVM.refresh()
     }
 
-
-
-    ChatListContent(
-        chats = chats,
-        navController = navController
-    )
-}
-
-
-
-@Composable
-fun ChatListContent(
-    chats: List<ChatItem>,
-    navController: NavController,
-) {
-    CustomColumn(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
+    // Standard Column instead of CustomColumn
+    Column(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(chats) { chat ->
                 ChatListItem(
                     chat = chat,
@@ -90,9 +58,6 @@ fun ChatListContent(
     }
 }
 
-
-
-
 @Composable
 fun ChatListItem(
     chat: ChatItem,
@@ -101,57 +66,55 @@ fun ChatListItem(
 ) {
     val palette = LocalAppPalette.current
 
-    CustomCard(
-        onClick = onClick
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        CustomRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        ChatAvatar(
+            imageUrl = imageUrl,
+            backgroundColor = palette.chatList.accent
+        )
 
-            ChatAvatar(
-                imageUrl = imageUrl,
-                backgroundColor = palette.chatList.accent
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = chat.otherUser?.name.orEmpty(),
+                fontSize = 16.sp,
+                color = palette.chatList.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
-            CustomSpacer(width = 14)
+            Spacer(modifier = Modifier.height(4.dp))
 
-            CustomColumn(
-                modifier = Modifier.weight(1f)
-            ) {
-                CustomText(
-                    text = chat.otherUser?.name.orEmpty(),
-                    fontSize = 16.sp,
-                    color = palette.chatList.textPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            // avoid to see the photo url
+            val isPhoto = chat.lastMessage.startsWith("https://firebasestorage")
 
-                CustomSpacer(height = 4)
+            val messagePreview = if (isPhoto) "Photo" else chat.lastMessage
 
-                CustomText(
-                    text = chat.lastMessage,
-                    fontSize = 14.sp,
-                    color = palette.chatList.subtext,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(
+                text = messagePreview,
+                fontSize = 14.sp,
+                color = if (isPhoto) palette.chatList.textPrimary else palette.chatList.subtext,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = if (isPhoto) FontWeight.Bold else FontWeight.Normal
+            )
         }
     }
 }
-
-
-
 
 @Composable
 fun ChatAvatar(
     imageUrl: String?,
     backgroundColor: Color
 ) {
-    CustomBox(
+    // Standard Box instead of CustomBox
+    Box(
         modifier = Modifier
             .size(48.dp)
             .clip(CircleShape)
@@ -168,11 +131,3 @@ fun ChatAvatar(
         )
     }
 }
-
-
-
-
-
-
-
-

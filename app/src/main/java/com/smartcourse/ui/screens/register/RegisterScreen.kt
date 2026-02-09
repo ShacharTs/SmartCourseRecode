@@ -2,6 +2,7 @@ package com.smartcourse.ui.screens.register
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -20,10 +22,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.smartcourse.R
-import com.smartcourse.ui.screens.components.*
 import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
+import com.smartcourse.ui.theme.RegisterColorPalette
 
 @Composable
 fun RegisterScreen(
@@ -31,12 +34,10 @@ fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onRegisterSuccess: () -> Unit
 ) {
-    // 1. Access the unified register palette
     val palette = LocalAppPalette.current
     val registerColors = palette.register
     val isDark = palette.isDark
 
-    // 2. Use the unified brand gradient
     val backgroundBrush = Brush.verticalGradient(
         if (isDark) AppGradients.Dark else AppGradients.Light
     )
@@ -45,7 +46,8 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    val uiState by registerVM.uiState.collectAsState()
+
+    val uiState by registerVM.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.success) {
         if (uiState.success) {
@@ -53,203 +55,151 @@ fun RegisterScreen(
         }
     }
 
-    CustomColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundBrush)
             .statusBarsPadding()
-            .padding(24.dp)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Pass registerColors down to the title area
         RegisterUpperArea(registerColors.text)
 
-        CustomSpacer(height = 20)
+        Spacer(modifier = Modifier.height(20.dp))
 
-        RegisterMidArea(
-            email = email,
-            password = password,
-            confirmPassword = confirmPassword,
-            onEmailChange = { email = it },
-            onPasswordChange = { password = it },
-            onConfirmPasswordChange = { confirmPassword = it }
-        )
+        // Registration Fields
+        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            var passwordVisible by remember { mutableStateOf(false) }
+            var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-        CustomSpacer(height = 20)
+            RegisterField(
+                label = "Email",
+                value = email,
+                placeholder = "email@example.com",
+                onValueChange = { email = it },
+                colors = registerColors
+            )
 
-        RegisterForm(
+            RegisterField(
+                label = "Password",
+                value = password,
+                placeholder = "Enter password",
+                onValueChange = { password = it },
+                isPassword = true,
+                isVisible = passwordVisible,
+                onToggleVisibility = { passwordVisible = !passwordVisible },
+                colors = registerColors
+            )
+
+            RegisterField(
+                label = "Confirm Password",
+                value = confirmPassword,
+                placeholder = "Re-enter password",
+                onValueChange = { confirmPassword = it },
+                isPassword = true,
+                isVisible = confirmPasswordVisible,
+                onToggleVisibility = { confirmPasswordVisible = !confirmPasswordVisible },
+                colors = registerColors
+            )
+        }
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        RegisterActions(
             isLoading = uiState.isLoading,
             error = uiState.error,
             onNavigateBack = onNavigateBack,
             onRegister = {
                 val error = registerVM.validate(email, password, confirmPassword)
-                if (error != null) registerVM.setError(error) else registerVM.register(email, password)
-            }
+                if (error != null) registerVM.setError(error)
+                else registerVM.register(email, password)
+            },
+            colors = registerColors
         )
     }
 }
 
 @Composable
-private fun RegisterForm(
+private fun RegisterField(
+    label: String,
+    value: String,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    colors: RegisterColorPalette,
+    isPassword: (Boolean) = false,
+    isVisible: (Boolean) = false,
+    onToggleVisibility: () -> Unit = {}
+) {
+    Column {
+        Text(text = label, color = colors.text, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            placeholder = { Text(placeholder, color = colors.placeholder) },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            visualTransformation = if (isPassword && !isVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = if (isPassword) {
+                {
+                    IconButton(onClick = onToggleVisibility) {
+                        Icon(
+                            imageVector = if (isVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = null,
+                            tint = colors.fieldFocused
+                        )
+                    }
+                }
+            } else null,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = colors.fieldFocused,
+                unfocusedBorderColor = colors.fieldBorder,
+                focusedTextColor = colors.text,
+                unfocusedTextColor = colors.text
+            )
+        )
+    }
+}
+
+@Composable
+private fun RegisterActions(
     isLoading: Boolean,
     error: String?,
     onRegister: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    colors: RegisterColorPalette
 ) {
-    val registerColors = LocalAppPalette.current.register
-
-    CustomRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        CustomBox(onClick = onNavigateBack) {
-            CustomText(
-                text = "Already have account?",
-                color = registerColors.fieldFocused // Using brand color for the link
-            )
-        }
-    }
-
-    CustomSpacer(height = 30)
-
-    CustomButton(
-        text = if (isLoading) "Registering..." else "Register",
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onRegister
+    Text(
+        text = "Already have account?",
+        color = colors.fieldFocused,
+        modifier = Modifier.clickable { onNavigateBack() }
     )
+
+    Spacer(modifier = Modifier.height(30.dp))
+
+    Button(
+        onClick = onRegister,
+        modifier = Modifier.fillMaxWidth().height(54.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6B21A8))
+    ) {
+        Text(
+            text = if (isLoading) "Registering..." else "Register",
+            color = Color.White,
+            fontWeight = FontWeight.Bold
+        )
+    }
 
     if (error != null) {
-        CustomSpacer(height = 12)
-        CustomText(
-            text = error,
-            color = registerColors.errorText, // Use palette error color
-            fontSize = 14.sp
-        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(text = error, color = colors.errorText, fontSize = 14.sp)
     }
 }
 
 @Composable
-private fun RegisterMidArea(
-    email: String,
-    password: String,
-    confirmPassword: String,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onConfirmPasswordChange: (String) -> Unit
-) {
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-
-    CustomColumn {
-        EmailField(email, onEmailChange)
-        CustomSpacer(height = 20)
-        PasswordField(password, onPasswordChange, passwordVisible) { passwordVisible = it }
-        CustomSpacer(height = 20)
-        ConfirmPasswordField(confirmPassword, onConfirmPasswordChange, confirmPasswordVisible) { confirmPasswordVisible = it }
-    }
-}
-
-@Composable
-private fun EmailField(email: String, onEmailChange: (String) -> Unit) {
-    val colors = LocalAppPalette.current.register
-
-    CustomText(text = "Email", color = colors.text, fontWeight = FontWeight.Bold)
-    CustomSpacer(height = 8)
-
-    OutlinedTextField(
-        value = email,
-        onValueChange = onEmailChange,
-        singleLine = true,
-        placeholder = { Text("email@example.com", color = colors.placeholder) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = colors.fieldFocused,
-            unfocusedBorderColor = colors.fieldBorder,
-            focusedTextColor = colors.text,
-            unfocusedTextColor = colors.text
-        )
-    )
-}
-
-@Composable
-private fun PasswordField(
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    visible: Boolean,
-    onVisibleChange: (Boolean) -> Unit
-) {
-    val colors = LocalAppPalette.current.register
-
-    CustomText(text = "Password", color = colors.text, fontWeight = FontWeight.Bold)
-    CustomSpacer(height = 8)
-
-    OutlinedTextField(
-        value = password,
-        onValueChange = onPasswordChange,
-        singleLine = true,
-        placeholder = { Text("Enter password", color = colors.placeholder) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-        trailingIcon = {
-            IconButton(onClick = { onVisibleChange(!visible) }) {
-                Icon(
-                    imageVector = if (visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                    contentDescription = null,
-                    tint = colors.fieldFocused
-                )
-            }
-        },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = colors.fieldFocused,
-            unfocusedBorderColor = colors.fieldBorder,
-            focusedTextColor = colors.text,
-            unfocusedTextColor = colors.text
-        )
-    )
-}
-
-@Composable
-private fun ConfirmPasswordField(
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    visible: Boolean,
-    onVisibleChange: (Boolean) -> Unit
-) {
-    val colors = LocalAppPalette.current.register
-
-    CustomText(text = "Confirm Password", color = colors.text, fontWeight = FontWeight.Bold)
-    CustomSpacer(height = 8)
-
-    OutlinedTextField(
-        value = password,
-        onValueChange = onPasswordChange,
-        singleLine = true,
-        placeholder = { Text("Re-enter password", color = colors.placeholder) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-        trailingIcon = {
-            IconButton(onClick = { onVisibleChange(!visible) }) {
-                Icon(
-                    imageVector = if (visible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                    contentDescription = null,
-                    tint = colors.fieldFocused
-                )
-            }
-        },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = colors.fieldFocused,
-            unfocusedBorderColor = colors.fieldBorder,
-            focusedTextColor = colors.text,
-            unfocusedTextColor = colors.text
-        )
-    )
-}
-
-@Composable
-private fun RegisterUpperArea(textColor: androidx.compose.ui.graphics.Color) {
-    CustomText(
+private fun RegisterUpperArea(textColor: Color) {
+    Text(
         text = "Register",
         color = textColor,
         fontSize = 32.sp,
@@ -257,7 +207,7 @@ private fun RegisterUpperArea(textColor: androidx.compose.ui.graphics.Color) {
         modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
         fontWeight = FontWeight.Bold
     )
-    CustomBox(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Image(
             painter = painterResource(R.drawable.smartcourse_logo),
             contentDescription = null,

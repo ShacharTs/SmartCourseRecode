@@ -3,29 +3,17 @@ package com.smartcourse.ui.screens.chooserole
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,179 +21,124 @@ import androidx.navigation.NavController
 import com.smartcourse.R
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
-import com.smartcourse.ui.screens.components.CustomBox
-import com.smartcourse.ui.screens.components.CustomColumn
-import com.smartcourse.ui.screens.components.CustomRow
-import com.smartcourse.ui.screens.components.CustomSpacer
-import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.theme.ChooseRoleColorPalette
 import com.smartcourse.ui.theme.LocalAppPalette
 
-//todo remove button and use CustomButton
 @Composable
 fun ChooseRoleScreen(
     navController: NavController,
     chooseRoleViewModel: ChooseRoleViewModel = hiltViewModel(),
 ) {
     val authVM: AuthViewModel = hiltViewModel()
-
     val palette = LocalAppPalette.current
     val colors = palette.chooseRole
 
-    var role by remember { mutableStateOf(UserRole.STUDENT) }
+    var selectedRole by remember { mutableStateOf(UserRole.STUDENT) }
 
-    CustomBox(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(colors.backgroundGradient)
-            )
+            .background(brush = Brush.verticalGradient(colors.backgroundGradient))
             .padding(horizontal = 24.dp, vertical = 40.dp)
     ) {
-        CustomColumn(
+        Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Header
+            Text(
+                text = "Choose your role",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = colors.textPrimary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "This helps us personalize your experience",
+                fontSize = 15.sp,
+                color = colors.subtext
+            )
 
-            TitleSection(colors)
+            Spacer(modifier = Modifier.height(32.dp))
 
-            CustomSpacer(height = 32)
 
-            ChooseUserRole(
-                selected = role,
+            RoleSelectionList(
+                selected = selectedRole,
                 colors = colors,
-                onSelect = { role = it }
+                onSelect = { selectedRole = it }
             )
 
-            CustomSpacer(height = 48)
+            Spacer(modifier = Modifier.height(48.dp))
 
-            ButtonsLowerPart(
-                chooseRoleViewModel = chooseRoleViewModel,
-                authVM = authVM,
-                role = role.name
-            )
+
+            Button(
+                onClick = {
+                    chooseRoleViewModel.updateUserRole(selectedRole) {
+                        authVM.onRoleChosen()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.accent,
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+            ) {
+                Text(text = "Continue", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
 
-
-
-
-
 @Composable
-private fun TitleSection(colors: ChooseRoleColorPalette) {
-    CustomText(
-        text = "Choose your role",
-        fontSize = 32.sp,
-        color = colors.textPrimary
-    )
-
-    CustomSpacer(height = 8)
-
-    CustomText(
-        text = "This helps us personalize your experience",
-        fontSize = 15.sp,
-        color = colors.subtext
-    )
-}
-
-
-
-@Composable
-private fun ButtonsLowerPart(
-    chooseRoleViewModel: ChooseRoleViewModel,
-    authVM: AuthViewModel,
-    role: String
-) {
-    val colors = LocalAppPalette.current.chooseRole
-
-    Button(
-        onClick = {
-            chooseRoleViewModel.updateUserRole(
-                UserRole.valueOf(role)
-            ) {
-                authVM.onRoleChosen()
-            }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(28.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colors.accent,
-            contentColor = Color.White
-        ),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 2.dp
-        )
-    ) {
-        Text(
-            text = "Continue",
-            fontSize = 16.sp
-        )
-    }
-}
-
-
-@Composable
-private fun Title() {
-    // Title
-    CustomText(
-        text = "Choose Your Role",
-        fontSize = 34.sp
-    )
-}
-
-
-@Composable
-fun ChooseUserRole(
+private fun RoleSelectionList(
     selected: UserRole,
     colors: ChooseRoleColorPalette,
     onSelect: (UserRole) -> Unit
 ) {
     val options = listOf(
-        UserRole.STUDENT to R.drawable.student,
-        UserRole.TUTOR to R.drawable.teacher
+        UserRole.STUDENT to R.drawable.student to "Find tutors and manage your courses",
+        UserRole.TUTOR to R.drawable.teacher to "Teach, mentor, and help students"
     )
 
-    CustomColumn {
-        options.forEach { (role, icon) ->
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        options.forEach { (roleData, description) ->
+            val (role, icon) = roleData
             RoleCard(
                 role = role,
                 icon = icon,
+                description = description,
                 selected = selected == role,
                 colors = colors,
                 onClick = { onSelect(role) }
             )
-            CustomSpacer(height = 16)
         }
     }
 }
-
 
 @Composable
 private fun RoleCard(
     role: UserRole,
     icon: Int,
+    description: String,
     selected: Boolean,
     colors: ChooseRoleColorPalette,
     onClick: () -> Unit
 ) {
-    val background =
-        if (selected) colors.accent.copy(alpha = 0.14f)
-        else colors.card
+    val backgroundColor = if (selected) colors.accent.copy(alpha = 0.14f) else colors.card
 
-    CustomRow(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(background, RoundedCornerShape(16.dp))
+            .background(backgroundColor, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Image(
             painter = painterResource(icon),
             contentDescription = null,
@@ -213,22 +146,17 @@ private fun RoleCard(
             colorFilter = ColorFilter.tint(colors.accent)
         )
 
-        CustomSpacer(width = 16)
+        Spacer(modifier = Modifier.width(16.dp))
 
-        CustomColumn(modifier = Modifier.weight(1f)) {
-            CustomText(
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
                 text = role.name.lowercase().replaceFirstChar { it.uppercase() },
                 fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = colors.textPrimary
             )
-
-            CustomText(
-                text = when (role) {
-                    UserRole.STUDENT -> "Find tutors and manage your courses"
-                    UserRole.TUTOR -> "Teach, mentor, and help students"
-                    UserRole.ADMIN -> TODO()
-                    UserRole.TEMP -> TODO()
-                },
+            Text(
+                text = description,
                 fontSize = 14.sp,
                 color = colors.subtext
             )
@@ -244,12 +172,3 @@ private fun RoleCard(
         )
     }
 }
-
-
-
-
-
-
-
-
-

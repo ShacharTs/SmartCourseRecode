@@ -1,9 +1,8 @@
-@file:Suppress("DEPRECATION")
-
 package com.smartcourse.ui.screens.user.profile.showother
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,45 +43,28 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.theme.LocalAppPalette
 import com.smartcourse.ui.theme.ShowOtherProfileColorPalette
 
 
-
-//todo use the most method from Profile so avoid dupes method
 @Composable
-fun ShowOtherProfileScreen(
-    navController: NavController
-) {
-    val backStackEntry = navController.currentBackStackEntry
-        ?: return
-
-    val userId = backStackEntry.arguments
-        ?.getString("userId")
-        ?: return
-
-    // avoid incorrect profile show, use ID to split
-    val showOtherProfileVM: ShowOtherProfileViewModel = hiltViewModel(key = "ShowOtherProfile-$userId")
+fun ShowOtherProfileScreen(navController: NavController) {
+    val userId = navController.currentBackStackEntry?.arguments?.getString("userId") ?: return
+    val vm: ShowOtherProfileViewModel = hiltViewModel(key = "ShowOtherProfile-$userId")
 
     val palette = LocalAppPalette.current
     val colors = palette.otherProfile
 
-    val isLoading by showOtherProfileVM.isLoading.collectAsStateWithLifecycle()
-    val user by showOtherProfileVM.user.collectAsStateWithLifecycle()
-    val favorites by showOtherProfileVM.favoritesCount.collectAsStateWithLifecycle()
-    val courses by showOtherProfileVM.courses.collectAsStateWithLifecycle()
-    val isFavorite by showOtherProfileVM.isFavorite.collectAsStateWithLifecycle()
-    val isToggling by showOtherProfileVM.isTogglingFavorite.collectAsStateWithLifecycle()
+    val isLoading by vm.isLoading.collectAsStateWithLifecycle()
+    val user by vm.user.collectAsStateWithLifecycle()
+    val favorites by vm.favoritesCount.collectAsStateWithLifecycle()
+    val courses by vm.courses.collectAsStateWithLifecycle()
+    val isFavorite by vm.isFavorite.collectAsStateWithLifecycle()
+    val isToggling by vm.isTogglingFavorite.collectAsStateWithLifecycle()
 
-    if (isLoading || user == null) {
-        LoadingScreen()
-        return
-    }
-
-    val currentUser = user!!
+    if (isLoading || user == null) { LoadingScreen(); return }
 
     Column(
         modifier = Modifier
@@ -95,54 +76,40 @@ fun ShowOtherProfileScreen(
     ) {
         ProfileHeader(
             colors = colors,
-            userName = currentUser.displayName,
-            role = currentUser.role?.name,
-            image = currentUser.image,
-            favorites = favorites,
-            coursesCount = courses.size,
-            isFavorite = isFavorite,
-            isToggling = isToggling,
-            onChatClick = {
-                showOtherProfileVM.openChat { chatId ->
-                    navController.navigate(Screen.ChatRoom.createRoute(chatId))
-                }
-            },
-            onFavoriteClick = {
-                showOtherProfileVM.toggleFavorite()
-            }
+            name = user!!.displayName,
+            role = user!!.role?.name,
+            img = user!!.image,
+            favs = favorites,
+            count = courses.size,
+            isFav = isFavorite,
+            isTog = isToggling,
+            onChatClick = { vm.openChat { navController.navigate(Screen.ChatRoom.createRoute(it)) } },
+            onFavoriteClick = { vm.toggleFavorite() }
         )
 
-        Spacer(Modifier.height(32.dp))
-        AboutSection(colors = colors, bio = currentUser.bio)
+        ProfileSection(colors, "About", user!!.bio ?: "No description available yet.")
 
         if (courses.isNotEmpty()) {
-            Spacer(Modifier.height(24.dp))
-            CoursesSection(colors, courses)
+            ProfileSection(colors, "Courses") {
+                courses.chunked(3).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(12.dp)) {
+                        row.forEach { Text(it.name, Modifier.weight(1f), fontSize = 14.sp, color = colors.textPrimary) }
+                        repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
         }
     }
 }
 
-
-
-
-
 @Composable
 private fun ProfileHeader(
     colors: ShowOtherProfileColorPalette,
-    userName: String,
-    role: String?,
-    image: String?,
-    favorites: Int,
-    coursesCount: Int,
-    isFavorite: Boolean,
-    isToggling: Boolean,
-    onChatClick: () -> Unit,
-    onFavoriteClick: () -> Unit
+    name: String, role: String?, img: String?, favs: Int, count: Int,
+    isFav: Boolean, isTog: Boolean, onChatClick: () -> Unit, onFavoriteClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
+    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp), contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -152,143 +119,71 @@ private fun ProfileHeader(
                 .padding(top = 64.dp, bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            UserTitle(userName, role, colors)
-            StatsRow(favorites, coursesCount, colors)
-            ActionButtons(
-                colors = colors,
-                isFavorite = isFavorite,
-                isToggling = isToggling,
-                onChatClick = onChatClick,
-                onFavoriteClick = onFavoriteClick
-            )
-        }
-        Avatar(image, colors)
-    }
-}
+            Text(name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+            Text(role?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "", fontSize = 14.sp, color = colors.subtext)
 
+            Row(Modifier.fillMaxWidth().padding(top = 20.dp), Arrangement.SpaceEvenly) {
+                StatItem(favs.toString(), "Favorites", colors)
+                StatItem(count.toString(), "Courses", colors)
+            }
 
-@Composable
-private fun UserTitle(name: String, role: String?, colors: ShowOtherProfileColorPalette) {
-    Text(name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-    Spacer(Modifier.height(4.dp))
-    Text(
-        role?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "",
-        fontSize = 14.sp,
-        color = colors.subtext
-    )
-}
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = onFavoriteClick,
+                    enabled = !isTog,
+                    modifier = Modifier.size(48.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, if (isFav) Color.Red else colors.accent.copy(0.55f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = if (isFav) Color.Red else colors.accent),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Icon(if (isFav) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder, null, Modifier.size(22.dp))
+                }
 
-@Composable
-private fun StatsRow(favorites: Int, courses: Int, colors: ShowOtherProfileColorPalette) {
-    Spacer(Modifier.height(20.dp))
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        StatItem(favorites.toString(), "Favorites", colors)
-        StatItem(courses.toString(), "Courses", colors)
-    }
-}
-
-//todo remove and use CustomButton for that
-@Composable
-private fun ActionButtons(
-    colors: ShowOtherProfileColorPalette,
-    isFavorite: Boolean,
-    isToggling: Boolean, // Added
-    onChatClick: () -> Unit,
-    onFavoriteClick: () -> Unit
-) {
-    Spacer(Modifier.height(20.dp))
-
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedButton(
-            onClick = onFavoriteClick,
-            enabled = !isToggling,
-            modifier = Modifier.size(48.dp),
-            shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(
-                1.dp,
-                // הלב יהיה אדום רק אם isFavorite הוא true
-                if (isFavorite) Color.Red else colors.accent.copy(alpha = 0.55f)
-            ),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = colors.card,
-
-                contentColor = if (isFavorite) Color.Red else colors.accent
-            ),
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            Icon(
-
-                imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                contentDescription = "Favorite",
-                tint = if (isFavorite) Color.Red else colors.accent,
-                modifier = Modifier.size(22.dp)
-            )
+                Button(
+                    onClick = onChatClick,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accent)
+                ) {
+                    Icon(Icons.Outlined.ChatBubbleOutline, null, Modifier.size(20.dp), tint = Color.White)
+                    Text("Chat", Modifier.padding(start = 8.dp), fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            }
         }
 
-        Button(
-            onClick = onChatClick,
-            modifier = Modifier.weight(1f).height(48.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = colors.accent)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.ChatBubbleOutline,
-                contentDescription = "Chat",
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text("Chat", fontWeight = FontWeight.Bold, color = Color.White)
-        }
-    }
-}
-
-
-
-//todo remove and user UserAvatar later
-@Composable
-private fun Avatar(
-    image: String?,
-    colors: ShowOtherProfileColorPalette
-) {
-    Box(
-        modifier = Modifier
-            .size(76.dp)
-            .clip(CircleShape)
-            .background(colors.card),
-        contentAlignment = Alignment.Center
-    ) {
+        // Corrected Avatar logic
         AsyncImage(
-            model = image,
+            model = img,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(68.dp)
+                .size(76.dp)
+                .border(4.dp, colors.card, CircleShape)
                 .clip(CircleShape)
+                .background(colors.card)
         )
     }
 }
 
-
-
-
 @Composable
-private fun AboutSection(
+private fun ProfileSection(
     colors: ShowOtherProfileColorPalette,
-    bio: String?
+    title: String,
+    content: String? = null,
+    customContent: @Composable () -> Unit = {}
 ) {
     Text(
-        "About",
+        text = title,
         fontSize = 16.sp,
         fontWeight = FontWeight.Bold,
         color = colors.textPrimary,
-        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
+        modifier = Modifier.padding(start = 24.dp, top = 24.dp, end = 16.dp, bottom = 8.dp)
     )
-
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -296,84 +191,18 @@ private fun AboutSection(
             .background(colors.card)
             .padding(16.dp)
     ) {
-        Text(
-            bio ?: "No description available yet.",
-            fontSize = 14.sp,
-            color = colors.subtext,
-            lineHeight = 20.sp
-        )
-    }
-}
-
-@Composable
-private fun CoursesSection(
-    colors: ShowOtherProfileColorPalette,
-    courses: List<Course>
-) {
-    Text(
-        "Courses",
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold,
-        color = colors.textPrimary,
-        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp)
-    )
-
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(colors.card)
-            .padding(16.dp)
-    ) {
-        courses.chunked(3).forEach { rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                rowItems.forEach { course ->
-                    Text(
-                        text = course.name,
-                        modifier = Modifier.weight(1f),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = colors.textPrimary
-                    )
-                }
-
-                // fill empty cells
-                repeat(3 - rowItems.size) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
+        if (content != null) {
+            Text(content, fontSize = 14.sp, color = colors.subtext, lineHeight = 20.sp)
+        } else {
+            customContent()
         }
     }
 }
 
-
 @Composable
-private fun StatItem(
-    value: String,
-    label: String,
-    colors: ShowOtherProfileColorPalette
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = colors.textPrimary
-        )
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = colors.subtext
-        )
+private fun StatItem(value: String, label: String, colors: ShowOtherProfileColorPalette) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+        Text(label, fontSize = 12.sp, color = colors.subtext)
     }
 }

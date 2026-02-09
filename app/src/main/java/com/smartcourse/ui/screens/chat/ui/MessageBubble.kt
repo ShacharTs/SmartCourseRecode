@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +19,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.smartcourse.ui.screens.components.CustomText
 import com.smartcourse.ui.theme.LocalAppPalette
 
 @Composable
@@ -30,8 +30,8 @@ fun MessageBubble(
     if (text.isNullOrBlank()) return
 
     val context = LocalContext.current
-    val chat = LocalAppPalette.current.chatRoom
-    val bg = if (isMine) chat.outgoingBubble else chat.incomingBubble
+    val chatPalette = LocalAppPalette.current.chatRoom
+    val bubbleColor = if (isMine) chatPalette.outgoingBubble else chatPalette.incomingBubble
 
     Row(
         modifier = Modifier
@@ -39,27 +39,29 @@ fun MessageBubble(
             .padding(
                 start = if (isMine) 96.dp else 12.dp,
                 end = if (isMine) 12.dp else 96.dp,
-                top = 6.dp,
-                bottom = 6.dp
+                top = 4.dp, // Slightly adjusted for standard feel
+                bottom = 4.dp
             ),
         horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start
     ) {
         Surface(
-            color = bg,
-            shape = RoundedCornerShape(18.dp),
-            border = if (!isMine) BorderStroke(1.dp, chat.incomingBorder) else null,
-            // Functional Google Maps Click logic
+            color = bubbleColor,
+            shape = RoundedCornerShape(
+                topStart = 18.dp,
+                topEnd = 18.dp,
+                bottomStart = if (isMine) 18.dp else 2.dp,
+                bottomEnd = if (isMine) 2.dp else 18.dp
+            ),
+            border = if (!isMine) BorderStroke(1.dp, chatPalette.incomingBorder) else null,
             modifier = Modifier.clickable(enabled = type == "location") {
-                if (type == "location") {
-                    val mapUri = Uri.parse("geo:$text?q=$text(Shared+Location)")
-                    val mapIntent = Intent(Intent.ACTION_VIEW, mapUri)
-                    mapIntent.setPackage("com.google.android.apps.maps")
-
-                    try {
-                        context.startActivity(mapIntent)
-                    } catch (e: Exception) {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, mapUri))
-                    }
+                val mapUri = Uri.parse("geo:$text?q=$text(Shared+Location)")
+                val mapIntent = Intent(Intent.ACTION_VIEW, mapUri).apply {
+                    setPackage("com.google.android.apps.maps")
+                }
+                try {
+                    context.startActivity(mapIntent)
+                } catch (e: Exception) {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, mapUri))
                 }
             }
         ) {
@@ -75,12 +77,13 @@ fun MessageBubble(
                     )
                 }
                 "location" -> {
-                    LocationBubbleContent(text)
+                    LocationContent(text)
                 }
                 else -> {
-                    CustomText(
+                    Text(
                         text = text.trim(),
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        color = Color.White // Keeps readability on your dark theme
                     )
                 }
             }
@@ -89,7 +92,7 @@ fun MessageBubble(
 }
 
 @Composable
-fun LocationBubbleContent(locationData: String) {
+private fun LocationContent(locationData: String) {
     Column(
         modifier = Modifier.padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -97,9 +100,11 @@ fun LocationBubbleContent(locationData: String) {
         Icon(
             imageVector = Icons.Default.LocationOn,
             contentDescription = null,
-            tint = Color.White
+            tint = Color.White,
+            modifier = Modifier.size(24.dp)
         )
-        CustomText(text = "Location Shared")
-        CustomText(text = locationData)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = "Location Shared", color = Color.White)
+        Text(text = locationData, color = Color.White.copy(alpha = 0.7f))
     }
 }

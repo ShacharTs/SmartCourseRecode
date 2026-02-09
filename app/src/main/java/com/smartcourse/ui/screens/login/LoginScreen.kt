@@ -5,43 +5,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -63,9 +40,8 @@ import com.smartcourse.ui.theme.LoginScreenColors
 import kotlinx.coroutines.launch
 
 
+enum class ButtonVariant { PRIMARY, OUTLINE, GOOGLE }
 
-//todo remove dupe buttons use CustomButton
-//todo Make field methods to reuse when needed
 @Composable
 fun LoginScreen(
     navController: NavController,
@@ -73,52 +49,40 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
-    val colors =
-        if (isDark) LoginScreenColors.Dark else LoginScreenColors.Light
+    val colors = if (isDark) LoginScreenColors.Dark else LoginScreenColors.Light
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var loginError by remember { mutableStateOf<String?>(null) }
 
-    val (emailFocusRequester, passwordFocusRequester) =
-        FocusRequester.createRefs()
-
+    val (emailFocusRequester, passwordFocusRequester) = remember { FocusRequester.createRefs() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-
-    val onLogin: () -> Unit = {
-        scope.launch {
-            val result = loginVM.loginWithEmail(
-                email = email,
-                password = password,
-                context = context
-            )
-
-            if (result.isFailure) {
-                email = ""
-                password = ""
-                loginError = result.exceptionOrNull()?.message
-                    ?: "Invalid email or password"
-            } else {
-                loginError = null
-            }
+    // Consolidated logic for handling auth results
+    val handleAuthResult: (Result<Unit>) -> Unit = { result ->
+        if (result.isFailure) {
+            loginError = result.exceptionOrNull()?.message ?: "Authentication failed"
+        } else {
+            loginError = null
         }
     }
 
-    //  LOGIN WITH GOOGLE — UI DOES NOT KNOW STRATEGY
+    val onLogin: () -> Unit = {
+        scope.launch {
+            val result = loginVM.loginWithEmail(email, password, context)
+            if (result.isFailure) {
+                email = ""
+                password = ""
+            }
+            handleAuthResult(result)
+        }
+    }
+
     val onGoogleLogin: () -> Unit = {
         scope.launch {
-            val result = loginVM.loginWithGoogle(context)
-
-            if (result.isFailure) {
-                loginError =
-                    result.exceptionOrNull()?.message
-                        ?: "Google login failed"
-            } else {
-                loginError = null
-            }
+            handleAuthResult(loginVM.loginWithGoogle(context))
         }
     }
 
@@ -139,7 +103,6 @@ fun LoginScreen(
         loginColors = colors
     )
 }
-
 
 @Composable
 private fun LoginContent(
@@ -164,16 +127,11 @@ private fun LoginContent(
             .background(if (isDark) Color.Black else Color.White),
         contentAlignment = Alignment.Center
     ) {
-        // Phone frame
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(18.dp))
-                .background(
-                    Brush.verticalGradient(
-                        if (isDark) AppGradients.Dark else AppGradients.Light
-                    )
-                )
+                .background(Brush.verticalGradient(if (isDark) AppGradients.Dark else AppGradients.Light))
         ) {
             Column(
                 modifier = Modifier
@@ -184,9 +142,7 @@ private fun LoginContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(24.dp))
-
                 LoginHeader(loginColors = loginColors)
-
                 Spacer(Modifier.height(32.dp))
 
                 LoginFields(
@@ -202,7 +158,6 @@ private fun LoginContent(
                     loginColors = loginColors
                 )
 
-                // Push buttons toward bottom naturally
                 Spacer(modifier = Modifier.height(50.dp))
 
                 LoginButtons(
@@ -218,32 +173,15 @@ private fun LoginContent(
     }
 }
 
-
 @Composable
-private fun LoginHeader(
-    loginColors: LoginColorPalette,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Nice to see you again",
-            color = loginColors.text,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium
-        )
-
+private fun LoginHeader(loginColors: LoginColorPalette) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Nice to see you again", color = loginColors.text, fontSize = 20.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(20.dp))
-
         Image(
             painter = painterResource(R.drawable.smartcourse_logo),
-            contentDescription = "Smart Course Logo",
-            modifier = Modifier
-                .size(180.dp)
-                .clip(RoundedCornerShape(24.dp)),
+            contentDescription = "Logo",
+            modifier = Modifier.size(180.dp).clip(RoundedCornerShape(24.dp)),
             contentScale = ContentScale.Crop
         )
     }
@@ -260,83 +198,33 @@ private fun LoginFields(
     onLogin: () -> Unit,
     emailFocusRequester: FocusRequester,
     passwordFocusRequester: FocusRequester,
-    loginColors: LoginColorPalette,
-    modifier: Modifier = Modifier
+    loginColors: LoginColorPalette
 ) {
-    val placeholderColor = loginColors.placeholder
-    val textColor = loginColors.text
-    val fieldBorder = loginColors.fieldBorder
-    val fieldFocused = loginColors.fieldFocused
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        OutlinedTextField(
+    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+        AppTextField(
             value = email,
             onValueChange = onEmailChange,
-            placeholder = { Text("Email", color = placeholderColor) },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(
-                onNext = { passwordFocusRequester.requestFocus() }
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .focusRequester(emailFocusRequester),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = fieldFocused,
-                unfocusedBorderColor = fieldBorder,
-                cursorColor = fieldFocused,
-                focusedTextColor = textColor,
-                unfocusedTextColor = textColor,
-                focusedPlaceholderColor = placeholderColor,
-                unfocusedPlaceholderColor = placeholderColor
-            )
+            placeholder = "Email",
+            focusRequester = emailFocusRequester,
+            imeAction = ImeAction.Next,
+            onAction = { passwordFocusRequester.requestFocus() },
+            colors = loginColors
         )
 
-        OutlinedTextField(
+        AppTextField(
             value = password,
             onValueChange = onPasswordChange,
-            placeholder = { Text("Password", color = placeholderColor) },
-            visualTransformation =
-                if (showPassword) VisualTransformation.None
-                else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = onTogglePassword) {
-                    Icon(
-                        imageVector =
-                            if (showPassword) Icons.Filled.Visibility
-                            else Icons.Filled.VisibilityOff,
-                        contentDescription = "Toggle password visibility",
-                        tint = placeholderColor
-                    )
-                }
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { onLogin() }
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .focusRequester(passwordFocusRequester),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = fieldFocused,
-                unfocusedBorderColor = fieldBorder,
-                cursorColor = fieldFocused,
-                focusedTextColor = textColor,
-                unfocusedTextColor = textColor,
-                focusedPlaceholderColor = placeholderColor,
-                unfocusedPlaceholderColor = placeholderColor
-            )
+            placeholder = "Password",
+            isPassword = true,
+            showPassword = showPassword,
+            onTogglePassword = onTogglePassword,
+            focusRequester = passwordFocusRequester,
+            imeAction = ImeAction.Done,
+            onAction = onLogin,
+            colors = loginColors
         )
     }
 }
-
 
 @Composable
 private fun LoginButtons(
@@ -344,149 +232,130 @@ private fun LoginButtons(
     onLogin: () -> Unit,
     onGoogleLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
-    modifier: Modifier = Modifier,
     loginColors: LoginColorPalette,
     isDark: Boolean
 ) {
-    val errorBackgroundColor = loginColors.errorBackground
-    val errorTextColor = loginColors.errorText
-
     Column(
-        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(15.dp)
     ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .heightIn(min = 36.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (loginError != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(errorBackgroundColor)
-                        .padding(vertical = 6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = loginError,
-                        color = errorTextColor,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                }
+        // Error Message
+        if (loginError != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(loginColors.errorBackground)
+                    .padding(vertical = 6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = loginError, color = loginColors.errorText, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
             }
         }
 
-        PrimaryButton(
-            text = "Sign in",
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .clickable { onLogin() }
-        )
-
-        OutlineButton(
-            text = "Register",
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .clickable { onNavigateToRegister() }
-        )
+        // Action Buttons
+        AppButton(text = "Sign in", variant = ButtonVariant.PRIMARY, onClick = onLogin)
+        AppButton(text = "Register", variant = ButtonVariant.OUTLINE, onClick = onNavigateToRegister)
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        GoogleButton(
-            isDark = isDark,
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .clickable { onGoogleLogin() }
+        AppButton(
+            text = "Continue with Google",
+            variant = ButtonVariant.GOOGLE,
+            onClick = onGoogleLogin,
+            isDark = isDark
         )
     }
 }
 
 
-/* ------------------ BUTTON COMPONENTS ------------------ */
 
 @Composable
-fun PrimaryButton(
+fun AppButton(
     text: String,
-    modifier: Modifier = Modifier
+    variant: ButtonVariant,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isDark: Boolean = isSystemInDarkTheme()
 ) {
-    // Solid background for the main action
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .height(54.dp)
-            .background(Color(0xFF6B21A8)), // Deep Purple
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+    val shape = RoundedCornerShape(12.dp)
+    val purple = Color(0xFF6B21A8)
+
+    val buttonModifier = modifier
+        .fillMaxWidth(0.85f)
+        .height(if (variant == ButtonVariant.GOOGLE) 50.dp else 54.dp)
+        .clip(shape)
+        .clickable { onClick() }
+        .then(
+            when (variant) {
+                ButtonVariant.PRIMARY -> Modifier.background(purple)
+                ButtonVariant.OUTLINE -> Modifier.border(1.5.dp, purple, shape)
+                ButtonVariant.GOOGLE -> {
+                    val bg = if (isDark) Color(0xFF2D2D2D) else Color.White
+                    val border = if (isDark) Color(0xFF444444) else Color(0xFFE5E7EB)
+                    Modifier.shadow(1.dp, shape).border(1.dp, border, shape).background(bg)
+                }
+            }
         )
-    }
-}
 
-@Composable
-fun OutlineButton(
-    text: String,
-    modifier: Modifier = Modifier
-) {
-    // Border only for the secondary action
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .height(54.dp)
-            .border(1.5.dp, Color(0xFF6B21A8), RoundedCornerShape(12.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = Color(0xFF6B21A8),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}
-
-@Composable
-fun GoogleButton(
-    isDark: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val bg = if (isDark) Color(0xFF2D2D2D) else Color.White
-    val border = if (isDark) Color(0xFF444444) else Color(0xFFE5E7EB)
-
-    Box(
-        modifier = modifier
-            .shadow(elevation = 1.dp, shape = RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(12.dp))
-            .height(50.dp)
-            .border(1.dp, border, RoundedCornerShape(12.dp))
-            .background(bg),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.google_icon),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(18.dp)
-            )
+    Box(modifier = buttonModifier, contentAlignment = Alignment.Center) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (variant == ButtonVariant.GOOGLE) {
+                Icon(painter = painterResource(R.drawable.google_icon), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(18.dp))
+            }
             Text(
-                text = "Continue with Google",
-                color = if (isDark) Color.White else Color(0xFF374151),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium
+                text = text,
+                color = when (variant) {
+                    ButtonVariant.PRIMARY -> Color.White
+                    ButtonVariant.OUTLINE -> purple
+                    ButtonVariant.GOOGLE -> if (isDark) Color.White else Color(0xFF374151)
+                },
+                fontSize = if (variant == ButtonVariant.GOOGLE) 14.sp else 16.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }
+}
+
+@Composable
+fun AppTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    focusRequester: FocusRequester,
+    imeAction: ImeAction,
+    onAction: () -> Unit,
+    colors: LoginColorPalette,
+    isPassword: (Boolean) = false,
+    showPassword: (Boolean) = false,
+    onTogglePassword: () -> Unit = {}
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(placeholder, color = colors.placeholder) },
+        visualTransformation = if (isPassword && !showPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        trailingIcon = if (isPassword) {
+            {
+                IconButton(onClick = onTogglePassword) {
+                    Icon(
+                        imageVector = if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = null,
+                        tint = colors.placeholder
+                    )
+                }
+            }
+        } else null,
+        keyboardOptions = KeyboardOptions(imeAction = imeAction),
+        keyboardActions = KeyboardActions(onAny = { onAction() }),
+        modifier = Modifier.fillMaxWidth().height(56.dp).focusRequester(focusRequester),
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colors.fieldFocused,
+            unfocusedBorderColor = colors.fieldBorder,
+            cursorColor = colors.fieldFocused,
+            focusedTextColor = colors.text,
+            unfocusedTextColor = colors.text
+        )
+    )
 }

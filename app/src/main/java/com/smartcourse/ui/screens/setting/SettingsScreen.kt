@@ -2,35 +2,16 @@ package com.smartcourse.ui.screens.setting
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,40 +22,28 @@ import com.smartcourse.navigation.Screen
 import com.smartcourse.ui.theme.AppGradients
 import com.smartcourse.ui.theme.LocalAppPalette
 
-//todo remove dupe method like buttons use CustomButton
+
 @Composable
 fun SettingsScreen(
     navController: NavController,
     authVM: AuthViewModel = hiltViewModel(),
     settingVM: SettingViewModel = hiltViewModel()
 ) {
-
     val palette = LocalAppPalette.current
     val isDark = palette.isDark
     val gradientColors = if (isDark) AppGradients.Dark else AppGradients.Light
 
-    var showDeleteAccountDialog by remember { mutableStateOf(false) }
-
-
-
+    // Using Box to ensure the background covers the entire screen including status bars
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.navigationBars)
+            .fillMaxSize()
             .background(Brush.verticalGradient(gradientColors))
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars)
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             SettingsHeader()
 
             SettingColumn(
-                isChatEnabled = settingVM.isChatEnabled,
-                isAppNotificationsEnabled = settingVM.isAppNotificationsEnabled,
-                onChatToggle = { settingVM.toggleChat(it) },
-                onNotificationToggle = { settingVM.toggleNotifications(it) },
+                settingVM = settingVM,
                 authVM = authVM,
                 navController = navController
             )
@@ -84,10 +53,7 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingColumn(
-    isChatEnabled: Boolean,
-    isAppNotificationsEnabled: Boolean,
-    onChatToggle: (Boolean) -> Unit,
-    onNotificationToggle: (Boolean) -> Unit,
+    settingVM: SettingViewModel,
     authVM: AuthViewModel,
     navController: NavController
 ) {
@@ -98,37 +64,31 @@ private fun SettingColumn(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
         SettingsSection(title = "Account") {
-
             SettingsRow(
                 label = "Edit Profile",
-                onClick = {
-                    navController.navigate(Screen.Profile.route)
-                }
+                onClick = { navController.navigate(Screen.Profile.route) }
             )
-
             SettingsRow(
                 label = "Delete Account",
                 isDanger = true,
-                onClick = {
-                    showDeleteAccountDialog = true
-                }
+                onClick = { showDeleteAccountDialog = true }
             )
         }
 
         SettingsSection(title = "Notifications") {
             SettingsToggleRow(
                 label = "Chat Notifications",
-                isActive = isChatEnabled,
-                onToggle = onChatToggle
+                isActive = settingVM.isChatEnabled,
+                onToggle = { settingVM.toggleChat(it) }
             )
             SettingsToggleRow(
                 label = "App Notifications",
-                isActive = isAppNotificationsEnabled,
-                onToggle = onNotificationToggle
+                isActive = settingVM.isAppNotificationsEnabled,
+                onToggle = { settingVM.toggleNotifications(it) }
             )
         }
 
@@ -137,10 +97,12 @@ private fun SettingColumn(
                 label = "Theme",
                 onClick = { navController.navigate(Screen.Theme.route) }
             )
-            SettingsRow(
-                label = "Language",
-                onClick = { navController.navigate(Screen.Language.route) }
-            )
+
+            // todo  Dont have time for that sadly
+//            SettingsRow(
+//                label = "Language",
+//                onClick = { navController.navigate(Screen.Language.route) }
+//            )
         }
 
         SettingsSection(title = "About") {
@@ -148,16 +110,28 @@ private fun SettingColumn(
                 label = "Terms & Privacy",
                 onClick = { navController.navigate(Screen.Terms.route) }
             )
-
             SettingsRow(label = "App Version", value = "1.0.0")
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            LogoutButton { authVM.logout() }
-            BackButton { navController.popBackStack() }
-        }
-    }
+            val settingsPalette = LocalAppPalette.current.settings
 
+            // Consolidated button logic using a shared component
+            SettingsActionButton(
+                text = "Log out",
+                textColor = settingsPalette.dangerText,
+                onClick = { authVM.logout() }
+            )
+
+            SettingsActionButton(
+                text = "Back",
+                textColor = settingsPalette.headerText,
+                onClick = { navController.popBackStack() }
+            )
+        }
+
+        Spacer(Modifier.windowInsetsPadding(WindowInsets.navigationBars))
+    }
 
     if (showDeleteAccountDialog) {
         AlertDialog(
@@ -170,9 +144,7 @@ private fun SettingColumn(
                 )
             },
             confirmButton = {
-                TextButton(
-                    onClick = { showDeleteAccountDialog = false }
-                ) {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
                     Text("OK")
                 }
             }
@@ -180,22 +152,49 @@ private fun SettingColumn(
     }
 }
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsHeader() {
     val palette = LocalAppPalette.current.settings
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .height(72.dp),
-        color = palette.headerBackground
-    ) {
-        Box(contentAlignment = Alignment.Center) {
+    // Using CenterAlignedTopAppBar with Transparent background to fix the top color bleed
+    CenterAlignedTopAppBar(
+        title = {
             Text(
                 text = "Settings",
                 color = palette.headerText,
                 fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = Color.Transparent
+        ),
+        modifier = Modifier.statusBarsPadding()
+    )
+}
+
+/* ------------------ REUSABLE COMPONENTS ------------------ */
+
+@Composable
+fun SettingsActionButton(
+    text: String,
+    textColor: Color,
+    onClick: () -> Unit
+) {
+    val palette = LocalAppPalette.current.settings
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = palette.cardBackground,
+        onClick = onClick
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = text,
+                color = textColor,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -272,7 +271,7 @@ fun SettingsToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onToggle(!isActive) } // Flip the current value
+            .clickable { onToggle(!isActive) }
             .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -284,7 +283,6 @@ fun SettingsToggleRow(
             shape = RoundedCornerShape(10.dp),
             color = if (isActive) palette.toggleTrackActive else palette.toggleTrackInactive
         ) {
-            // Alignment moves the thumb left or right based on isActive
             Box(contentAlignment = if (isActive) Alignment.CenterEnd else Alignment.CenterStart) {
                 Surface(
                     modifier = Modifier
@@ -295,50 +293,5 @@ fun SettingsToggleRow(
                 ) {}
             }
         }
-    }
-}
-
-@Composable
-fun LogoutButton(onClick: () -> Unit) {
-    val palette = LocalAppPalette.current.settings
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(18.dp),
-        color = palette.cardBackground,
-        onClick = onClick
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = "Log out",
-                color = palette.dangerText,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-fun BackButton(onClick: () -> Unit) {
-    val palette = LocalAppPalette.current.settings
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(18.dp),
-        color = palette.cardBackground,
-        onClick = onClick
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = "Back",
-                color = palette.headerText,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
     }
 }

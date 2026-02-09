@@ -118,7 +118,11 @@ fun EditCoursesDialog(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
                 ) {
-                    Text("Done")
+                    Text(
+                        text = "Done",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
             }
         }
