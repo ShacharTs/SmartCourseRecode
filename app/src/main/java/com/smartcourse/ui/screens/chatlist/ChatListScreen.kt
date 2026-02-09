@@ -40,7 +40,7 @@ fun ChatListScreen(
         chatListVM.refresh()
     }
 
-    // Standard Column instead of CustomColumn
+
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(chats) { chat ->
@@ -113,7 +113,6 @@ fun ChatAvatar(
     imageUrl: String?,
     backgroundColor: Color
 ) {
-    // Standard Box instead of CustomBox
     Box(
         modifier = Modifier
             .size(48.dp)
