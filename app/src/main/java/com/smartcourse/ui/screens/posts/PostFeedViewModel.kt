@@ -2,6 +2,7 @@ package com.smartcourse.ui.screens.posts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.Post
 import com.smartcourse.data.models.usermodel.User
 import com.smartcourse.data.models.usermodel.UserRole
@@ -20,7 +21,7 @@ import javax.inject.Inject
 class PostFeedViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val profileRepository: ProfileRepository,
-    authRepository: AuthRepository,
+    private val authRepository: AuthRepository, // Added private val
 ) : ViewModel() {
 
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
@@ -29,43 +30,66 @@ class PostFeedViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    val user  = authRepository.currentUser
-    val role = user.value?.role
-
-
-    init{
-        loadPosts(role)
+    init {
+        // Collect the user flow reactively
+        viewModelScope.launch {
+            authRepository.currentUser.collect { currentUser ->
+                if (currentUser != null) {
+                    // This will trigger as soon as the user is not null
+                    loadPosts(currentUser.role, currentUser.courses)
+                }
+            }
+        }
     }
 
-
-    fun loadPosts(currentUserRole: UserRole?) {
+    fun loadPosts(currentUserRole: UserRole?, myCourseList: List<Course>?) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                // 1. Fetch from Repository
                 val rawPosts = postRepository.loadPosts()
-                val userCache = mutableMapOf<String,User>()
+                println("DEBUG: Raw posts from DB: ${rawPosts.size}") //
 
+                val userCache = mutableMapOf<String, User>()
+                val myCourseIds = myCourseList?.map { it.id } ?: emptyList()
+
+                // 2. Map author details
                 val processedPosts = rawPosts.map { post ->
-                    val user = userCache[post.userId] ?: run {
-                        val fetchedUser = profileRepository.loadUser(post.userId)
+                    val authorProfile = userCache[post.userId] ?: run {
+                        val fetchedUser = profileRepository.loadUser(post.userId) // Your existing call
                         if (fetchedUser != null) userCache[post.userId] = fetchedUser
                         fetchedUser
                     }
+
                     post.copy(
-                        userRole = user?.role ?: UserRole.TEMP,
-                        displayName = user?.displayName ?: "Unknown"
+                        userRole = authorProfile?.role ?: UserRole.STUDENT,
+                        displayName = authorProfile?.displayName ?: "Unknown",
+                        // GRAB THE IMAGE HERE
+                        imageUrl = authorProfile?.image
                     )
                 }
 
-                // Filter based on the role provided by the UI
-                val filteredPosts = when (currentUserRole) {
-                    UserRole.TUTOR -> processedPosts.filter { it.userRole == UserRole.STUDENT }
-                    UserRole.STUDENT -> processedPosts.filter { it.userRole == UserRole.TUTOR }
-                    else -> emptyList()
+                // 3. Apply Filter
+                val filteredPosts = processedPosts.filter { post ->
+                    // If your list is empty, show all courses.
+                    // If you have joined courses, only show those.
+                    val myIds = myCourseList?.map { it.id } ?: emptyList()
+                    val matchesCourse = if (myIds.isEmpty()) true else post.courses.any { it.id in myIds }
+
+                    val isCorrectRole = when (currentUserRole) {
+                        UserRole.TUTOR -> post.userRole == UserRole.STUDENT
+                        UserRole.STUDENT -> post.userRole == UserRole.TUTOR
+                        else -> false
+                    }
+
+                    matchesCourse && isCorrectRole
                 }
 
+                println("DEBUG: Filtered posts after role/course check: ${filteredPosts.size}") //
                 _posts.value = filteredPosts
+
             } catch (e: Exception) {
+                println("DEBUG: Error occurred: ${e.message}") //
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false

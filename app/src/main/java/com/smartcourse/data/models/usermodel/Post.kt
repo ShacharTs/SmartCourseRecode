@@ -8,5 +8,6 @@ data class Post(
     val content: String,
     val createdAt: String,
     val courses: List<Course>,
-    val userRole: UserRole = UserRole.TEMP
+    val userRole: UserRole = UserRole.TEMP,
+    val imageUrl: String? = null
 )

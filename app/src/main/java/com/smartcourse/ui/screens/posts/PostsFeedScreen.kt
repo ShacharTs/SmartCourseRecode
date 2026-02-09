@@ -26,7 +26,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,7 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.smartcourse.auth.AuthViewModel
+import com.smartcourse.data.models.usermodel.Course
 import com.smartcourse.data.models.usermodel.Post
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
@@ -48,7 +49,7 @@ fun PostsFeedScreen(
     navController: NavController
 ) {
     val feedViewModel: PostFeedViewModel = hiltViewModel()
-    val authViewModel: AuthViewModel = hiltViewModel() // Assuming you have an AuthViewModel
+    val authViewModel: AuthViewModel = hiltViewModel()
 
     val posts by feedViewModel.posts.collectAsState()
     val isLoading by feedViewModel.isLoading.collectAsState()
@@ -56,12 +57,6 @@ fun PostsFeedScreen(
 
     val myId = currentUser?.userId
 
-
-    LaunchedEffect(currentUser?.role) {
-        if (currentUser?.role != null) {
-            feedViewModel.loadPosts(currentUser?.role)
-        }
-    }
 
 
     Column(
@@ -161,20 +156,9 @@ fun PostRow(
     post: Post,
     onClick: () -> Unit
 ) {
-    // Use the role fetched in the ViewModel
     val role = post.userRole
-
-    val accentColor = when (role) {
-        UserRole.STUDENT -> Color(0xFF4CAF50)
-        UserRole.TUTOR -> Color(0xFFFFC107) // Yellow for Tutors
-        else -> Color(0xFF9E9E9E)
-    }
-
-    val tagColor = when (role) {
-        UserRole.STUDENT -> Color(0xFF2E7DFF)
-        UserRole.TUTOR -> Color(0xFFFF9800)
-        else -> Color(0xFF757575)
-    }
+    val accentColor = getRoleAccentColor(role)
+    val tagColor = getRoleTagColor(role)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -183,60 +167,121 @@ fun PostRow(
         onClick = onClick
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(accentColor)
-                )
-
-                Spacer(Modifier.width(12.dp))
-
-                Text(
-                    text = if (role == UserRole.TUTOR) "Tutor: ${post.displayName}" else "Student: ${post.displayName}",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Courses
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                post.courses.forEach {
-                    CourseTag(
-                        text = it.name,
-                        color = tagColor
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // Content
-            Text(
-                text = post.content,
-                color = Color(0xFFD0D4E0),
-                fontSize = 12.sp
+            // Header: Profile Image & Name
+            PostHeader(
+                displayName = post.displayName,
+                imageUrl = post.imageUrl,
+                role = role,
+                accentColor = accentColor
             )
 
             Spacer(Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+            // Tags: Enrolled Courses
+            PostCourseTags(
+                courses = post.courses,
+                tagColor = tagColor
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            // Body: Post Content
+            PostContent(content = post.content)
+
+            Spacer(Modifier.height(12.dp))
+
+            // Footer: Action Button
+            PostFooter(
+                accentColor = accentColor,
+                onClick = onClick
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun PostHeader(
+    displayName: String,
+    imageUrl: String?,
+    role: UserRole,
+    accentColor: Color
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        // Profile Image or Fallback Circle
+        if (!imageUrl.isNullOrEmpty()) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Profile Picture",
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(accentColor)
+            )
+        }
+
+        Spacer(Modifier.width(12.dp))
+
+        Text(
+            text = if (role == UserRole.TUTOR) "Tutor: $displayName" else "Student: $displayName",
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
+private fun PostCourseTags(
+    courses: List<Course>,
+    tagColor: Color
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        courses.forEach { course ->
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(tagColor)
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
-                Button(
-                    onClick = onClick,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = accentColor),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)
-                ) {
-                    Text("View", fontSize = 12.sp, color = Color.White)
-                }
+                Text(text = course.name, color = Color.White, fontSize = 12.sp)
             }
+        }
+    }
+}
+
+@Composable
+private fun PostContent(content: String) {
+    Text(
+        text = content,
+        color = Color(0xFFD0D4E0),
+        fontSize = 12.sp
+    )
+}
+
+@Composable
+private fun PostFooter(
+    accentColor: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Button(
+            onClick = onClick,
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)
+        ) {
+            Text("View", fontSize = 12.sp, color = Color.White)
         }
     }
 }
@@ -254,6 +299,18 @@ fun CourseTag(
     ) {
         Text(text = text, color = Color.White, fontSize = 12.sp)
     }
+}
+
+private fun getRoleAccentColor(role: UserRole): Color = when (role) {
+    UserRole.STUDENT -> Color(0xFF4CAF50)
+    UserRole.TUTOR -> Color(0xFFFFC107)
+    else -> Color(0xFF9E9E9E)
+}
+
+private fun getRoleTagColor(role: UserRole): Color = when (role) {
+    UserRole.STUDENT -> Color(0xFF2E7DFF)
+    UserRole.TUTOR -> Color(0xFFFF9800)
+    else -> Color(0xFF757575)
 }
 
 
