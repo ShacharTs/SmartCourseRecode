@@ -24,6 +24,13 @@ sealed class Screen(val route: String) {
 
     object SearchRouter : Screen("search_router")
 
+    object PostsFeed : Screen("post_feed")
+
+    object ShowPost : Screen("post/{userId}"){
+        fun createRoute(userId: String): String =
+            "post/${userId}"
+    }
+
 
     object Profile : Screen("profile")
 

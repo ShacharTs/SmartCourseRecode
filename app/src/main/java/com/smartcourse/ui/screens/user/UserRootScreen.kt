@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.smartcourse.ui.screens.posts.PostsFeedScreen
 import com.smartcourse.auth.AuthViewModel
 import com.smartcourse.data.models.usermodel.UserRole
 import com.smartcourse.navigation.Screen
@@ -32,6 +33,7 @@ import com.smartcourse.ui.screens.loading.LoadingScreen
 import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
+import com.smartcourse.ui.screens.posts.MyPostScreen
 import com.smartcourse.ui.screens.search.SearchUserScreen
 import com.smartcourse.ui.screens.setting.SettingsScreen
 import com.smartcourse.ui.screens.setting.language.LanguageScreen
@@ -140,6 +142,7 @@ private fun UserBottomBar(
         Screen.Home.route,
         Screen.ChatList.route,
         Screen.SearchRouter.route,
+        Screen.PostsFeed.route,
     )
     val items = bottomNavItemsForRole(role)
 
@@ -187,6 +190,17 @@ private fun UserNavGraph(
 
         composable(Screen.SearchRouter.route) {
             SearchUserScreen(navController = internalNavController)
+        }
+
+        composable(Screen.PostsFeed.route){
+            PostsFeedScreen(navController = internalNavController)
+        }
+
+        composable(
+            route = Screen.ShowPost.route,
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ){
+            MyPostScreen(navController = internalNavController)
         }
 
         composable(Screen.Profile.route) {
