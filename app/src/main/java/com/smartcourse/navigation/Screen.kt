@@ -26,9 +26,12 @@ sealed class Screen(val route: String) {
 
     object PostsFeed : Screen("post_feed")
 
-    object ShowPost : Screen("post/{userId}"){
-        fun createRoute(userId: String): String =
-            "post/${userId}"
+    object MyPosts : Screen("my_posts/{userId}") {
+        fun createRoute(userId: String): String = "my_posts/$userId"
+    }
+
+    object ViewUserPosts : Screen("view_posts/{userId}") {
+        fun createRoute(userId: String): String = "view_posts/$userId"
     }
 
 

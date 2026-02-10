@@ -70,7 +70,7 @@ fun PostsFeedScreen(
             onMyPostClick = {
                 myId?.let {
                     navController.navigate(
-                        Screen.ShowPost.createRoute(userId = it)
+                        Screen.MyPosts.createRoute(userId = it)
                     )
                 }
             }
@@ -94,10 +94,17 @@ fun PostsFeedScreen(
                     items = posts,
                     key = { it.id }
                 ) { post ->
+
                     PostRow(
                         post = post,
                         onClick = {
-                            navController.navigate("post/${post.id}")
+                            if (post.userId == myId) {
+                                // It's your post, go to management
+                                navController.navigate(Screen.MyPosts.createRoute(post.userId))
+                            } else {
+                                // It's someone else, go to the read-only view
+                                navController.navigate(Screen.ViewUserPosts.createRoute(post.userId))
+                            }
                         }
                     )
                 }
