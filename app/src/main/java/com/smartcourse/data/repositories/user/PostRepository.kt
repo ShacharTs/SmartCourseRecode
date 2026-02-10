@@ -62,4 +62,11 @@ class PostRepository @Inject constructor(
             .from(TableNames.POSTS_COURSES)
             .insert(links)
     }
+
+
+    suspend fun deletePost(postId: String) {
+        client.from(TableNames.POSTS).delete {
+            filter { eq("id", postId) }
+        }
+    }
 }
