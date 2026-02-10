@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -24,14 +25,19 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,63 +61,77 @@ fun PostsFeedScreen(
     val isLoading by feedViewModel.isLoading.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
 
+    // State for the Pop-out (Bottom Sheet)
+    var selectedPost by remember { mutableStateOf<Post?>(null) }
     val myId = currentUser?.userId
 
-
-
-    Column(
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.navigationBars)
+            .fillMaxSize()
             .background(Color(0xFF121826))
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
-
-        TopBar(
-            onMyPostClick = {
-                myId?.let {
-                    navController.navigate(
-                        Screen.MyPosts.createRoute(userId = it)
-                    )
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopBar(
+                onMyPostClick = {
+                    myId?.let { navController.navigate(Screen.MyPosts.createRoute(userId = it)) }
                 }
-            }
-        )
+            )
 
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Loading posts...", color = Color.White)
+            if (isLoading && posts.isEmpty()) {
+                LoadingState()
+            } else {
+                PostsList(
+                    posts = posts,
+                    onPostClick = { post -> selectedPost = post }
+                )
             }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(
-                    items = posts,
-                    key = { it.id }
-                ) { post ->
+        }
 
-                    PostRow(
-                        post = post,
-                        onClick = {
-                            if (post.userId == myId) {
-                                // It's your post, go to management
-                                navController.navigate(Screen.MyPosts.createRoute(post.userId))
-                            } else {
-                                // It's someone else, go to the read-only view
-                                navController.navigate(Screen.ViewUserPosts.createRoute(post.userId))
-                            }
-                        }
-                    )
-                }
-            }
+        // Pop-out Dialog logic
+        selectedPost?.let { post ->
+            PostDetailDialog(
+                post = post,
+                onDismiss = { selectedPost = null }
+            )
         }
     }
 }
+
+
+
+@Composable
+private fun PostsList(
+    posts: List<Post>,
+    onPostClick: (Post) -> Unit
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(
+            items = posts,
+            key = { it.id }
+        ) { post ->
+            PostRow(
+                post = post,
+                onClick = { onPostClick(post) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoadingState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(color = Color(0xFF4CAF50))
+    }
+}
+
 
 
 @Composable
@@ -158,6 +178,7 @@ fun TopBar(
 
 
 
+
 @Composable
 fun PostRow(
     post: Post,
@@ -165,43 +186,47 @@ fun PostRow(
 ) {
     val role = post.userRole
     val accentColor = getRoleAccentColor(role)
-    val tagColor = getRoleTagColor(role)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1F2A44)),
-        onClick = onClick
+        onClick = onClick,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header: Profile Image & Name
-            PostHeader(
-                displayName = post.displayName,
-                imageUrl = post.imageUrl,
-                role = role,
-                accentColor = accentColor
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PostHeader(
+                    displayName = post.displayName,
+                    imageUrl = post.imageUrl,
+                    role = role,
+                    accentColor = accentColor
+                )
+                // Removes the messy ISO time zones
+                Text(
+                    text = post.createdAt.substringBefore("T"),
+                    color = Color.Gray,
+                    fontSize = 11.sp
+                )
+            }
 
             Spacer(Modifier.height(12.dp))
 
-            // Tags: Enrolled Courses
-            PostCourseTags(
-                courses = post.courses,
-                tagColor = tagColor
+            Text(
+                text = post.content,
+                color = Color(0xFFE0E0E0),
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                maxLines = 4
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // Body: Post Content
-            PostContent(content = post.content)
-
-            Spacer(Modifier.height(12.dp))
-
-            // Footer: Action Button
-            PostFooter(
-                accentColor = accentColor,
-                onClick = onClick
-            )
+            PostFooter(post = post, accentColor = accentColor)
         }
     }
 }
@@ -215,33 +240,43 @@ private fun PostHeader(
     accentColor: Color
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        // Profile Image or Fallback Circle
         if (!imageUrl.isNullOrEmpty()) {
             AsyncImage(
                 model = imageUrl,
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(CircleShape),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                contentDescription = null,
+                modifier = Modifier.size(32.dp).clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
         } else {
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(CircleShape)
-                    .background(accentColor)
-            )
+            Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(accentColor))
         }
 
         Spacer(Modifier.width(12.dp))
 
-        Text(
-            text = if (role == UserRole.TUTOR) "Tutor: $displayName" else "Student: $displayName",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp
-        )
+        Column {
+            Text(displayName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(
+                text = if (role == UserRole.TUTOR) "Tutor" else "Student",
+                color = accentColor,
+                fontSize = 11.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun PostFooter(post: Post, accentColor: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            post.courses.take(2).forEach { course ->
+                CourseTag(text = course.name, color = accentColor.copy(alpha = 0.15f))
+            }
+        }
+        Text("View Details →", color = accentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -273,25 +308,7 @@ private fun PostContent(content: String) {
     )
 }
 
-@Composable
-private fun PostFooter(
-    accentColor: Color,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
-    ) {
-        Button(
-            onClick = onClick,
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = accentColor),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp)
-        ) {
-            Text("View", fontSize = 12.sp, color = Color.White)
-        }
-    }
-}
+
 
 @Composable
 fun CourseTag(
@@ -308,16 +325,17 @@ fun CourseTag(
     }
 }
 
+
 private fun getRoleAccentColor(role: UserRole): Color = when (role) {
-    UserRole.STUDENT -> Color(0xFF4CAF50)
-    UserRole.TUTOR -> Color(0xFFFFC107)
-    else -> Color(0xFF9E9E9E)
+    UserRole.STUDENT -> Color(0xFF4CAF50) // Green
+    UserRole.TUTOR -> Color(0xFFFFC107)   // Amber/Yellow
+    else -> Color.Gray
 }
 
 private fun getRoleTagColor(role: UserRole): Color = when (role) {
-    UserRole.STUDENT -> Color(0xFF2E7DFF)
-    UserRole.TUTOR -> Color(0xFFFF9800)
-    else -> Color(0xFF757575)
+    UserRole.STUDENT -> Color(0xFF2E7DFF) // Blue tags for students
+    UserRole.TUTOR -> Color(0xFFFF9800)   // Orange tags for tutors
+    else -> Color.Gray
 }
 
 
