@@ -85,11 +85,17 @@ private fun SettingColumn(
                 isActive = settingVM.isChatEnabled,
                 onToggle = { settingVM.toggleChat(it) }
             )
-            SettingsToggleRow(
-                label = "App Notifications",
-                isActive = settingVM.isAppNotificationsEnabled,
-                onToggle = { settingVM.toggleNotifications(it) }
-            )
+            /**
+             * The idea was to add more than one notification
+             * goal was to have chat, post tag, like etc...
+             * the idea scrap due to lack of time
+             * the mech is working
+             */
+//            SettingsToggleRow(
+//                label = "App Notifications",
+//                isActive = settingVM.isAppNotificationsEnabled,
+//                onToggle = { settingVM.toggleNotifications(it) }
+//            )
         }
 
         SettingsSection(title = "Preferences") {
@@ -98,7 +104,10 @@ private fun SettingColumn(
                 onClick = { navController.navigate(Screen.Theme.route) }
             )
 
-            // todo  Dont have time for that sadly
+            /**
+             * due lack of time i couldn't make hebrew english app
+             * the screen is working and the toggle swtich too
+             */
 //            SettingsRow(
 //                label = "Language",
 //                onClick = { navController.navigate(Screen.Language.route) }
@@ -156,7 +165,6 @@ private fun SettingColumn(
 @Composable
 fun SettingsHeader() {
     val palette = LocalAppPalette.current.settings
-    // Using CenterAlignedTopAppBar with Transparent background to fix the top color bleed
     CenterAlignedTopAppBar(
         title = {
             Text(
@@ -173,7 +181,7 @@ fun SettingsHeader() {
     )
 }
 
-/* ------------------ REUSABLE COMPONENTS ------------------ */
+
 
 @Composable
 fun SettingsActionButton(
