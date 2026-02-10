@@ -34,7 +34,6 @@ import com.smartcourse.ui.screens.navbar.AppBottomNavBar
 import com.smartcourse.ui.screens.navbar.MenuTopAppBar
 import com.smartcourse.ui.screens.navbar.bottomNavItemsForRole
 import com.smartcourse.ui.screens.posts.MyPostsScreen
-import com.smartcourse.ui.screens.posts.PostScreen
 import com.smartcourse.ui.screens.search.SearchUserScreen
 import com.smartcourse.ui.screens.setting.SettingsScreen
 import com.smartcourse.ui.screens.setting.language.LanguageScreen
@@ -207,12 +206,12 @@ private fun UserNavGraph(
         }
 
 
-        composable(
-            route = Screen.ViewUserPosts.route,
-            arguments = listOf(navArgument("userId") { type = NavType.StringType })
-        ) {
-            PostScreen(navController = internalNavController)
-        }
+//        composable(
+//            route = Screen.ViewUserPosts.route,
+//            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+//        ) {
+//            PostScreen(navController = internalNavController)
+//        }
 
         composable(Screen.Profile.route) {
             UserProfileScreen(navController = internalNavController)
