@@ -1,15 +1,10 @@
 # SmartCourse
 
 A modern **EdTech platform** Android app that connects students with tutors. Built with Kotlin and Jetpack Compose.  
-**Course:** Android development — requirements by Prof. Meirav Shakron.
+**Course:** Android development
 
 ---
 
-## Project Link
-
-- **Repository:** [SmartCourseRecode](https://github.com/your-org/SmartCourseRecode) *(replace with your actual GitHub repo URL)*
-
----
 
 ## App Purpose
 
@@ -60,12 +55,11 @@ The app follows the **MVVM (Model–View–ViewModel)** pattern — the **(MV)\*
 
 | Contributor | Features / Areas Developed |
 |-------------|----------------------------|
-| *[Name 1]*   | *e.g. Auth (Email + Google), Login/Register screens, AuthViewModel* |
-| *[Name 2]*   | *e.g. Tutor/Student home layouts, Search (SearchUserScreen, SearchUserViewModel)* |
-| *[Name 3]*   | *e.g. Chat (ChatScreen, ChatViewModel, Camera/Location in chat), FCM* |
-| *[...]*      | *e.g. Profile (UserProfileScreen, ProfileRepository), Theme, Navigation, Posts* |
+| *[Shachar Tsrafati]*   | *e.g. Auth (Email + Google), Login/Register screens, AuthViewModel* |
+| *[Shachar Tsrafati]*   | *e.g. Tutor/Student home layouts, Search (SearchUserScreen, SearchUserViewModel)* |
+| *[Shachar Tsrafati]*   | *e.g. Chat (ChatScreen, ChatViewModel, Camera/Location in chat), FCM* |
+| *[Shachar Tsrafati]*      | *e.g. Profile (UserProfileScreen, ProfileRepository), Theme, Navigation, Posts* |
 
-*Replace the table above with your real names and the exact features each person implemented. You can also add short comments in the code (in English) marking your contributions, e.g. `// [YourName]: Implemented Google Sign-in flow`.*
 
 ---
 
@@ -93,5 +87,3 @@ app/src/main/java/com/smartcourse/
 1. Open the project in Android Studio (or compatible IDE).
 2. Add `google-services.json` (Firebase) and configure Supabase as required.
 3. Build and run on a device or emulator (minSdk 24, targetSdk 35).
-
-All documentation and code comments are in **English**.
